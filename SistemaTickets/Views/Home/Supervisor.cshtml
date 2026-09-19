@@ -1,0 +1,88 @@
+@{
+    ViewData["Title"] = "Panel de Supervisión";
+}
+
+<div class="container-fluid mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">Panel de Supervisión</h2>
+            <small class="text-muted">Bienvenido, @ViewBag.UserName</small>
+        </div>
+        <span class="badge bg-warning text-dark fs-6">Supervisor</span>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-4">
+                    <div class="display-6 mb-3">📋</div>
+                    <h5 class="card-title">Tickets Pendientes</h5>
+                    <p class="card-text text-muted small">Tickets abiertos que requieren asignación o atención.</p>
+                    <a asp-controller="Tickets" asp-action="Index" class="btn btn-warning btn-sm mt-2">Ver tickets</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-4">
+                    <div class="display-6 mb-3">👨‍💻</div>
+                    <h5 class="card-title">Inventario</h5>
+                    <p class="card-text text-muted small">Gestionar activos, herramientas y asignaciones del equipo.</p>
+                    <a asp-controller="Inventario" asp-action="Activos" class="btn btn-warning btn-sm mt-2">Ver inventario</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-4">
+                    <div class="display-6 mb-3">📈</div>
+                    <h5 class="card-title">Seguimiento</h5>
+                    <p class="card-text text-muted small">Estado general de tickets por técnico y prioridad.</p>
+                    <a asp-controller="Supervisor" asp-action="Seguimiento" class="btn btn-warning btn-sm mt-2">Ver seguimiento</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-4 mt-2">
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-4">
+                    <div class="display-6 mb-3">🚗</div>
+                    <h5 class="card-title">Visitas y Repuestos</h5>
+                    <p class="card-text text-muted small">Visitas técnicas, repuestos y control de stock por sede.</p>
+                    <a asp-controller="Campo" asp-action="Visitas" class="btn btn-warning btn-sm mt-2">Ver campo</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-4">
+                    <div class="display-6 mb-3">📊</div>
+                    <h5 class="card-title">Dashboard</h5>
+                    <p class="card-text text-muted small">Métricas generales, tiempo de resolución y desempeño del equipo.</p>
+                    <a asp-controller="Dashboard" asp-action="Index" class="btn btn-warning btn-sm mt-2">Ver dashboard</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-4">
+                    <div class="display-6 mb-3">📊</div>
+                    <h5 class="card-title">Reportes Excel</h5>
+                    <p class="card-text text-muted small">Genera reportes de tickets, técnicos, historial y usuarios exportables a Excel.</p>
+                    <a asp-controller="Reportes" asp-action="Index" class="btn btn-warning btn-sm mt-2">Ver reportes</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

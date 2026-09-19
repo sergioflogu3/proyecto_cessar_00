@@ -1,0 +1,219 @@
+@model SistemaTickets.Models.Tickets.TicketFormViewModel
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Nuevo Ticket";
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    var puedeElegirCliente = role is "Administrador" or "Supervisor" or "Soporte";
+}
+
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Volver</a>
+    <h4 class="mb-0 fw-bold">Nuevo Ticket</h4>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width:760px">
+    <div class="card-body p-4">
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+
+            @if (puedeElegirCliente && Model.Clientes.Any())
+            {
+                <div class="mb-3">
+                    <label asp-for="CreadoPorId" class="form-label fw-semibold">
+                        Solicitante *
+                        <span class="text-muted fw-normal small">(cliente que reporta el problema)</span>
+                    </label>
+                    <select asp-for="CreadoPorId" id="selectSolicitante" class="form-select"
+                            asp-items="@(new SelectList(Model.Clientes, "Id", "NombreCompleto"))"
+                            required>
+                        <option value="">Buscar cliente...</option>
+                    </select>
+                </div>
+            }
+
+            <div class="mb-3">
+                <label asp-for="Titulo" class="form-label fw-semibold">Título *</label>
+                <input asp-for="Titulo" class="form-control" placeholder="Describe brevemente el problema..." />
+                <span asp-validation-for="Titulo" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Descripcion" class="form-label fw-semibold">Descripción *</label>
+                <textarea asp-for="Descripcion" class="form-control" rows="5"
+                          placeholder="Describe el problema con el mayor detalle posible..."></textarea>
+                <span asp-validation-for="Descripcion" class="text-danger small"></span>
+            </div>
+
+            @* Prioridad: visible solo para Soporte/Supervisor/Admin *@
+            @if (role is "Administrador" or "Supervisor" or "Soporte")
+            {
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="PrioridadId" class="form-label fw-semibold">Prioridad *</label>
+                        <select asp-for="PrioridadId" class="form-select"
+                                asp-items="@(new SelectList(Model.Prioridades, "Id", "Nombre"))">
+                            <option value="">Selecciona...</option>
+                        </select>
+                        <span asp-validation-for="PrioridadId" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="CategoriaId" class="form-label fw-semibold">Categoría</label>
+                        <select asp-for="CategoriaId" class="form-select"
+                                asp-items="@(new SelectList(Model.Categorias, "Id", "Nombre"))">
+                            <option value="">Sin categoría</option>
+                        </select>
+                    </div>
+                </div>
+            }
+            else
+            {
+                @* Usuario: prioridad queda null; soporte/admin la asigna al tomar el ticket *@
+                <div class="mb-3">
+                    <label asp-for="CategoriaId" class="form-label fw-semibold">Categoría</label>
+                    <select asp-for="CategoriaId" class="form-select"
+                            asp-items="@(new SelectList(Model.Categorias, "Id", "Nombre"))">
+                        <option value="">Sin categoría</option>
+                    </select>
+                </div>
+            }
+
+            @if (role is "Administrador" or "Supervisor" && Model.Agentes.Any())
+            {
+                <div class="mb-4">
+                    <label asp-for="AsignadoAId" class="form-label fw-semibold">Asignar a</label>
+                    <select asp-for="AsignadoAId" class="form-select"
+                            asp-items="@(new SelectList(Model.Agentes, "Id", "NombreCompleto"))">
+                        <option value="">Sin asignar</option>
+                    </select>
+                </div>
+            }
+
+            @* ── Adjuntos opcionales ──────────────────────────────────────────── *@
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Archivos adjuntos <span class="text-muted fw-normal small">(opcional · máx 10 MB c/u)</span></label>
+                <div id="dropZone" class="border border-2 border-dashed rounded-3 p-4 text-center"
+                     style="border-color:#dee2e6!important;cursor:pointer;transition:border-color .2s,background .2s">
+                    <i class="bi bi-cloud-arrow-up fs-2 text-muted d-block mb-1"></i>
+                    <div class="small text-muted">Arrastra archivos aquí o <span class="text-primary fw-semibold">haz clic para seleccionar</span></div>
+                    <div class="small text-muted mt-1">Imágenes, PDF, Word, Excel, videos, etc.</div>
+                    <input type="file" name="Archivos" id="inputArchivos" multiple class="d-none" />
+                </div>
+                <span asp-validation-for="Archivos" class="text-danger small"></span>
+                <div id="listaArchivos" class="mt-2"></div>
+            </div>
+
+            @* ── Checkbox envío de copia ──────────────────────────────────────── *@
+            <div class="mb-4 p-3 border border-success-subtle rounded-2 bg-success-subtle">
+                <div class="form-check mb-0">
+                    <input asp-for="EnviarCopia" class="form-check-input" type="checkbox" id="chkEnviarCopia" />
+                    <label class="form-check-label fw-semibold small text-success-emphasis" for="chkEnviarCopia">
+                        @if (puedeElegirCliente)
+                        {
+                            <span>Enviar copia del ticket al correo del solicitante</span>
+                        }
+                        else
+                        {
+                            <span>Enviar copia del ticket a mi correo</span>
+                        }
+                    </label>
+                    <div class="text-muted small mt-1">
+                        Se enviará un resumen con el número, título y descripción del ticket.
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4">Crear Ticket</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+<script>
+(function () {
+    const dropZone   = document.getElementById('dropZone');
+    const input      = document.getElementById('inputArchivos');
+    const lista      = document.getElementById('listaArchivos');
+    const MAX_BYTES  = 10 * 1024 * 1024;
+
+    // Abrir selector al hacer clic en la zona
+    dropZone.addEventListener('click', () => input.click());
+
+    // Drag visual feedback
+    dropZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#0d6efd';
+        dropZone.style.background  = 'rgba(13,110,253,0.05)';
+    });
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.style.borderColor = '';
+        dropZone.style.background  = '';
+    });
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.style.borderColor = '';
+        dropZone.style.background  = '';
+        mergeFiles(e.dataTransfer.files);
+    });
+
+    input.addEventListener('change', () => mergeFiles(input.files));
+
+    // Acumular archivos (DataTransfer permite añadir sin reemplazar)
+    let dt = new DataTransfer();
+
+    function mergeFiles(newFiles) {
+        for (const f of newFiles) {
+            if ([...dt.files].some(x => x.name === f.name && x.size === f.size)) continue;
+            dt.items.add(f);
+        }
+        input.files = dt.files;
+        renderLista();
+    }
+
+    function renderLista() {
+        lista.innerHTML = '';
+        [...dt.files].forEach((f, i) => {
+            const overLimit = f.Length > MAX_BYTES;
+            const sizeKb    = (f.size / 1024).toFixed(1);
+            const div       = document.createElement('div');
+            div.className   = `d-flex align-items-center gap-2 px-3 py-2 rounded-2 mb-1 ${f.size > MAX_BYTES ? 'bg-danger-subtle' : 'bg-light'}`;
+            div.innerHTML   = `
+                <i class="bi bi-paperclip text-muted"></i>
+                <span class="small flex-grow-1 text-truncate" title="${f.name}">${f.name}</span>
+                <span class="small text-muted">${sizeKb} KB</span>
+                ${f.size > MAX_BYTES ? '<span class="badge bg-danger">Muy grande</span>' : ''}
+                <button type="button" class="btn btn-link btn-sm p-0 text-danger" onclick="quitarArchivo(${i})" title="Quitar">
+                    <i class="bi bi-x-lg"></i>
+                </button>`;
+            lista.appendChild(div);
+        });
+    }
+
+    window.quitarArchivo = function (index) {
+        const newDt = new DataTransfer();
+        [...dt.files].forEach((f, i) => { if (i !== index) newDt.items.add(f); });
+        dt = newDt;
+        input.files = dt.files;
+        renderLista();
+    };
+})();
+</script>
+    @if (puedeElegirCliente)
+    {
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <script>
+            $('#selectSolicitante').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Buscar cliente...',
+                allowClear: true,
+                width: '100%'
+            });
+        </script>
+    }
+}

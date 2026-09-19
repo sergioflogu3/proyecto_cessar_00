@@ -1,0 +1,73 @@
+@model SistemaTickets.Models.Campo.RepuestoFormViewModel
+@{
+    ViewData["Title"] = Model.EsEdicion ? "Editar Repuesto" : "Nuevo Repuesto";
+}
+
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a asp-action="Repuestos" class="btn btn-outline-secondary btn-sm">← Volver</a>
+    <h4 class="mb-0 fw-bold">@ViewData["Title"]</h4>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width:700px">
+    <div class="card-body p-4">
+        <form asp-action="@(Model.EsEdicion ? "RepuestoEdit" : "RepuestoCreate")" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label asp-for="Nombre" class="form-label fw-semibold">Nombre *</label>
+                <input asp-for="Nombre" class="form-control" placeholder="Nombre del repuesto..." />
+                <span asp-validation-for="Nombre" class="text-danger small"></span>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="Codigo" class="form-label fw-semibold">Código</label>
+                    <input asp-for="Codigo" class="form-control" placeholder="Ej: REP-001" />
+                    <span asp-validation-for="Codigo" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Categoria" class="form-label fw-semibold">Categoría *</label>
+                    <select asp-for="Categoria" class="form-select"
+                            asp-items="@(new SelectList(SistemaTickets.Domain.Entities.Repuesto.Categorias))">
+                        <option value="">Seleccionar...</option>
+                    </select>
+                    <span asp-validation-for="Categoria" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="UnidadMedida" class="form-label fw-semibold">Unidad de medida *</label>
+                    <select asp-for="UnidadMedida" class="form-select"
+                            asp-items="@(new SelectList(SistemaTickets.Domain.Entities.Repuesto.UnidadesMedida))">
+                    </select>
+                    <span asp-validation-for="UnidadMedida" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="PrecioUnitario" class="form-label fw-semibold">Precio unitario</label>
+                    <input asp-for="PrecioUnitario" type="number" step="0.01" min="0" class="form-control" />
+                    <span asp-validation-for="PrecioUnitario" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Descripcion" class="form-label fw-semibold">Descripción</label>
+                <textarea asp-for="Descripcion" class="form-control" rows="3"
+                          placeholder="Descripción detallada del repuesto..."></textarea>
+                <span asp-validation-for="Descripcion" class="text-danger small"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4">
+                    @(Model.EsEdicion ? "Guardar cambios" : "Registrar repuesto")
+                </button>
+                <a asp-action="Repuestos" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

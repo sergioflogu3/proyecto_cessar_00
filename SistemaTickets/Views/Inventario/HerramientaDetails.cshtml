@@ -1,0 +1,279 @@
+@model SistemaTickets.Domain.Entities.Herramienta
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = $"Herramienta #{Model.Id}";
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    var esAdminOSupervisor = role is "Administrador" or "Supervisor";
+    var asignacionActual = Model.Asignaciones.FirstOrDefault(a => a.Activa);
+}
+
+@Html.AntiForgeryToken()
+
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <a asp-action="Herramientas" class="btn btn-outline-secondary btn-sm">← Herramientas</a>
+            <span class="text-muted small">Herramienta #@Model.Id</span>
+        </div>
+        <h4 class="mb-1 fw-bold">@Model.Nombre</h4>
+        <div class="d-flex gap-2 flex-wrap">
+            <span class="badge bg-secondary">@Model.Tipo</span>
+            @{
+                var estadoColor = Model.Estado switch
+                {
+                    "Disponible"    => "success",
+                    "Asignada"      => "primary",
+                    "En Reparación" => "warning",
+                    "Baja"          => "danger",
+                    _               => "secondary"
+                };
+            }
+            <span class="badge bg-@estadoColor">@Model.Estado</span>
+            @if (!string.IsNullOrEmpty(Model.Codigo))
+            {
+                <span class="badge bg-light text-dark border">@Model.Codigo</span>
+            }
+        </div>
+    </div>
+    @if (esAdminOSupervisor)
+    {
+        <div class="d-flex gap-2 flex-wrap">
+            <a asp-action="HerramientaEdit" asp-route-id="@Model.Id"
+               class="btn btn-outline-secondary btn-sm">Editar</a>
+            @if (Model.Estado == "Disponible")
+            {
+                <button class="btn btn-success btn-sm" id="btnAsignarH">Asignar</button>
+            }
+            else if (Model.Estado == "Asignada")
+            {
+                <button class="btn btn-warning btn-sm" id="btnDevolver">Devolver</button>
+            }
+        </div>
+    }
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+
+        @* Historial de asignaciones *@
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Historial de asignaciones (@Model.Asignaciones.Count)</span>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.Asignaciones.Any())
+                {
+                    <div class="text-center text-muted py-4">Sin asignaciones registradas.</div>
+                }
+                else
+                {
+                    @foreach (var a in Model.Asignaciones.OrderByDescending(x => x.FechaAsignacion))
+                    {
+                        <div class="border-bottom px-4 py-3 @(a.Activa ? "bg-primary bg-opacity-10" : "")">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-semibold small">
+                                    @a.Tecnico.NombreCompleto
+                                    @if (a.Activa)
+                                    {
+                                        <span class="badge bg-primary ms-1">Activa</span>
+                                    }
+                                </span>
+                                <span class="text-muted small">
+                                    @a.FechaAsignacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                </span>
+                            </div>
+                            <div class="small text-muted">
+                                Asignado por: @a.AsignadoPor.NombreCompleto
+                                @if (a.FechaDevolucion.HasValue)
+                                {
+                                    <span>· Devuelto: @a.FechaDevolucion.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                }
+                            </div>
+                            @if (!string.IsNullOrEmpty(a.Observaciones))
+                            {
+                                <div class="small text-muted mt-1">Obs: @a.Observaciones</div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        @* Movimientos *@
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Historial de movimientos</span>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.Movimientos.Any())
+                {
+                    <div class="text-center text-muted py-4">Sin movimientos.</div>
+                }
+                else
+                {
+                    @foreach (var m in Model.Movimientos)
+                    {
+                        <div class="d-flex align-items-start gap-3 border-bottom px-4 py-3">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center
+                                        justify-content-center flex-shrink-0"
+                                 style="width:32px;height:32px;font-size:.7rem">
+                                @m.Usuario.Nombre[0]@m.Usuario.Apellido[0]
+                            </div>
+                            <div>
+                                <div class="small fw-semibold">
+                                    @m.Usuario.NombreCompleto
+                                    <span class="text-muted fw-normal">— @m.TipoMovimiento</span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(m.Descripcion))
+                                {<div class="small text-muted">@m.Descripcion</div>}
+                                @if (!string.IsNullOrEmpty(m.ValorAnterior) || !string.IsNullOrEmpty(m.ValorNuevo))
+                                {
+                                    <div class="small">
+                                        @if (!string.IsNullOrEmpty(m.ValorAnterior))
+                                        {<span class="text-danger">@m.ValorAnterior</span><span> → </span>}
+                                        @if (!string.IsNullOrEmpty(m.ValorNuevo))
+                                        {<span class="text-success">@m.ValorNuevo</span>}
+                                    </div>
+                                }
+                                <div class="text-muted" style="font-size:.75rem">
+                                    @m.FechaMovimiento.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Información</span>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <span class="text-muted small">Código</span>
+                    <span class="small fw-semibold">@(Model.Codigo ?? "—")</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <span class="text-muted small">Tipo</span>
+                    <span class="small">@Model.Tipo</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <span class="text-muted small">Asignada a</span>
+                    <span class="small">@(asignacionActual?.Tecnico.NombreCompleto ?? "—")</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <span class="text-muted small">Registrada</span>
+                    <span class="small">@Model.CreadoEn.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                </li>
+            </ul>
+            @if (!string.IsNullOrEmpty(Model.Descripcion))
+            {
+                <div class="card-footer bg-white">
+                    <p class="small text-muted mb-0" style="white-space:pre-wrap">@Model.Descripcion</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (esAdminOSupervisor)
+{
+    <div class="modal fade" id="asignarHModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Asignar herramienta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Técnico</label>
+                        <select id="selectTecnicoH" class="form-select"></select>
+                    </div>
+                    <label class="form-label fw-semibold">Observaciones</label>
+                    <textarea id="txtAsignarObs" class="form-control" rows="2"></textarea>
+                    <div id="errorAsignarH" class="alert alert-danger py-2 small d-none mt-2"></div>
+                </div>
+                <div class="modal-footer border-0 pt-0 gap-2">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success px-4" id="confirmarAsignarH">Asignar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="devolverHModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Registrar devolución</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>¿Confirma la devolución de <strong>@Model.Nombre</strong>?</p>
+                    <label class="form-label fw-semibold">Observaciones</label>
+                    <textarea id="txtDevolverObs" class="form-control" rows="2"></textarea>
+                </div>
+                <div class="modal-footer border-0 pt-0 gap-2">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-warning px-4" id="confirmarDevolverH">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+    const csrf = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    const hId  = @Model.Id;
+
+    const btnAsignarH = document.getElementById('btnAsignarH');
+    if (btnAsignarH) {
+        btnAsignarH.addEventListener('click', async () => {
+            const select = document.getElementById('selectTecnicoH');
+            select.innerHTML = '<option value="">Cargando...</option>';
+            const res  = await fetch('/Inventario/GetTecnicos');
+            const data = await res.json();
+            select.innerHTML = '<option value="">Selecciona técnico...</option>';
+            data.forEach(u => { const o = document.createElement('option'); o.value=u.id; o.text=u.nombre; select.appendChild(o); });
+            new bootstrap.Modal(document.getElementById('asignarHModal')).show();
+        });
+
+        document.getElementById('confirmarAsignarH').addEventListener('click', async () => {
+            const tecnicoId     = document.getElementById('selectTecnicoH').value;
+            const observaciones = document.getElementById('txtAsignarObs').value;
+            const errBox        = document.getElementById('errorAsignarH');
+            if (!tecnicoId) { errBox.textContent='Selecciona técnico.'; errBox.classList.remove('d-none'); return; }
+            errBox.classList.add('d-none');
+            const fd = new FormData();
+            fd.append('herramientaId', hId); fd.append('tecnicoId', tecnicoId);
+            fd.append('observaciones', observaciones); fd.append('__RequestVerificationToken', csrf);
+            const res = await fetch('/Inventario/AsignarHerramienta', { method: 'POST', body: fd });
+            const r   = await res.json();
+            r.success ? window.location.reload() : (errBox.textContent = r.message, errBox.classList.remove('d-none'));
+        });
+    }
+
+    const btnDevolver = document.getElementById('btnDevolver');
+    if (btnDevolver) {
+        btnDevolver.addEventListener('click', () =>
+            new bootstrap.Modal(document.getElementById('devolverHModal')).show());
+
+        document.getElementById('confirmarDevolverH').addEventListener('click', async () => {
+            bootstrap.Modal.getInstance(document.getElementById('devolverHModal')).hide();
+            const fd = new FormData();
+            fd.append('herramientaId', hId);
+            fd.append('observaciones', document.getElementById('txtDevolverObs').value);
+            fd.append('__RequestVerificationToken', csrf);
+            const res = await fetch('/Inventario/DevolverHerramienta', { method: 'POST', body: fd });
+            const r   = await res.json();
+            r.success ? window.location.reload() : alert(r.message ?? 'Error');
+        });
+    }
+</script>
+}

@@ -1,0 +1,231 @@
+@model SistemaTickets.Domain.Entities.Repuesto
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = $"Repuesto: {Model.Nombre}";
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    var esAdminOSupervisor = role is "Administrador" or "Supervisor";
+    var stocks  = ViewBag.Stocks  as IEnumerable<SistemaTickets.Domain.Entities.StockRepuesto> ?? Enumerable.Empty<SistemaTickets.Domain.Entities.StockRepuesto>();
+    var sedes   = ViewBag.Sedes   as IEnumerable<SistemaTickets.Domain.Entities.Sede>          ?? Enumerable.Empty<SistemaTickets.Domain.Entities.Sede>();
+}
+
+@Html.AntiForgeryToken()
+
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <a asp-action="Repuestos" class="btn btn-outline-secondary btn-sm">← Repuestos</a>
+            <span class="text-muted small">Repuesto #@Model.Id</span>
+        </div>
+        <h4 class="mb-1 fw-bold">@Model.Nombre</h4>
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+            <span class="badge bg-secondary">@Model.Categoria</span>
+            @if (!string.IsNullOrEmpty(Model.Codigo))
+            {
+                <span class="badge bg-light text-dark border">@Model.Codigo</span>
+            }
+            <span class="text-muted small">@Model.UnidadMedida</span>
+        </div>
+    </div>
+    @if (esAdminOSupervisor)
+    {
+        <div class="d-flex gap-2">
+            <a asp-action="RepuestoEdit" asp-route-id="@Model.Id"
+               class="btn btn-outline-secondary btn-sm">Editar</a>
+            @if (sedes.Any())
+            {
+                <button class="btn btn-success btn-sm" id="btnAjustarStock">Ajustar Stock</button>
+            }
+        </div>
+    }
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+
+        @* Stock por sede *@
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Stock por sede</span>
+            </div>
+            <div class="card-body p-0">
+                @if (!stocks.Any())
+                {
+                    <div class="text-center text-muted py-4">Sin stock registrado.</div>
+                }
+                else
+                {
+                    @foreach (var s in stocks)
+                    {
+                        var bajoBadge = s.BajoMinimo ? "bg-danger" : "bg-success";
+                        <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3">
+                            <div>
+                                <div class="fw-semibold small">@s.Sede.Nombre</div>
+                                <div class="text-muted small">Mínimo: @s.CantidadMinima @Model.UnidadMedida</div>
+                            </div>
+                            <span class="badge @bajoBadge fs-6">
+                                @s.CantidadActual @Model.UnidadMedida
+                                @if (s.BajoMinimo) {<span> ⚠</span>}
+                            </span>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        @* Historial de consumos *@
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Últimos consumos (@Model.Consumos.Count)</span>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.Consumos.Any())
+                {
+                    <div class="text-center text-muted py-4">Sin consumos registrados.</div>
+                }
+                else
+                {
+                    @foreach (var c in Model.Consumos.OrderByDescending(x => x.FechaConsumo).Take(20))
+                    {
+                        <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3">
+                            <div>
+                                <div class="fw-semibold small">@c.Tecnico.NombreCompleto</div>
+                                <div class="text-muted small">
+                                    @c.FechaConsumo.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                    @if (c.Visita is not null)
+                                    {
+                                        <span>· <a asp-controller="Campo" asp-action="VisitaDetails" asp-route-id="@c.Visita.Id">Visita #@c.Visita.Id</a></span>
+                                    }
+                                    @if (c.Ticket is not null)
+                                    {
+                                        <span>· <a asp-controller="Tickets" asp-action="Details" asp-route-id="@c.Ticket.Id">Ticket #@c.Ticket.Id</a></span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(c.Observaciones))
+                                {<div class="text-muted small">@c.Observaciones</div>}
+                            </div>
+                            <span class="badge bg-primary fs-6">@c.Cantidad @Model.UnidadMedida</span>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Información</span>
+            </div>
+            <ul class="list-group list-group-flush">
+                @if (!string.IsNullOrEmpty(Model.Descripcion))
+                {
+                    <li class="list-group-item px-4 py-2">
+                        <div class="text-muted small mb-1">Descripción</div>
+                        <div class="small">@Model.Descripcion</div>
+                    </li>
+                }
+                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <span class="text-muted small">Categoría</span>
+                    <span class="small fw-semibold">@Model.Categoria</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <span class="text-muted small">Unidad</span>
+                    <span class="small">@Model.UnidadMedida</span>
+                </li>
+                @if (Model.PrecioUnitario > 0)
+                {
+                    <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                        <span class="text-muted small">Precio unitario</span>
+                        <span class="small fw-semibold">@Model.PrecioUnitario.ToString("C")</span>
+                    </li>
+                }
+                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <span class="text-muted small">Total consumos</span>
+                    <span class="small">@Model.Consumos.Count</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+@* Modal ajustar stock *@
+@if (esAdminOSupervisor)
+{
+    <div class="modal fade" id="stockModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">Ajustar Stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Sede</label>
+                        <select id="selectSede" class="form-select">
+                            @foreach (var s in sedes)
+                            {
+                                <option value="@s.Id">@s.Nombre</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tipo de movimiento</label>
+                        <select id="selectTipo" class="form-select">
+                            <option value="true">Entrada (sumar)</option>
+                            <option value="false">Salida (restar)</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">Cantidad</label>
+                        <input type="number" id="txtCantidad" class="form-control" value="1" min="1" />
+                    </div>
+                    <div id="errorStock" class="alert alert-danger py-2 small d-none mt-2"></div>
+                </div>
+                <div class="modal-footer border-0 pt-0 gap-2">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success px-4" id="confirmarStock">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+    const csrf      = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    const repuestoId = @Model.Id;
+
+    const btnAjustar = document.getElementById('btnAjustarStock');
+    if (btnAjustar) {
+        btnAjustar.addEventListener('click', () => {
+            new bootstrap.Modal(document.getElementById('stockModal')).show();
+        });
+
+        document.getElementById('confirmarStock').addEventListener('click', async () => {
+            const sedeId    = document.getElementById('selectSede').value;
+            const esEntrada = document.getElementById('selectTipo').value;
+            const cantidad  = document.getElementById('txtCantidad').value;
+            const errBox    = document.getElementById('errorStock');
+
+            if (!cantidad || cantidad < 1) {
+                errBox.textContent = 'La cantidad debe ser mayor a 0.';
+                errBox.classList.remove('d-none');
+                return;
+            }
+            errBox.classList.add('d-none');
+
+            const fd = new FormData();
+            fd.append('repuestoId', repuestoId);
+            fd.append('sedeId', sedeId);
+            fd.append('cantidad', cantidad);
+            fd.append('esEntrada', esEntrada);
+            fd.append('__RequestVerificationToken', csrf);
+
+            const res = await fetch('/Campo/AjustarStock', { method: 'POST', body: fd });
+            const r   = await res.json();
+            r.success ? window.location.reload() : (errBox.textContent = r.message, errBox.classList.remove('d-none'));
+        });
+    }
+</script>
+}

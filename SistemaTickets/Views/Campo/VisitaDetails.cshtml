@@ -1,0 +1,273 @@
+@model SistemaTickets.Domain.Entities.VisitaTecnica
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = $"Visita #{Model.Id}";
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+    var esPropietario = Model.Tecnico.Id == userId;
+    var esAdminOSupervisor = role is "Administrador" or "Supervisor";
+    var puedeEditar = esAdminOSupervisor || (esPropietario && Model.Estado != "Completada");
+}
+
+@Html.AntiForgeryToken()
+
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <a asp-action="Visitas" class="btn btn-outline-secondary btn-sm">← Visitas</a>
+            <span class="text-muted small">Visita #@Model.Id</span>
+        </div>
+        <h4 class="mb-1 fw-bold">@Model.Direccion</h4>
+        <div class="d-flex gap-2 flex-wrap align-items-center">
+            @{
+                var estadoColor = Model.Estado switch
+                {
+                    "Programada" => "secondary",
+                    "En Curso"   => "primary",
+                    "Completada" => "success",
+                    "Cancelada"  => "danger",
+                    _            => "secondary"
+                };
+            }
+            <span class="badge bg-@estadoColor fs-6">@Model.Estado</span>
+            @if (Model.Ticket is not null)
+            {
+                <a asp-controller="Tickets" asp-action="Details" asp-route-id="@Model.Ticket.Id"
+                   class="badge bg-info text-decoration-none">Ticket #@Model.Ticket.Id</a>
+            }
+        </div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        @if (puedeEditar)
+        {
+            <a asp-action="VisitaEdit" asp-route-id="@Model.Id"
+               class="btn btn-outline-secondary btn-sm">Editar</a>
+        }
+        @if (Model.Estado != "Completada" && Model.Estado != "Cancelada")
+        {
+            @if (esAdminOSupervisor || esPropietario)
+            {
+                <div class="dropdown">
+                    <button class="btn btn-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                        Cambiar estado
+                    </button>
+                    <ul class="dropdown-menu">
+                        @foreach (var e in SistemaTickets.Domain.Entities.VisitaTecnica.Estados
+                            .Where(s => s != Model.Estado))
+                        {
+                            <li>
+                                <button class="dropdown-item" onclick="cambiarEstado('@e')">@e</button>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+
+        @* Descripción *@
+        @if (!string.IsNullOrEmpty(Model.Descripcion))
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Descripción del trabajo</span>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0 small" style="white-space:pre-wrap">@Model.Descripcion</p>
+                </div>
+            </div>
+        }
+
+        @* Consumos registrados *@
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Repuestos utilizados (@Model.Consumos.Count)</span>
+                @if (Model.Estado != "Cancelada")
+                {
+                    <button class="btn btn-outline-success btn-sm" id="btnAgregarConsumo">
+                        + Registrar consumo
+                    </button>
+                }
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.Consumos.Any())
+                {
+                    <div class="text-center text-muted py-4">Sin repuestos registrados.</div>
+                }
+                else
+                {
+                    @foreach (var c in Model.Consumos)
+                    {
+                        <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3">
+                            <div>
+                                <div class="fw-semibold small">
+                                    @c.Repuesto.Nombre
+                                    @if (!string.IsNullOrEmpty(c.Repuesto.Codigo))
+                                    {<span class="badge bg-light text-dark border ms-1">@c.Repuesto.Codigo</span>}
+                                </div>
+                                <div class="text-muted small">
+                                    @c.FechaConsumo.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                    · Por: @c.Tecnico.NombreCompleto
+                                </div>
+                                @if (!string.IsNullOrEmpty(c.Observaciones))
+                                {<div class="text-muted small">@c.Observaciones</div>}
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary fs-6">@c.Cantidad @c.Repuesto.UnidadMedida</span>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Información</span>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <span class="text-muted small">Técnico</span>
+                    <span class="small fw-semibold">@Model.Tecnico.NombreCompleto</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <span class="text-muted small">Fecha visita</span>
+                    <span class="small">@Model.FechaVisita.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <span class="text-muted small">Programada el</span>
+                    <span class="small">@Model.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                </li>
+                @if (!string.IsNullOrEmpty(Model.Observaciones))
+                {
+                    <li class="list-group-item px-4 py-2">
+                        <div class="text-muted small mb-1">Observaciones</div>
+                        <div class="small">@Model.Observaciones</div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+@* Modal consumo *@
+<div class="modal fade" id="consumoModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Registrar repuesto utilizado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Buscar repuesto</label>
+                    <input type="text" id="buscarRepuesto" class="form-control" placeholder="Nombre o código..." />
+                    <select id="selectRepuesto" class="form-select mt-2" size="4" style="height:auto"></select>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label fw-semibold">Cantidad</label>
+                        <input type="number" id="txtCantidad" class="form-control" value="1" min="1" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-semibold">Descontar de sede</label>
+                        <select id="selectSede" class="form-select">
+                            <option value="">No descontar</option>
+                        </select>
+                    </div>
+                </div>
+                <label class="form-label fw-semibold">Observaciones</label>
+                <input type="text" id="txtConsumoObs" class="form-control" />
+                <div id="errorConsumo" class="alert alert-danger py-2 small d-none mt-2"></div>
+            </div>
+            <div class="modal-footer border-0 pt-0 gap-2">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success px-4" id="confirmarConsumo">Registrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const csrf    = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    const visitaId = @Model.Id;
+
+    // Cambiar estado
+    async function cambiarEstado(estado) {
+        const fd = new FormData();
+        fd.append('visitaId', visitaId); fd.append('estado', estado);
+        fd.append('__RequestVerificationToken', csrf);
+        const res = await fetch('/Campo/VisitaCambiarEstado', { method: 'POST', body: fd });
+        const r   = await res.json();
+        r.success ? window.location.reload() : alert(r.message ?? 'Error');
+    }
+
+    // Modal consumo
+    const btnAgregar = document.getElementById('btnAgregarConsumo');
+    if (btnAgregar) {
+        let buscarTimer;
+        btnAgregar.addEventListener('click', async () => {
+            // cargar sedes
+            const sedeSelect = document.getElementById('selectSede');
+            const resS = await fetch('/Inventario/GetAreasBySede?sedeId=0');
+            // cargamos sedes directamente
+            const resS2 = await fetch('/Campo/GetRepuestosSelect?search=');
+            // Better: load sedes from a known endpoint
+            // We'll populate sedes from Inventario GetTecnicos or add a dedicated endpoint
+            // For now, populate repuestos
+            cargarRepuestos('');
+            new bootstrap.Modal(document.getElementById('consumoModal')).show();
+        });
+
+        // Buscador de repuestos
+        document.getElementById('buscarRepuesto').addEventListener('input', function () {
+            clearTimeout(buscarTimer);
+            buscarTimer = setTimeout(() => cargarRepuestos(this.value), 300);
+        });
+
+        async function cargarRepuestos(q) {
+            const res  = await fetch(`/Campo/GetRepuestosSelect?search=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            const sel  = document.getElementById('selectRepuesto');
+            sel.innerHTML = '';
+            data.forEach(r => {
+                const o = document.createElement('option');
+                o.value = r.id;
+                o.text  = `${r.nombre}${r.codigo ? ' [' + r.codigo + ']' : ''} (${r.unidad})`;
+                sel.appendChild(o);
+            });
+        }
+
+        document.getElementById('confirmarConsumo').addEventListener('click', async () => {
+            const repuestoId  = document.getElementById('selectRepuesto').value;
+            const cantidad    = document.getElementById('txtCantidad').value;
+            const sedeId      = document.getElementById('selectSede').value || null;
+            const obs         = document.getElementById('txtConsumoObs').value;
+            const errBox      = document.getElementById('errorConsumo');
+
+            if (!repuestoId) { errBox.textContent = 'Selecciona un repuesto.'; errBox.classList.remove('d-none'); return; }
+            if (!cantidad || cantidad < 1) { errBox.textContent = 'Cantidad inválida.'; errBox.classList.remove('d-none'); return; }
+            errBox.classList.add('d-none');
+
+            const fd = new FormData();
+            fd.append('repuestoId', repuestoId); fd.append('cantidad', cantidad);
+            fd.append('visitaId', visitaId);
+            if (sedeId) fd.append('sedeId', sedeId);
+            if (obs) fd.append('observaciones', obs);
+            fd.append('__RequestVerificationToken', csrf);
+
+            const res = await fetch('/Campo/RegistrarConsumo', { method: 'POST', body: fd });
+            const r   = await res.json();
+            r.success ? window.location.reload() : (errBox.textContent = r.message, errBox.classList.remove('d-none'));
+        });
+    }
+</script>
+}

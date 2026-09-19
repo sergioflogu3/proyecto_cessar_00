@@ -1,0 +1,143 @@
+@model SistemaTickets.Models.Campo.VisitaIndexViewModel
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Visitas Técnicas";
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold">Visitas Técnicas</h4>
+        <small class="text-muted">
+            Mostrando @Model.DesdeRegistro–@Model.HastaRegistro de @Model.TotalRegistros visitas
+        </small>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Repuestos" class="btn btn-outline-primary btn-sm">Ver Repuestos</a>
+        <a asp-action="VisitaCreate" class="btn btn-primary btn-sm px-3">+ Nueva Visita</a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form method="get" asp-action="Visitas" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small text-muted mb-1">Buscar dirección</label>
+                <input type="text" name="search" value="@Model.Search"
+                       class="form-control form-control-sm" placeholder="Dirección o descripción..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Estado</label>
+                <select name="estado" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    @foreach (var e in SistemaTickets.Domain.Entities.VisitaTecnica.Estados)
+                    {
+                        <option value="@e" selected="@(Model.FiltroEstado == e)">@e</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100">Buscar</button>
+            </div>
+            <div class="col-md-2">
+                <a asp-action="Visitas" class="btn btn-outline-secondary btn-sm w-100">Limpiar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4" style="width:50px">#</th>
+                        <th>Dirección</th>
+                        <th>Fecha visita</th>
+                        <th>Estado</th>
+                        @if (role is "Administrador" or "Supervisor")
+                        {
+                            <th>Técnico</th>
+                        }
+                        <th>Ticket</th>
+                        <th class="text-end pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Visitas.Any())
+                    {
+                        <tr><td colspan="7" class="text-center py-5 text-muted">No se encontraron visitas.</td></tr>
+                    }
+                    else
+                    {
+                        var num = Model.DesdeRegistro;
+                        @foreach (var v in Model.Visitas)
+                        {
+                            var estadoColor = v.Estado switch
+                            {
+                                "Programada"  => "secondary",
+                                "En Curso"    => "primary",
+                                "Completada"  => "success",
+                                "Cancelada"   => "danger",
+                                _             => "secondary"
+                            };
+                            <tr>
+                                <td class="ps-4 text-muted small">@num</td>
+                                <td>
+                                    <a asp-action="VisitaDetails" asp-route-id="@v.Id"
+                                       class="fw-semibold text-decoration-none text-dark">
+                                        @v.Direccion
+                                    </a>
+                                </td>
+                                <td class="small">@v.FechaVisita.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td><span class="badge bg-@estadoColor">@v.Estado</span></td>
+                                @if (role is "Administrador" or "Supervisor")
+                                {
+                                    <td class="small text-muted">@v.Tecnico.NombreCompleto</td>
+                                }
+                                <td class="small text-muted">
+                                    @(v.Ticket is null ? "—" : $"#{v.Ticket.Id}")
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a asp-action="VisitaDetails" asp-route-id="@v.Id"
+                                       class="btn btn-outline-primary btn-sm">Ver</a>
+                                </td>
+                            </tr>
+                            num++;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (Model.TotalPaginas > 1)
+{
+    <nav class="mt-4 d-flex justify-content-center">
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
+                <a class="page-link" href="?page=@(Model.PaginaActual-1)&search=@Model.Search&estado=@Model.FiltroEstado">‹</a>
+            </li>
+            @for (int i = 1; i <= Model.TotalPaginas; i++)
+            {
+                <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+                    <a class="page-link" href="?page=@i&search=@Model.Search&estado=@Model.FiltroEstado">@i</a>
+                </li>
+            }
+            <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
+                <a class="page-link" href="?page=@(Model.PaginaActual+1)&search=@Model.Search&estado=@Model.FiltroEstado">›</a>
+            </li>
+        </ul>
+    </nav>
+}

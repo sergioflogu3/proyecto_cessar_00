@@ -1,0 +1,149 @@
+@model SistemaTickets.Models.Campo.RepuestoIndexViewModel
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Repuestos";
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    var esAdminOSupervisor = role is "Administrador" or "Supervisor";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold">Repuestos</h4>
+        <small class="text-muted">
+            Mostrando @Model.DesdeRegistro–@Model.HastaRegistro de @Model.TotalRegistros repuestos
+        </small>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Visitas" class="btn btn-outline-primary btn-sm">Ver Visitas</a>
+        @if (esAdminOSupervisor)
+        {
+            <a asp-action="RepuestoCreate" class="btn btn-primary btn-sm px-3">+ Nuevo Repuesto</a>
+        }
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (Model.StockAlerta.Any())
+{
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+        <span class="fw-semibold">⚠ Stock bajo mínimo:</span>
+        @foreach (var s in Model.StockAlerta)
+        {
+            <span class="badge bg-warning text-dark">@s.Repuesto.Nombre (@s.CantidadActual/@s.CantidadMinima)</span>
+        }
+    </div>
+}
+
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form method="get" asp-action="Repuestos" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small text-muted mb-1">Buscar repuesto</label>
+                <input type="text" name="search" value="@Model.Search"
+                       class="form-control form-control-sm" placeholder="Nombre o código..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Categoría</label>
+                <select name="categoria" class="form-select form-select-sm">
+                    <option value="">Todas</option>
+                    @foreach (var c in SistemaTickets.Domain.Entities.Repuesto.Categorias)
+                    {
+                        <option value="@c" selected="@(Model.FiltroCategoria == c)">@c</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100">Buscar</button>
+            </div>
+            <div class="col-md-2">
+                <a asp-action="Repuestos" class="btn btn-outline-secondary btn-sm w-100">Limpiar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4" style="width:50px">#</th>
+                        <th>Nombre</th>
+                        <th>Código</th>
+                        <th>Categoría</th>
+                        <th>Unidad</th>
+                        <th>Precio</th>
+                        <th class="text-end pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Repuestos.Any())
+                    {
+                        <tr><td colspan="7" class="text-center py-5 text-muted">No se encontraron repuestos.</td></tr>
+                    }
+                    else
+                    {
+                        var num = Model.DesdeRegistro;
+                        @foreach (var r in Model.Repuestos)
+                        {
+                            var tieneAlerta = Model.StockAlerta.Any(s => s.Repuesto.Id == r.Id);
+                            <tr>
+                                <td class="ps-4 text-muted small">@num</td>
+                                <td>
+                                    <a asp-action="RepuestoDetails" asp-route-id="@r.Id"
+                                       class="fw-semibold text-decoration-none text-dark">
+                                        @r.Nombre
+                                        @if (tieneAlerta)
+                                        {
+                                            <span class="badge bg-warning text-dark ms-1 small">Stock bajo</span>
+                                        }
+                                    </a>
+                                </td>
+                                <td class="small text-muted">@(r.Codigo ?? "—")</td>
+                                <td class="small">@r.Categoria</td>
+                                <td class="small">@r.UnidadMedida</td>
+                                <td class="small">
+                                    @(r.PrecioUnitario > 0 ? r.PrecioUnitario.ToString("C") : "—")
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a asp-action="RepuestoDetails" asp-route-id="@r.Id"
+                                       class="btn btn-outline-primary btn-sm">Ver</a>
+                                </td>
+                            </tr>
+                            num++;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (Model.TotalPaginas > 1)
+{
+    <nav class="mt-4 d-flex justify-content-center">
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
+                <a class="page-link" href="?page=@(Model.PaginaActual-1)&search=@Model.Search&categoria=@Model.FiltroCategoria">‹</a>
+            </li>
+            @for (int i = 1; i <= Model.TotalPaginas; i++)
+            {
+                <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+                    <a class="page-link" href="?page=@i&search=@Model.Search&categoria=@Model.FiltroCategoria">@i</a>
+                </li>
+            }
+            <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
+                <a class="page-link" href="?page=@(Model.PaginaActual+1)&search=@Model.Search&categoria=@Model.FiltroCategoria">›</a>
+            </li>
+        </ul>
+    </nav>
+}

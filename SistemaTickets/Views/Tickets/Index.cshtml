@@ -1,0 +1,182 @@
+@model SistemaTickets.Models.Tickets.TicketIndexViewModel
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Tickets";
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+}
+
+@Html.AntiForgeryToken()
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold">Tickets de Soporte</h4>
+        <small class="text-muted">
+            Mostrando @Model.DesdeRegistro–@Model.HastaRegistro de @Model.TotalRegistros tickets
+        </small>
+    </div>
+    <a asp-action="Create" class="btn btn-primary btn-sm px-3">+ Nuevo Ticket</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@* Filtros *@
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form method="get" asp-action="Index" class="row g-2 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small text-muted mb-1">Buscar</label>
+                <input type="text" name="search" value="@Model.Search"
+                       class="form-control form-control-sm"
+                       placeholder="Título o descripción..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Estado</label>
+                <select name="estadoId" class="form-select form-select-sm">
+                    <option value="">Todos los estados</option>
+                    @foreach (var e in Model.Estados)
+                    {
+                        <option value="@e.Id" selected="@(Model.FiltroEstado == e.Id)">@e.Nombre</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Prioridad</label>
+                <select name="prioridadId" class="form-select form-select-sm">
+                    <option value="">Todas</option>
+                    @foreach (var p in Model.Prioridades)
+                    {
+                        <option value="@p.Id" selected="@(Model.FiltroPrioridad == p.Id)">@p.Nombre</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100">Buscar</button>
+            </div>
+            <div class="col-md-1">
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm w-100">✕</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* Tabla *@
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4" style="width:60px">#</th>
+                        <th>Título</th>
+                        <th>Estado</th>
+                        <th>Prioridad</th>
+                        <th>Categoría</th>
+                        @if (role is "Administrador" or "Supervisor")
+                        {
+                            <th>Creado por</th>
+                            <th>Asignado a</th>
+                        }
+                        <th>Creado</th>
+                        <th class="text-end pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Tickets.Any())
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted">
+                                No se encontraron tickets.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var t in Model.Tickets)
+                        {
+                            <tr>
+                                <td class="ps-4 text-muted small">@t.Id</td>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@t.Id"
+                                       class="fw-semibold text-decoration-none text-dark">
+                                        @t.Titulo
+                                    </a>
+                                </td>
+                                <td>
+                                    <span class="badge" style="background-color:@t.Estado.Color">
+                                        @t.Estado.Nombre
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (t.Prioridad != null)
+                                    {
+                                        <span class="badge" style="background-color:@t.Prioridad.Color">
+                                            @t.Prioridad.Nombre
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small fst-italic">Sin prioridad</span>
+                                    }
+                                </td>
+                                <td class="text-muted small">@(t.Categoria?.Nombre ?? "—")</td>
+                                @if (role is "Administrador" or "Supervisor")
+                                {
+                                    <td class="text-muted small">
+                                        @t.CreadoPor.Nombre @t.CreadoPor.Apellido
+                                    </td>
+                                    <td class="text-muted small">
+                                        @(t.AsignadoA is null ? "—" : $"{t.AsignadoA.Nombre} {t.AsignadoA.Apellido}")
+                                    </td>
+                                }
+                                <td class="text-muted small">
+                                    @t.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a asp-action="Details" asp-route-id="@t.Id"
+                                       class="btn btn-outline-primary btn-sm">Ver</a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@* Paginación *@
+@if (Model.TotalPaginas > 1)
+{
+    <nav class="mt-4 d-flex justify-content-center">
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
+                <a class="page-link"
+                   href="?page=@(Model.PaginaActual - 1)&search=@Model.Search&estadoId=@Model.FiltroEstado&prioridadId=@Model.FiltroPrioridad">
+                    ‹ Anterior
+                </a>
+            </li>
+
+            @for (int i = 1; i <= Model.TotalPaginas; i++)
+            {
+                <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+                    <a class="page-link"
+                       href="?page=@i&search=@Model.Search&estadoId=@Model.FiltroEstado&prioridadId=@Model.FiltroPrioridad">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
+                <a class="page-link"
+                   href="?page=@(Model.PaginaActual + 1)&search=@Model.Search&estadoId=@Model.FiltroEstado&prioridadId=@Model.FiltroPrioridad">
+                    Siguiente ›
+                </a>
+            </li>
+        </ul>
+    </nav>
+}

@@ -1,0 +1,6 @@
+@model SistemaTickets.Models.Inventario.ActivoFormViewModel
+@{
+    ViewData["Title"] = "Editar Activo";
+}
+@* Reutiliza el mismo formulario con EsEdicion=true *@
+@await Html.PartialAsync("ActivoCreate", Model)

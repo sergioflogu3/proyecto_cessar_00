@@ -1,0 +1,95 @@
+@model SistemaTickets.Models.Users.UsuarioFormViewModel
+@using SistemaTickets.Domain.Enums
+
+@{
+    ViewData["Title"] = "Nuevo Usuario";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+
+        <div class="d-flex align-items-center mb-4 gap-3">
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Volver</a>
+            <h4 class="mb-0 fw-bold">Nuevo Usuario</h4>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger py-2 small mb-3"></div>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label asp-for="Nombre" class="form-label"></label>
+                            <input asp-for="Nombre" class="form-control" placeholder="Juan" />
+                            <span asp-validation-for="Nombre" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Apellido" class="form-label"></label>
+                            <input asp-for="Apellido" class="form-control" placeholder="Pérez" />
+                            <span asp-validation-for="Apellido" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Username" class="form-label"></label>
+                            <input asp-for="Username" class="form-control"
+                                   placeholder="jperez" autocomplete="username" />
+                            <span asp-validation-for="Username" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Password" class="form-label"></label>
+                            <input asp-for="Password" class="form-control"
+                                   autocomplete="new-password" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control"
+                                   placeholder="juan@empresa.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="NumeroTelefono" class="form-label"></label>
+                            <input asp-for="NumeroTelefono" class="form-control"
+                                   placeholder="+502 5555 1234" />
+                            <span asp-validation-for="NumeroTelefono" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Rol" class="form-label"></label>
+                            <select asp-for="Rol" class="form-select">
+                                <option value="@((int)RolUsuario.Administrador)">Administrador</option>
+                                <option value="@((int)RolUsuario.Supervisor)">Supervisor</option>
+                                <option value="@((int)RolUsuario.Soporte)">Soporte</option>
+                                <option value="@((int)RolUsuario.Usuario)" selected>Usuario</option>
+                            </select>
+                            <span asp-validation-for="Rol" class="text-danger small"></span>
+                        </div>
+
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary px-4">Crear Usuario</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

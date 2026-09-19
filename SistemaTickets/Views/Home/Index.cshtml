@@ -1,0 +1,41 @@
+﻿@{
+    ViewData["Title"] = "Inicio";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <h1 class="mb-3">Bienvenido al sistema de tickets</h1>
+
+            <p><strong>Usuario:</strong> @ViewBag.UserName</p>
+            <p><strong>Rol:</strong> @ViewBag.UserRole</p>
+
+            <hr />
+
+            @if (ViewBag.UserRole == "Administrador")
+            {
+                <div class="alert alert-success">
+                    Tienes acceso de administrador.
+                </div>
+            }
+            else if (ViewBag.UserRole == "Soporte")
+            {
+                <div class="alert alert-info">
+                    Tienes acceso al panel de soporte.
+                </div>
+            }
+            else if (ViewBag.UserRole == "Supervisor")
+            {
+                <div class="alert alert-warning">
+                    Tienes acceso de supervisión.
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-secondary">
+                    Tienes acceso como usuario.
+                </div>
+            }
+        </div>
+    </div>
+</div>

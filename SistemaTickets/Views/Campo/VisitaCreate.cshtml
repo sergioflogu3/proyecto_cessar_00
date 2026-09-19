@@ -1,0 +1,68 @@
+@model SistemaTickets.Models.Campo.VisitaFormViewModel
+@{
+    ViewData["Title"] = Model.EsEdicion ? "Editar Visita" : "Nueva Visita";
+}
+
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a asp-action="Visitas" class="btn btn-outline-secondary btn-sm">← Volver</a>
+    <h4 class="mb-0 fw-bold">@ViewData["Title"]</h4>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width:700px">
+    <div class="card-body p-4">
+        <form asp-action="@(Model.EsEdicion ? "VisitaEdit" : "VisitaCreate")" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label asp-for="Direccion" class="form-label fw-semibold">Dirección *</label>
+                <input asp-for="Direccion" class="form-control"
+                       placeholder="Dirección completa de la visita..." />
+                <span asp-validation-for="Direccion" class="text-danger small"></span>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="FechaVisita" class="form-label fw-semibold">Fecha y hora *</label>
+                    <input asp-for="FechaVisita" type="datetime-local" class="form-control"
+                           value="@Model.FechaVisita.ToString("yyyy-MM-ddTHH:mm")" />
+                    <span asp-validation-for="FechaVisita" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="TicketId" class="form-label fw-semibold">Ticket relacionado</label>
+                    <select asp-for="TicketId" class="form-select">
+                        <option value="">Sin ticket</option>
+                        @foreach (var t in Model.Tickets)
+                        {
+                            <option value="@t.Id" selected="@(Model.TicketId == t.Id)">
+                                #@t.Id — @t.Titulo
+                            </option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Descripcion" class="form-label fw-semibold">Descripción del trabajo</label>
+                <textarea asp-for="Descripcion" class="form-control" rows="3"
+                          placeholder="Detalla el trabajo a realizar..."></textarea>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Observaciones" class="form-label fw-semibold">Observaciones</label>
+                <textarea asp-for="Observaciones" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4">
+                    @(Model.EsEdicion ? "Guardar cambios" : "Programar visita")
+                </button>
+                <a asp-action="Visitas" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

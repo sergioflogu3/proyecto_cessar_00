@@ -1,0 +1,494 @@
+@model SistemaTickets.Models.Tickets.TicketDetailsViewModel
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = $"Ticket #{Model.Ticket.Id}";
+    var t    = Model.Ticket;
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+}
+
+@Html.AntiForgeryToken()
+
+@* Cabecera *@
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Volver</a>
+            <span class="text-muted small">Ticket #@t.Id</span>
+        </div>
+        <h4 class="mb-1 fw-bold">@t.Titulo</h4>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="badge" style="background-color:@t.Estado.Color; font-size:.85rem">@t.Estado.Nombre</span>
+            @if (t.Prioridad != null)
+            {
+                <span class="badge" style="background-color:@t.Prioridad.Color; font-size:.85rem">@t.Prioridad.Nombre</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary" style="font-size:.85rem">Sin prioridad</span>
+            }
+            @if (t.Categoria is not null)
+            {
+                <span class="badge bg-secondary">@t.Categoria.Nombre</span>
+            }
+        </div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        @if (Model.PuedeEditar && t.EstaAbierto)
+        {
+            <a asp-action="Edit" asp-route-id="@t.Id"
+               class="btn btn-outline-primary btn-sm">Editar</a>
+        }
+        @if (Model.PuedeCerrar && t.EstaAbierto)
+        {
+            <button class="btn btn-outline-danger btn-sm" id="btnCerrar">Cerrar ticket</button>
+        }
+    </div>
+</div>
+
+<div class="row g-4">
+
+    @* Columna principal *@
+    <div class="col-lg-8">
+
+        @* Descripción *@
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Descripción</span>
+            </div>
+            <div class="card-body">
+                <p class="mb-0" style="white-space:pre-wrap">@t.Descripcion</p>
+            </div>
+        </div>
+
+        @* Comentarios *@
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Comentarios (@t.Comentarios.Count(c => !c.EsInterno || Model.PuedeVerInternos))</span>
+            </div>
+            <div class="card-body p-0" id="comentariosLista">
+                @{
+                    var comentariosVisibles = t.Comentarios
+                        .Where(c => !c.EsInterno || Model.PuedeVerInternos)
+                        .ToList();
+                }
+                @if (!comentariosVisibles.Any())
+                {
+                    <div class="text-center text-muted py-4">Sin comentarios aún.</div>
+                }
+                else
+                {
+                    @foreach (var c in comentariosVisibles)
+                    {
+                        <div class="border-bottom px-4 py-3 @(c.EsInterno ? "bg-warning bg-opacity-10" : "")">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-semibold small">
+                                    @c.Usuario.Nombre @c.Usuario.Apellido
+                                    @if (c.EsInterno)
+                                    {
+                                        <span class="badge bg-warning text-dark ms-1">Nota interna</span>
+                                    }
+                                </span>
+                                <span class="text-muted small">
+                                    @c.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                </span>
+                            </div>
+                            <p class="mb-0 small" style="white-space:pre-wrap">@c.Contenido</p>
+                        </div>
+                    }
+                }
+            </div>
+            @if (!t.EstaCerrado)
+            {
+                <div class="card-footer bg-white border-top">
+                    <div id="formComentario">
+                        <textarea id="txtComentario" class="form-control form-control-sm mb-2" rows="3"
+                                  placeholder="Escribe un comentario..."></textarea>
+                        @if (role != "Usuario")
+                        {
+                            <div class="form-check form-check-inline mb-2">
+                                <input class="form-check-input" type="checkbox" id="chkInterno" />
+                                <label class="form-check-label small" for="chkInterno">Nota interna (solo agentes)</label>
+                            </div>
+                        }
+                        <div id="errorComentario" class="alert alert-danger py-2 small d-none"></div>
+                        <button class="btn btn-primary btn-sm px-4" id="btnEnviarComentario">
+                            Enviar comentario
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @* Historial *@
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Historial de actividad</span>
+            </div>
+            <div class="card-body p-0">
+                @if (!t.Historial.Any())
+                {
+                    <div class="text-center text-muted py-4">Sin actividad registrada.</div>
+                }
+                else
+                {
+                    @foreach (var h in t.Historial
+                        .Where(x => Model.PuedeVerInternos || x.Accion != "Nota interna")
+                        .OrderByDescending(x => x.FechaAccion))
+                    {
+                        <div class="d-flex align-items-start gap-3 border-bottom px-4 py-3">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center
+                                        justify-content-center flex-shrink-0"
+                                 style="width:32px;height:32px;font-size:.7rem">
+                                @h.Usuario.Nombre[0]@h.Usuario.Apellido[0]
+                            </div>
+                            <div>
+                                <div class="small fw-semibold">
+                                    @h.Usuario.Nombre @h.Usuario.Apellido
+                                    <span class="text-muted fw-normal">— @h.Accion</span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(h.ValorAnterior) || !string.IsNullOrEmpty(h.ValorNuevo))
+                                {
+                                    <div class="small text-muted">
+                                        @if (!string.IsNullOrEmpty(h.ValorAnterior))
+                                        {
+                                            <span class="text-danger">@h.ValorAnterior</span>
+                                            <span> → </span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(h.ValorNuevo))
+                                        {
+                                            <span class="text-success">@h.ValorNuevo</span>
+                                        }
+                                    </div>
+                                }
+                                <div class="text-muted" style="font-size:.75rem">
+                                    @h.FechaAccion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+    </div>
+
+    @* Columna lateral *@
+    <div class="col-lg-4">
+
+        @* Info del ticket *@
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Información</span>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <span class="text-muted small">Creado por</span>
+                    <span class="small fw-semibold">@t.CreadoPor.Nombre @t.CreadoPor.Apellido</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <span class="text-muted small">Asignado a</span>
+                    <span class="small fw-semibold" id="lblAsignadoA">
+                        @(t.AsignadoA is null ? "—" : $"{t.AsignadoA.Nombre} {t.AsignadoA.Apellido}")
+                    </span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <span class="text-muted small">Creado</span>
+                    <span class="small">@t.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <span class="text-muted small">Actualizado</span>
+                    <span class="small">@t.FechaActualizacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                </li>
+@if (t.FechaCierre.HasValue)
+                {
+                    <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                        <span class="text-muted small">Cerrado</span>
+                        <span class="small">@t.FechaCierre.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        @* Cambiar estado *@
+        @if (Model.PuedeCambiarEstado && t.EstaAbierto)
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Cambiar estado</span>
+                </div>
+                <div class="card-body">
+                    <select id="selectEstado" class="form-select form-select-sm mb-2">
+                        @foreach (var e in Model.Estados)
+                        {
+                            <option value="@e.Id" selected="@(t.Estado.Id == e.Id)">@e.Nombre</option>
+                        }
+                    </select>
+                    <button class="btn btn-primary btn-sm w-100" id="btnCambiarEstado">
+                        Aplicar estado
+                    </button>
+                    <div id="errorEstado" class="alert alert-danger py-2 small d-none mt-2"></div>
+                </div>
+            </div>
+        }
+
+        @* Asignar *@
+        @if (Model.PuedeAsignar && t.EstaAbierto)
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Asignar a</span>
+                </div>
+                <div class="card-body">
+                    <select id="selectAgente" class="form-select form-select-sm mb-2">
+                        <option value="">Sin asignar</option>
+                        @foreach (var a in Model.Agentes)
+                        {
+                            <option value="@a.Id" selected="@(t.AsignadoA?.Id == a.Id)">
+                                @a.Nombre @a.Apellido
+                            </option>
+                        }
+                    </select>
+                    <button class="btn btn-primary btn-sm w-100" id="btnAsignar">
+                        Asignar
+                    </button>
+                    <div id="errorAsignar" class="alert alert-danger py-2 small d-none mt-2"></div>
+                </div>
+            </div>
+        }
+
+        @* Asignar prioridad *@
+        @if (Model.PuedeAsignarPrioridad && t.EstaAbierto)
+        {
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">
+                        @(t.Prioridad == null ? "Asignar prioridad" : "Cambiar prioridad")
+                    </span>
+                </div>
+                <div class="card-body">
+                    <select id="selectPrioridad" class="form-select form-select-sm mb-2">
+                        <option value="">Selecciona...</option>
+                        @foreach (var p in Model.Prioridades)
+                        {
+                            var esSel = t.Prioridad?.Id == p.Id;
+                            <option value="@p.Id" selected="@esSel">@p.Nombre</option>
+                        }
+                    </select>
+                    <button class="btn btn-primary btn-sm w-100" id="btnAsignarPrioridad">
+                        Aplicar prioridad
+                    </button>
+                    <div id="errorPrioridad" class="alert alert-danger py-2 small d-none mt-2"></div>
+                </div>
+            </div>
+        }
+
+        @* Adjuntos *@
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Adjuntos (@t.Adjuntos.Count)</span>
+            </div>
+            <div class="card-body p-0">
+                @if (!t.Adjuntos.Any())
+                {
+                    <div class="text-center text-muted py-3 small">Sin archivos adjuntos.</div>
+                }
+                else
+                {
+                    @foreach (var a in t.Adjuntos)
+                    {
+                        var ext = System.IO.Path.GetExtension(a.NombreArchivo).ToLowerInvariant();
+                        var icon = ext switch {
+                            ".pdf"                    => "bi-file-earmark-pdf-fill text-danger",
+                            ".doc" or ".docx"         => "bi-file-earmark-word-fill text-primary",
+                            ".xls" or ".xlsx"         => "bi-file-earmark-excel-fill text-success",
+                            ".ppt" or ".pptx"         => "bi-file-earmark-ppt-fill text-warning",
+                            ".jpg" or ".jpeg"
+                                or ".png" or ".gif"
+                                or ".webp"            => "bi-file-earmark-image-fill text-info",
+                            ".mp4" or ".mov"
+                                or ".avi" or ".mkv"   => "bi-file-earmark-play-fill text-secondary",
+                            ".zip" or ".rar"          => "bi-file-earmark-zip-fill text-dark",
+                            _                         => "bi-file-earmark-fill text-muted"
+                        };
+                        <div class="d-flex align-items-center gap-2 px-3 py-2 border-bottom">
+                            <i class="bi @icon fs-5 flex-shrink-0"></i>
+                            <div class="overflow-hidden flex-grow-1">
+                                <a asp-action="DescargarAdjunto" asp-route-id="@a.Id"
+                                   class="small fw-semibold text-decoration-none text-truncate d-block"
+                                   title="@a.NombreArchivo" target="_blank">
+                                    @a.NombreArchivo
+                                </a>
+                                <div class="text-muted" style="font-size:.7rem">
+                                    @((a.TamanioBytes / 1024.0).ToString("N1")) KB
+                                    · @a.FechaSubida.ToLocalTime().ToString("dd/MM/yy")
+                                    · @a.SubidoPor.NombreCompleto
+                                </div>
+                            </div>
+                            <a asp-action="DescargarAdjunto" asp-route-id="@a.Id"
+                               class="btn btn-link btn-sm p-0 text-muted" title="Descargar" target="_blank">
+                                <i class="bi bi-download"></i>
+                            </a>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@* Modal confirmación cerrar *@
+<div class="modal fade" id="confirmCerrarModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">Cerrar ticket</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="mb-0">¿Está seguro de cerrar el ticket <strong>#@t.Id — @t.Titulo</strong>?</p>
+                <p class="text-muted small mt-2 mb-0">El ticket se marcará como cerrado y no podrá recibir más actualizaciones.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 gap-2">
+                <button type="button" class="btn btn-outline-secondary px-4"
+                        data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger px-4" id="confirmCerrarBtn">
+                    Sí, cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const csrf    = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    const ticketId = @t.Id;
+
+    async function postAction(url, data) {
+        const fd = new FormData();
+        fd.append('__RequestVerificationToken', csrf);
+        for (const [k, v] of Object.entries(data)) fd.append(k, v);
+        const res = await fetch(url, { method: 'POST', body: fd });
+        return res.json();
+    }
+
+    // ── Comentario ──────────────────────────────────────────────────────────
+    const btnComentario = document.getElementById('btnEnviarComentario');
+    if (btnComentario) {
+        btnComentario.addEventListener('click', async () => {
+            const contenido  = document.getElementById('txtComentario').value.trim();
+            const esInterno  = document.getElementById('chkInterno')?.checked ?? false;
+            const errorBox   = document.getElementById('errorComentario');
+
+            if (!contenido) {
+                errorBox.textContent = 'El comentario no puede estar vacío.';
+                errorBox.classList.remove('d-none');
+                return;
+            }
+            errorBox.classList.add('d-none');
+            btnComentario.disabled = true;
+
+            const result = await postAction('/Tickets/AgregarComentario',
+                { ticketId, contenido, esInterno });
+
+            if (result.success) {
+                window.location.reload();
+            } else {
+                errorBox.textContent = result.message ?? 'Error al enviar comentario.';
+                errorBox.classList.remove('d-none');
+                btnComentario.disabled = false;
+            }
+        });
+    }
+
+    // ── Cambiar estado ───────────────────────────────────────────────────────
+    const btnEstado = document.getElementById('btnCambiarEstado');
+    if (btnEstado) {
+        btnEstado.addEventListener('click', async () => {
+            const estadoId = document.getElementById('selectEstado').value;
+            const errorBox = document.getElementById('errorEstado');
+            errorBox.classList.add('d-none');
+            btnEstado.disabled = true;
+
+            const result = await postAction('/Tickets/CambiarEstado', { ticketId, estadoId });
+            if (result.success) {
+                window.location.reload();
+            } else {
+                errorBox.textContent = result.message ?? 'Error al cambiar estado.';
+                errorBox.classList.remove('d-none');
+                btnEstado.disabled = false;
+            }
+        });
+    }
+
+    // ── Asignar ──────────────────────────────────────────────────────────────
+    const btnAsignar = document.getElementById('btnAsignar');
+    if (btnAsignar) {
+        btnAsignar.addEventListener('click', async () => {
+            const asignadoAId = document.getElementById('selectAgente').value;
+            const errorBox    = document.getElementById('errorAsignar');
+            errorBox.classList.add('d-none');
+            if (!asignadoAId) {
+                errorBox.textContent = 'Selecciona un agente.';
+                errorBox.classList.remove('d-none');
+                return;
+            }
+            btnAsignar.disabled = true;
+
+            const result = await postAction('/Tickets/Asignar', { ticketId, asignadoAId });
+            if (result.success) {
+                window.location.reload();
+            } else {
+                errorBox.textContent = result.message ?? 'Error al asignar.';
+                errorBox.classList.remove('d-none');
+                btnAsignar.disabled = false;
+            }
+        });
+    }
+
+    // ── Asignar prioridad ────────────────────────────────────────────────────
+    const btnPrioridad = document.getElementById('btnAsignarPrioridad');
+    if (btnPrioridad) {
+        btnPrioridad.addEventListener('click', async () => {
+            const prioridadId = document.getElementById('selectPrioridad').value;
+            const errorBox    = document.getElementById('errorPrioridad');
+            errorBox.classList.add('d-none');
+            if (!prioridadId) {
+                errorBox.textContent = 'Selecciona una prioridad.';
+                errorBox.classList.remove('d-none');
+                return;
+            }
+            btnPrioridad.disabled = true;
+            const result = await postAction('/Tickets/AsignarPrioridad', { ticketId, prioridadId });
+            if (result.success) {
+                window.location.reload();
+            } else {
+                errorBox.textContent = result.message ?? 'Error al asignar prioridad.';
+                errorBox.classList.remove('d-none');
+                btnPrioridad.disabled = false;
+            }
+        });
+    }
+
+    // ── Cerrar ticket ────────────────────────────────────────────────────────
+    const btnCerrar = document.getElementById('btnCerrar');
+    if (btnCerrar) {
+        btnCerrar.addEventListener('click', () => {
+            new bootstrap.Modal(document.getElementById('confirmCerrarModal')).show();
+        });
+
+        document.getElementById('confirmCerrarBtn').addEventListener('click', async () => {
+            bootstrap.Modal.getInstance(document.getElementById('confirmCerrarModal')).hide();
+
+            const result = await postAction('/Tickets/Cerrar', { ticketId });
+            if (result.success) {
+                window.location.reload();
+            } else {
+                alert(result.message ?? 'Error al cerrar el ticket.');
+            }
+        });
+    }
+</script>
+}

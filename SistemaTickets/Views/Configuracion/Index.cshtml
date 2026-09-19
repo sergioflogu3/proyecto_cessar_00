@@ -1,0 +1,863 @@
+@model SistemaTickets.Models.Configuracion.ConfiguracionViewModel
+
+@{
+    ViewData["Title"] = "Configuración del Sistema";
+}
+
+@Html.AntiForgeryToken()
+
+<div class="d-flex align-items-center gap-3 mb-4">
+    <h4 class="mb-0 fw-bold">Configuración del Sistema</h4>
+</div>
+
+@if (TempData["Success"] is string ok)
+{
+    <div class="alert alert-success alert-dismissible fade show py-2 mb-4" role="alert">
+        @ok
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] is string err)
+{
+    <div class="alert alert-danger alert-dismissible fade show py-2 mb-4" role="alert">
+        @err
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@* ── Tabs ───────────────────────────────────────────────────────── *@
+<ul class="nav nav-tabs mb-4" id="cfgTabs">
+    <li class="nav-item">
+        <a class="nav-link @(Model.TabActiva == "categorias"  ? "active" : "")"
+           href="@Url.Action("Index", "Configuracion", new { tab = "categorias" })">
+            Categorías
+            <span class="badge bg-secondary ms-1">@Model.Categorias.Count</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(Model.TabActiva == "prioridades" ? "active" : "")"
+           href="@Url.Action("Index", "Configuracion", new { tab = "prioridades" })">
+            Prioridades
+            <span class="badge bg-secondary ms-1">@Model.Prioridades.Count</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(Model.TabActiva == "estados"     ? "active" : "")"
+           href="@Url.Action("Index", "Configuracion", new { tab = "estados" })">
+            Estados
+            <span class="badge bg-secondary ms-1">@Model.Estados.Count</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(Model.TabActiva == "activotipos" ? "active" : "")"
+           href="@Url.Action("Index", "Configuracion", new { tab = "activotipos" })">
+            Tipos de Activo
+            <span class="badge bg-secondary ms-1">@Model.ActivoTipos.Count</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(Model.TabActiva == "sedes"       ? "active" : "")"
+           href="@Url.Action("Index", "Configuracion", new { tab = "sedes" })">
+            Sedes
+            <span class="badge bg-secondary ms-1">@Model.Sedes.Count</span>
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link @(Model.TabActiva == "areas"       ? "active" : "")"
+           href="@Url.Action("Index", "Configuracion", new { tab = "areas" })">
+            Áreas
+            <span class="badge bg-secondary ms-1">@Model.Areas.Count</span>
+        </a>
+    </li>
+</ul>
+
+@* ═══════════════════════════════════════════════════════════════════
+   TAB: CATEGORÍAS
+   ══════════════════════════════════════════════════════════════════ *@
+@if (Model.TabActiva == "categorias")
+{
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Categorías existentes</span>
+                    <span class="text-muted small ms-2">
+                        (@Model.Categorias.Count(c => c.Activo) activas,
+                         @Model.Categorias.Count(c => !c.Activo) inactivas)
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4">Nombre</th>
+                                <th>Descripción</th>
+                                <th>Estado</th>
+                                <th class="text-end px-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Categorias)
+                            {
+                                <tr class="@(!c.Activo ? "opacity-50" : "")">
+                                    <td class="px-4 fw-semibold">@c.Nombre</td>
+                                    <td class="text-muted small">@(c.Descripcion ?? "—")</td>
+                                    <td>
+                                        @if (c.Activo)
+                                        {
+                                            <span class="badge bg-success-subtle text-success">Activa</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary">Inactiva</span>
+                                        }
+                                    </td>
+                                    <td class="text-end px-4">
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                onclick="abrirEditCat(@c.Id, '@Html.Raw(c.Nombre.Replace("'","\\\'"))', '@Html.Raw((c.Descripcion ?? "").Replace("'","\\\'"  ))')">
+                                            Editar
+                                        </button>
+                                        <form asp-action="ToggleCategoria" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@c.Id" />
+                                            <button type="submit" class="btn btn-sm @(c.Activo ? "btn-outline-secondary" : "btn-outline-success")">
+                                                @(c.Activo ? "Desactivar" : "Activar")
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Nueva Categoría</span>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CrearCategoria" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Nombre *</label>
+                            <input type="text" name="nombre" class="form-control form-control-sm"
+                                   placeholder="Ej: REDES" maxlength="100" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Descripción</label>
+                            <input type="text" name="descripcion" class="form-control form-control-sm"
+                                   placeholder="Descripción breve (opcional)" maxlength="200" />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            Crear Categoría
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Modal editar categoría *@
+    <div class="modal fade" id="modalEditCat" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:440px">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title fw-bold">Editar Categoría</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="EditarCategoria" method="post">
+                    <div class="modal-body pt-3">
+                        <input type="hidden" name="id" id="editCatId" />
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Nombre *</label>
+                            <input type="text" name="nombre" id="editCatNombre"
+                                   class="form-control form-control-sm" maxlength="100" required />
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold small">Descripción</label>
+                            <input type="text" name="descripcion" id="editCatDesc"
+                                   class="form-control form-control-sm" maxlength="200" />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0 gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@* ═══════════════════════════════════════════════════════════════════
+   TAB: PRIORIDADES
+   ══════════════════════════════════════════════════════════════════ *@
+@if (Model.TabActiva == "prioridades")
+{
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Prioridades existentes</span>
+                    <span class="text-muted small ms-2">
+                        (@Model.Prioridades.Count(p => p.Activo) activas,
+                         @Model.Prioridades.Count(p => !p.Activo) inactivas)
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4">Color</th>
+                                <th>Nombre</th>
+                                <th>Orden</th>
+                                <th>Estado</th>
+                                <th class="text-end px-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.Prioridades)
+                            {
+                                <tr class="@(!p.Activo ? "opacity-50" : "")">
+                                    <td class="px-4">
+                                        <span class="d-inline-block rounded-circle border"
+                                              style="width:20px;height:20px;background:@p.Color"></span>
+                                    </td>
+                                    <td class="fw-semibold">
+                                        <span class="badge" style="background:@p.Color">@p.Nombre</span>
+                                    </td>
+                                    <td class="text-muted small">@p.Orden</td>
+                                    <td>
+                                        @if (p.Activo)
+                                        {
+                                            <span class="badge bg-success-subtle text-success">Activa</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary">Inactiva</span>
+                                        }
+                                    </td>
+                                    <td class="text-end px-4">
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                onclick="abrirEditPri(@p.Id, '@Html.Raw(p.Nombre.Replace("'","\\\'"))', '@p.Color', @p.Orden, '@Html.Raw((p.Descripcion ?? "").Replace("'","\\\'"  ))')">
+                                            Editar
+                                        </button>
+                                        <form asp-action="TogglePrioridad" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@p.Id" />
+                                            <button type="submit" class="btn btn-sm @(p.Activo ? "btn-outline-secondary" : "btn-outline-success")">
+                                                @(p.Activo ? "Desactivar" : "Activar")
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Nueva Prioridad</span>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CrearPrioridad" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Nombre *</label>
+                            <input type="text" name="nombre" class="form-control form-control-sm"
+                                   placeholder="Ej: Urgente" maxlength="50" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Color</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="color" name="color" class="form-control form-control-color form-control-sm"
+                                       value="#6c757d" style="width:44px;height:32px;padding:2px" />
+                                <span class="text-muted small">Selecciona el color del badge</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Orden</label>
+                            <input type="number" name="orden" class="form-control form-control-sm"
+                                   value="@(Model.Prioridades.Any() ? Model.Prioridades.Max(p => p.Orden) + 1 : 1)"
+                                   min="1" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Descripción</label>
+                            <input type="text" name="descripcion" class="form-control form-control-sm"
+                                   placeholder="Descripción breve (opcional)" maxlength="200" />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            Crear Prioridad
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Modal editar prioridad *@
+    <div class="modal fade" id="modalEditPri" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:440px">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title fw-bold">Editar Prioridad</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="EditarPrioridad" method="post">
+                    <div class="modal-body pt-3">
+                        <input type="hidden" name="id" id="editPriId" />
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Nombre *</label>
+                            <input type="text" name="nombre" id="editPriNombre"
+                                   class="form-control form-control-sm" maxlength="50" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Color</label>
+                            <input type="color" name="color" id="editPriColor"
+                                   class="form-control form-control-color form-control-sm"
+                                   style="width:44px;height:32px;padding:2px" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Orden</label>
+                            <input type="number" name="orden" id="editPriOrden"
+                                   class="form-control form-control-sm" min="1" />
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold small">Descripción</label>
+                            <input type="text" name="descripcion" id="editPriDesc"
+                                   class="form-control form-control-sm" maxlength="200" />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0 gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@* ═══════════════════════════════════════════════════════════════════
+   TAB: ESTADOS
+   ══════════════════════════════════════════════════════════════════ *@
+@if (Model.TabActiva == "estados")
+{
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Estados del flujo</span>
+                    <span class="text-muted small ms-2">Solo se puede editar color y orden</span>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4">Color</th>
+                                <th>Nombre</th>
+                                <th>Orden</th>
+                                <th>Estado</th>
+                                <th class="text-end px-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var e in Model.Estados)
+                            {
+                                <tr>
+                                    <td class="px-4">
+                                        <span class="d-inline-block rounded-circle border"
+                                              style="width:20px;height:20px;background:@e.Color"></span>
+                                    </td>
+                                    <td class="fw-semibold">
+                                        <span class="badge" style="background:@e.Color">@e.Nombre</span>
+                                    </td>
+                                    <td class="text-muted small">@e.Orden</td>
+                                    <td>
+                                        @if (e.Activo)
+                                        {
+                                            <span class="badge bg-success-subtle text-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary">Inactivo</span>
+                                        }
+                                    </td>
+                                    <td class="text-end px-4">
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                onclick="abrirEditEst(@e.Id, '@e.Color', @e.Orden)">
+                                            Editar
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-4 text-center text-muted small">
+                    <i class="bi bi-info-circle fs-4 d-block mb-2"></i>
+                    Los estados controlan el flujo de trabajo del sistema.<br>
+                    No se pueden agregar ni eliminar para mantener la integridad del sistema.
+                    Solo es posible ajustar el color y el orden de visualización.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Modal editar estado *@
+    <div class="modal fade" id="modalEditEst" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:380px">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title fw-bold">Editar Estado</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="EditarEstado" method="post">
+                    <div class="modal-body pt-3">
+                        <input type="hidden" name="id" id="editEstId" />
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Color del badge</label>
+                            <input type="color" name="color" id="editEstColor"
+                                   class="form-control form-control-color form-control-sm"
+                                   style="width:44px;height:32px;padding:2px" />
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold small">Orden</label>
+                            <input type="number" name="orden" id="editEstOrden"
+                                   class="form-control form-control-sm" min="1" />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0 gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@* ═══════════════════════════════════════════════════════════════════
+   TAB: TIPOS DE ACTIVO
+   ══════════════════════════════════════════════════════════════════ *@
+@if (Model.TabActiva == "activotipos")
+{
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Tipos de Activo existentes</span>
+                    <span class="text-muted small ms-2">
+                        (@Model.ActivoTipos.Count(t => t.Activo) activos,
+                         @Model.ActivoTipos.Count(t => !t.Activo) inactivos)
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4">Nombre</th>
+                                <th>Estado</th>
+                                <th class="text-end px-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var t in Model.ActivoTipos)
+                            {
+                                <tr class="@(!t.Activo ? "opacity-50" : "")">
+                                    <td class="px-4 fw-semibold">@t.Nombre</td>
+                                    <td>
+                                        @if (t.Activo)
+                                        {
+                                            <span class="badge bg-success-subtle text-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary">Inactivo</span>
+                                        }
+                                    </td>
+                                    <td class="text-end px-4">
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                onclick="abrirEditTipo(@t.Id, '@Html.Raw(t.Nombre.Replace("'","\\\'"))')">
+                                            Editar
+                                        </button>
+                                        <form asp-action="ToggleActivoTipo" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@t.Id" />
+                                            <button type="submit" class="btn btn-sm @(t.Activo ? "btn-outline-secondary" : "btn-outline-success")">
+                                                @(t.Activo ? "Desactivar" : "Activar")
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Nuevo Tipo de Activo</span>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CrearActivoTipo" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Nombre *</label>
+                            <input type="text" name="nombre" class="form-control form-control-sm"
+                                   placeholder="Ej: Tablet" maxlength="50" required />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            Crear Tipo
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEditTipo" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title fw-bold">Editar Tipo de Activo</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="EditarActivoTipo" method="post">
+                    <div class="modal-body pt-3">
+                        <input type="hidden" name="id" id="editTipoId" />
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold small">Nombre *</label>
+                            <input type="text" name="nombre" id="editTipoNombre"
+                                   class="form-control form-control-sm" maxlength="50" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0 gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@* ═══════════════════════════════════════════════════════════════════
+   TAB: SEDES
+   ══════════════════════════════════════════════════════════════════ *@
+@if (Model.TabActiva == "sedes")
+{
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Sedes existentes</span>
+                    <span class="text-muted small ms-2">
+                        (@Model.Sedes.Count(s => s.Activa) activas,
+                         @Model.Sedes.Count(s => !s.Activa) inactivas)
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4">Nombre</th>
+                                <th>Ciudad</th>
+                                <th>Dirección</th>
+                                <th>Estado</th>
+                                <th class="text-end px-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var s in Model.Sedes)
+                            {
+                                <tr class="@(!s.Activa ? "opacity-50" : "")">
+                                    <td class="px-4 fw-semibold">@s.Nombre</td>
+                                    <td class="text-muted small">@s.Ciudad</td>
+                                    <td class="text-muted small">@(s.Direccion ?? "—")</td>
+                                    <td>
+                                        @if (s.Activa)
+                                        {
+                                            <span class="badge bg-success-subtle text-success">Activa</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary">Inactiva</span>
+                                        }
+                                    </td>
+                                    <td class="text-end px-4">
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                onclick="abrirEditSede(@s.Id, '@Html.Raw(s.Nombre.Replace("'","\\\'"))', '@Html.Raw(s.Ciudad.Replace("'","\\\'"))', '@Html.Raw((s.Direccion ?? "").Replace("'","\\\'"))')">
+                                            Editar
+                                        </button>
+                                        <form asp-action="ToggleSede" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@s.Id" />
+                                            <button type="submit" class="btn btn-sm @(s.Activa ? "btn-outline-secondary" : "btn-outline-success")">
+                                                @(s.Activa ? "Desactivar" : "Activar")
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Nueva Sede</span>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CrearSede" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Nombre *</label>
+                            <input type="text" name="nombre" class="form-control form-control-sm"
+                                   placeholder="Ej: Sede Central" maxlength="100" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Ciudad *</label>
+                            <input type="text" name="ciudad" class="form-control form-control-sm"
+                                   placeholder="Ej: Lima" maxlength="100" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Dirección</label>
+                            <input type="text" name="direccion" class="form-control form-control-sm"
+                                   placeholder="Dirección (opcional)" maxlength="200" />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            Crear Sede
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEditSede" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:460px">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title fw-bold">Editar Sede</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="EditarSede" method="post">
+                    <div class="modal-body pt-3">
+                        <input type="hidden" name="id" id="editSedeId" />
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Nombre *</label>
+                            <input type="text" name="nombre" id="editSedeNombre"
+                                   class="form-control form-control-sm" maxlength="100" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Ciudad *</label>
+                            <input type="text" name="ciudad" id="editSedeCiudad"
+                                   class="form-control form-control-sm" maxlength="100" required />
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold small">Dirección</label>
+                            <input type="text" name="direccion" id="editSedeDireccion"
+                                   class="form-control form-control-sm" maxlength="200" />
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0 gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@* ═══════════════════════════════════════════════════════════════════
+   TAB: ÁREAS
+   ══════════════════════════════════════════════════════════════════ *@
+@if (Model.TabActiva == "areas")
+{
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Áreas existentes</span>
+                    <span class="text-muted small ms-2">
+                        (@Model.Areas.Count(a => a.Activa) activas,
+                         @Model.Areas.Count(a => !a.Activa) inactivas)
+                    </span>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="px-4">Nombre</th>
+                                <th>Sede</th>
+                                <th>Estado</th>
+                                <th class="text-end px-4">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var a in Model.Areas)
+                            {
+                                <tr class="@(!a.Activa ? "opacity-50" : "")">
+                                    <td class="px-4 fw-semibold">@a.Nombre</td>
+                                    <td class="text-muted small">@a.Sede.Nombre</td>
+                                    <td>
+                                        @if (a.Activa)
+                                        {
+                                            <span class="badge bg-success-subtle text-success">Activa</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary-subtle text-secondary">Inactiva</span>
+                                        }
+                                    </td>
+                                    <td class="text-end px-4">
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                onclick="abrirEditArea(@a.Id, '@Html.Raw(a.Nombre.Replace("'","\\\'"))', @a.Sede.Id)">
+                                            Editar
+                                        </button>
+                                        <form asp-action="ToggleArea" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@a.Id" />
+                                            <button type="submit" class="btn btn-sm @(a.Activa ? "btn-outline-secondary" : "btn-outline-success")">
+                                                @(a.Activa ? "Desactivar" : "Activar")
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Nueva Área</span>
+                </div>
+                <div class="card-body">
+                    <form asp-action="CrearArea" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Nombre *</label>
+                            <input type="text" name="nombre" class="form-control form-control-sm"
+                                   placeholder="Ej: Soporte Técnico" maxlength="100" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Sede *</label>
+                            <select name="sedeId" class="form-select form-select-sm" required>
+                                <option value="">Selecciona sede...</option>
+                                @foreach (var s in Model.Sedes.Where(s => s.Activa))
+                                {
+                                    <option value="@s.Id">@s.Nombre</option>
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm w-100">
+                            Crear Área
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEditArea" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-0 pb-0">
+                    <h6 class="modal-title fw-bold">Editar Área</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-action="EditarArea" method="post">
+                    <div class="modal-body pt-3">
+                        <input type="hidden" name="id" id="editAreaId" />
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Nombre *</label>
+                            <input type="text" name="nombre" id="editAreaNombre"
+                                   class="form-control form-control-sm" maxlength="100" required />
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold small">Sede *</label>
+                            <select name="sedeId" id="editAreaSedeId" class="form-select form-select-sm" required>
+                                @foreach (var s in Model.Sedes)
+                                {
+                                    <option value="@s.Id">@s.Nombre</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0 gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary btn-sm px-4">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+    function abrirEditCat(id, nombre, descripcion) {
+        document.getElementById('editCatId').value     = id;
+        document.getElementById('editCatNombre').value = nombre;
+        document.getElementById('editCatDesc').value   = descripcion;
+        new bootstrap.Modal(document.getElementById('modalEditCat')).show();
+    }
+
+    function abrirEditPri(id, nombre, color, orden, descripcion) {
+        document.getElementById('editPriId').value     = id;
+        document.getElementById('editPriNombre').value = nombre;
+        document.getElementById('editPriColor').value  = color;
+        document.getElementById('editPriOrden').value  = orden;
+        document.getElementById('editPriDesc').value   = descripcion;
+        new bootstrap.Modal(document.getElementById('modalEditPri')).show();
+    }
+
+    function abrirEditEst(id, color, orden) {
+        document.getElementById('editEstId').value    = id;
+        document.getElementById('editEstColor').value = color;
+        document.getElementById('editEstOrden').value = orden;
+        new bootstrap.Modal(document.getElementById('modalEditEst')).show();
+    }
+
+    function abrirEditTipo(id, nombre) {
+        document.getElementById('editTipoId').value     = id;
+        document.getElementById('editTipoNombre').value = nombre;
+        new bootstrap.Modal(document.getElementById('modalEditTipo')).show();
+    }
+
+    function abrirEditSede(id, nombre, ciudad, direccion) {
+        document.getElementById('editSedeId').value        = id;
+        document.getElementById('editSedeNombre').value    = nombre;
+        document.getElementById('editSedeCiudad').value    = ciudad;
+        document.getElementById('editSedeDireccion').value = direccion;
+        new bootstrap.Modal(document.getElementById('modalEditSede')).show();
+    }
+
+    function abrirEditArea(id, nombre, sedeId) {
+        document.getElementById('editAreaId').value     = id;
+        document.getElementById('editAreaNombre').value = nombre;
+        document.getElementById('editAreaSedeId').value = sedeId;
+        new bootstrap.Modal(document.getElementById('modalEditArea')).show();
+    }
+</script>
+}

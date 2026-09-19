@@ -1,0 +1,422 @@
+@model SistemaTickets.Models.Dashboard.DashboardViewModel
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Dashboard";
+    var tiempoLabel = Model.TiempoPromedioHoras >= 24
+        ? $"{(Model.TiempoPromedioHoras / 24):F1} días"
+        : $"{Model.TiempoPromedioHoras:F1} h";
+
+    var opts = new JsonSerializerOptions { PropertyNamingPolicy = null };
+    string J(object o) => JsonSerializer.Serialize(o, opts);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold">Dashboard</h4>
+        <small class="text-muted">
+            @if (Model.EsAdminOSupervisor)
+            { <span>Vista general del sistema</span> }
+            else
+            { <span>Mi actividad — @Model.NombreTecnico</span> }
+        </small>
+    </div>
+</div>
+
+@* ── KPI Cards ─────────────────────────────────────────────────────── *@
+@{
+    var colKpi = Model.EsAdminOSupervisor ? "col-sm-6 col-lg-4" : "col-6";
+}
+<div class="row g-3 mb-4">
+    <div class="@colKpi">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small mb-1">Tickets abiertos</div>
+                        <div class="fs-2 fw-bold text-primary">@Model.TicketsAbiertos</div>
+                    </div>
+                    <span class="badge bg-primary-subtle text-primary fs-4 p-2">🎫</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="@colKpi">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small mb-1">Cerrados hoy</div>
+                        <div class="fs-2 fw-bold text-success">@Model.TicketsCerradosHoy</div>
+                    </div>
+                    <span class="badge bg-success-subtle text-success fs-4 p-2">✅</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    @if (Model.EsAdminOSupervisor)
+    {
+        <div class="@colKpi">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="text-muted small mb-1">Sin asignar</div>
+                            <div class="fs-2 fw-bold @(Model.TicketsSinAsignar > 0 ? "text-warning" : "text-success")">
+                                @Model.TicketsSinAsignar
+                            </div>
+                        </div>
+                        <span class="badge bg-warning-subtle text-warning fs-4 p-2">👤</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@* ── Fila 2: Donut estado + Donut prioridad ────────────────────────── *@
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Tickets por estado</span>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center" style="min-height:260px">
+                @if (Model.PorEstado.Any())
+                {<canvas id="chartEstado" height="220"></canvas>}
+                else
+                {<p class="text-muted">Sin datos</p>}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Tickets por prioridad</span>
+            </div>
+            <div class="card-body d-flex align-items-center justify-content-center" style="min-height:260px">
+                @if (Model.PorPrioridad.Any())
+                {<canvas id="chartPrioridad" height="220"></canvas>}
+                else
+                {<p class="text-muted">Sin datos</p>}
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Fila 3: Por técnico (admin) + por categoría ──────────────────── *@
+<div class="row g-4 mb-4">
+    @if (Model.EsAdminOSupervisor && Model.PorTecnico.Any())
+    {
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Tickets por técnico</span>
+                </div>
+                <div class="card-body" style="min-height:280px">
+                    <canvas id="chartTecnico"></canvas>
+                </div>
+            </div>
+        </div>
+    }
+    <div class="col-md-@(Model.EsAdminOSupervisor && Model.PorTecnico.Any() ? "6" : "12")">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Tickets por categoría</span>
+            </div>
+            <div class="card-body" style="min-height:280px">
+                @if (Model.PorCategoria.Any())
+                {<canvas id="chartCategoria"></canvas>}
+                else
+                {<p class="text-muted text-center pt-5">Sin datos</p>}
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Fila 4: Línea por mes ─────────────────────────────────────────── *@
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Evolución de tickets — últimos 6 meses</span>
+            </div>
+            <div class="card-body">
+                <canvas id="chartMes" height="90"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Fila 5: Visitas + Stock ───────────────────────────────────────── *@
+<div class="row g-4 mb-4">
+    @if (Model.VisitasPorEstado.Any())
+    {
+        <div class="col-md-@(Model.EsAdminOSupervisor ? "6" : "12")">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <span class="fw-semibold">Visitas técnicas por estado</span>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center" style="min-height:220px">
+                    <canvas id="chartVisitas" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (Model.EsAdminOSupervisor)
+    {
+        <div class="col-md-@(Model.VisitasPorEstado.Any() ? "6" : "12")">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">Stock bajo mínimo</span>
+                    @if (Model.StockBajoMinimoCount > 0)
+                    {
+                        <span class="badge bg-danger">@Model.StockBajoMinimoCount alertas</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Sin alertas</span>
+                    }
+                </div>
+                <div class="card-body p-0">
+                    @if (!Model.StockAlertas.Any())
+                    {
+                        <div class="text-center text-muted py-5">Todo el stock está en niveles normales.</div>
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var a in Model.StockAlertas)
+                            {
+                                <li class="list-group-item d-flex align-items-center gap-2 px-4 py-2">
+                                    <span class="text-danger">⚠</span>
+                                    <span class="small">@a</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+                @if (Model.StockAlertas.Any())
+                {
+                    <div class="card-footer bg-white border-top py-2 px-4">
+                        <a asp-controller="Campo" asp-action="Repuestos" class="small text-primary">Ver repuestos →</a>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@* ── Fila 6: KPI adicional (tiempo promedio solo admin) ───────────── *@
+@if (Model.EsAdminOSupervisor && Model.TiempoPromedioHoras > 0)
+{
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <span class="fs-1">⏱</span>
+                    <div>
+                        <div class="text-muted small">Tiempo promedio de resolución</div>
+                        <div class="fs-4 fw-bold text-info">@tiempoLabel</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <span class="fs-1">📊</span>
+                    <div>
+                        <div class="text-muted small">Total tickets (historial completo)</div>
+                        <div class="fs-4 fw-bold">@(Model.PorEstado.Sum(x => x.Value))</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <span class="fs-1">🚗</span>
+                    <div>
+                        <div class="text-muted small">Total visitas técnicas</div>
+                        <div class="fs-4 fw-bold">@(Model.VisitasPorEstado.Sum(x => x.Value))</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+    const palette = [
+        '#4e79a7','#f28e2b','#e15759','#76b7b2',
+        '#59a14f','#edc948','#b07aa1','#ff9da7',
+        '#9c755f','#bab0ac','#1a5399','#cc1e24'
+    ];
+
+    function colors(arr) {
+        return arr.map((item, i) => item.Color || palette[i % palette.length]);
+    }
+
+    const chartDefaults = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12 } } }
+    };
+
+    // ── Donut: Por estado ─────────────────────────────────────────────
+    @if (Model.PorEstado.Any())
+    {
+        <text>
+    (function() {
+        const d = @Html.Raw(J(Model.PorEstado));
+        new Chart(document.getElementById('chartEstado'), {
+            type: 'doughnut',
+            data: {
+                labels: d.map(x => x.Label),
+                datasets: [{ data: d.map(x => x.Value), backgroundColor: colors(d), borderWidth: 2 }]
+            },
+            options: { ...chartDefaults, cutout: '60%' }
+        });
+    })();
+        </text>
+    }
+
+    // ── Donut: Por prioridad ──────────────────────────────────────────
+    @if (Model.PorPrioridad.Any())
+    {
+        <text>
+    (function() {
+        const d = @Html.Raw(J(Model.PorPrioridad));
+        new Chart(document.getElementById('chartPrioridad'), {
+            type: 'doughnut',
+            data: {
+                labels: d.map(x => x.Label),
+                datasets: [{ data: d.map(x => x.Value), backgroundColor: colors(d), borderWidth: 2 }]
+            },
+            options: { ...chartDefaults, cutout: '60%' }
+        });
+    })();
+        </text>
+    }
+
+    // ── Barra horizontal: Por técnico ─────────────────────────────────
+    @if (Model.EsAdminOSupervisor && Model.PorTecnico.Any())
+    {
+        <text>
+    (function() {
+        const d = @Html.Raw(J(Model.PorTecnico));
+        new Chart(document.getElementById('chartTecnico'), {
+            type: 'bar',
+            data: {
+                labels: d.map(x => x.Label),
+                datasets: [{
+                    label: 'Tickets',
+                    data: d.map(x => x.Value),
+                    backgroundColor: d.map((_, i) => palette[i % palette.length]),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    })();
+        </text>
+    }
+
+    // ── Barra vertical: Por categoría ─────────────────────────────────
+    @if (Model.PorCategoria.Any())
+    {
+        <text>
+    (function() {
+        const d = @Html.Raw(J(Model.PorCategoria));
+        new Chart(document.getElementById('chartCategoria'), {
+            type: 'bar',
+            data: {
+                labels: d.map(x => x.Label),
+                datasets: [{
+                    label: 'Tickets',
+                    data: d.map(x => x.Value),
+                    backgroundColor: d.map((_, i) => palette[i % palette.length]),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    })();
+        </text>
+    }
+
+    // ── Línea: Evolución por mes ──────────────────────────────────────
+    (function() {
+        const d = @Html.Raw(J(Model.PorMes));
+        new Chart(document.getElementById('chartMes'), {
+            type: 'line',
+            data: {
+                labels: d.map(x => x.Label),
+                datasets: [
+                    {
+                        label: 'Creados',
+                        data: d.map(x => x.Creados),
+                        borderColor: '#4e79a7',
+                        backgroundColor: 'rgba(78,121,167,0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4
+                    },
+                    {
+                        label: 'Cerrados',
+                        data: d.map(x => x.Cerrados),
+                        borderColor: '#59a14f',
+                        backgroundColor: 'rgba(89,161,79,0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'top' } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+    })();
+
+    // ── Donut: Visitas por estado ─────────────────────────────────────
+    @if (Model.VisitasPorEstado.Any())
+    {
+        <text>
+    (function() {
+        const visitaColors = { 'Programada':'#6c757d','En Curso':'#0d6efd','Completada':'#198754','Cancelada':'#dc3545' };
+        const d = @Html.Raw(J(Model.VisitasPorEstado));
+        new Chart(document.getElementById('chartVisitas'), {
+            type: 'doughnut',
+            data: {
+                labels: d.map(x => x.Label),
+                datasets: [{
+                    data: d.map(x => x.Value),
+                    backgroundColor: d.map(x => visitaColors[x.Label] || '#6c757d'),
+                    borderWidth: 2
+                }]
+            },
+            options: { ...chartDefaults, cutout: '55%' }
+        });
+    })();
+        </text>
+    }
+</script>
+}

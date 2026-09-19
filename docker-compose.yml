@@ -1,0 +1,66 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sistickets-db
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "TuPassword123!"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+      - ./docker/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docker/sql/entrypoint.sh:/usr/local/bin/entrypoint.sh
+    entrypoint: ["/bin/bash", "/usr/local/bin/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD-SHELL", "(/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'TuPassword123!' -C -Q \"SELECT 1 FROM sys.databases WHERE name = 'SISTickets'\" > /dev/null 2>&1 || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'TuPassword123!' -C -Q \"SELECT 1 FROM sys.databases WHERE name = 'SISTickets'\" > /dev/null 2>&1) || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 45s
+    networks:
+      - sistickets-network
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    container_name: sistickets-azurite
+    command: "azurite-blob --blobHost 0.0.0.0 --blobPort 10000 --silent"
+    ports:
+      - "10000:10000"
+    volumes:
+      - azurite_data:/data
+    networks:
+      - sistickets-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sistickets-app
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      azurite:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Production"
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=SISTickets;User Id=sa;Password=TuPassword123!;TrustServerCertificate=True;"
+      Jwt__Key: "TU-CLAVE-JWT-SUPER-SEGURA-DE-AL-MENOS-32-CARACTERES"
+      Jwt__Issuer: "SistemaTickets"
+      Jwt__Audience: "SistemaTicketsUsers"
+      Jwt__ExpireMinutes: "120"
+      Encryption__Key: "TU-CLAVE-AES-256-DE-AL-MENOS-32-CARACTERES"
+      AzureBlobStorage__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      AzureBlobStorage__ContainerName: "sistema"
+    networks:
+      - sistickets-network
+
+volumes:
+  sqlserver_data:
+  azurite_data:
+
+networks:
+  sistickets-network:
+    driver: bridge

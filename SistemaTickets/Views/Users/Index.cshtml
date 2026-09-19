@@ -1,0 +1,338 @@
+@model SistemaTickets.Models.Users.UsuarioIndexViewModel
+@using SistemaTickets.Domain.Enums
+
+@{
+    ViewData["Title"] = "Gestión de Usuarios";
+}
+
+@* Token CSRF global para AJAX *@
+@Html.AntiForgeryToken()
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold">Gestión de Usuarios</h4>
+        <small class="text-muted">
+            Mostrando @Model.DesdeRegistro–@Model.HastaRegistro de @Model.TotalRegistros usuarios
+        </small>
+    </div>
+    <a asp-action="Create" class="btn btn-primary btn-sm px-3">+ Nuevo Usuario</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@* Barra de búsqueda y filtros *@
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body py-3">
+        <form method="get" asp-action="Index" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small text-muted mb-1">Buscar</label>
+                <input type="text" name="search" value="@Model.Search"
+                       class="form-control form-control-sm"
+                       placeholder="Nombre, apellido o usuario..." />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Estado</label>
+                <select name="activo" class="form-select form-select-sm">
+                    <option value="" selected="@(Model.FiltroActivo == null)">Todos</option>
+                    <option value="true"  selected="@(Model.FiltroActivo == true)">Activos</option>
+                    <option value="false" selected="@(Model.FiltroActivo == false)">Inactivos</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100">Buscar</button>
+            </div>
+            <div class="col-md-2">
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm w-100">Limpiar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* Tabla *@
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4" style="width:40px">#</th>
+                        <th>Nombre</th>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th class="text-end pe-4">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Usuarios.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                No se encontraron usuarios.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        var num = Model.DesdeRegistro;
+                        @foreach (var u in Model.Usuarios)
+                        {
+                            <tr>
+                                <td class="ps-4 text-muted small">@num</td>
+                                <td>
+                                    <span class="fw-semibold">@u.NombreCompleto</span>
+                                </td>
+                                <td class="text-muted">@u.Username</td>
+                                <td class="text-muted small">@u.Email</td>
+                                <td class="text-muted small">@(u.NumeroTelefono ?? "—")</td>
+                                <td>
+                                    @{
+                                        var (rolClass, rolLabel) = u.Rol switch
+                                        {
+                                            RolUsuario.Administrador => ("success",   "Administrador"),
+                                            RolUsuario.Supervisor    => ("warning",   "Supervisor"),
+                                            RolUsuario.Soporte       => ("info",      "Soporte"),
+                                            _                        => ("secondary", "Usuario")
+                                        };
+                                    }
+                                    <span class="badge bg-@rolClass">@rolLabel</span>
+                                </td>
+                                <td>
+                                    @if (u.Activo)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactivo</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-outline-primary btn-sm"
+                                            onclick="abrirEdicion(@u.Id)">
+                                        Editar
+                                    </button>
+                                    @if (u.Activo)
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm ms-1"
+                                                onclick="inactivarUsuario(@u.Id, '@u.NombreCompleto')">
+                                            Inactivar
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                            num++;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@* Paginación *@
+@if (Model.TotalPaginas > 1)
+{
+    <nav class="mt-4 d-flex justify-content-center">
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
+                <a class="page-link"
+                   href="?page=@(Model.PaginaActual - 1)&search=@Model.Search&activo=@Model.FiltroActivo">
+                    ‹ Anterior
+                </a>
+            </li>
+
+            @for (int i = 1; i <= Model.TotalPaginas; i++)
+            {
+                <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
+                    <a class="page-link"
+                       href="?page=@i&search=@Model.Search&activo=@Model.FiltroActivo">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
+                <a class="page-link"
+                   href="?page=@(Model.PaginaActual + 1)&search=@Model.Search&activo=@Model.FiltroActivo">
+                    Siguiente ›
+                </a>
+            </li>
+        </ul>
+    </nav>
+}
+
+@* Modal de edición *@
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Editar Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="editId" name="Id" />
+                <div class="modal-body">
+
+                    <div id="editErrors" class="alert alert-danger d-none"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre de usuario</label>
+                            <input type="text" id="editUsername" name="Username"
+                                   class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                Nueva contraseña
+                                <small class="text-muted">(dejar en blanco para no cambiar)</small>
+                            </label>
+                            <input type="password" id="editPassword" name="Password"
+                                   class="form-control" autocomplete="new-password" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre</label>
+                            <input type="text" id="editNombre" name="Nombre"
+                                   class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Apellido</label>
+                            <input type="text" id="editApellido" name="Apellido"
+                                   class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" id="editEmail" name="Email"
+                                   class="form-control" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" id="editTelefono" name="NumeroTelefono"
+                                   class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Rol</label>
+                            <select id="editRol" name="Rol" class="form-select" required>
+                                <option value="1">Administrador</option>
+                                <option value="3">Supervisor</option>
+                                <option value="2">Soporte</option>
+                                <option value="4">Usuario</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Modal de confirmación de inactivar *@
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">Inactivar usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="mb-1">¿Está seguro de inactivar al usuario:</p>
+                <p class="fw-bold fs-6 mb-3" id="confirmNombre"></p>
+                <p class="text-muted small mb-0">
+                    El usuario no podrá iniciar sesión. Esta acción puede revertirse
+                    editando el usuario y activándolo nuevamente.
+                </p>
+            </div>
+            <div class="modal-footer border-0 pt-0 gap-2">
+                <button type="button" class="btn btn-outline-secondary px-4"
+                        data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger px-4"
+                        id="confirmBtn">Sí, inactivar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+    // ── Edición ─────────────────────────────────────────────────────────────
+
+    async function abrirEdicion(id) {
+        const res  = await fetch(`/Users/GetForEdit/${id}`);
+        const data = await res.json();
+
+        document.getElementById('editId').value       = data.id;
+        document.getElementById('editUsername').value = data.username;
+        document.getElementById('editNombre').value   = data.nombre;
+        document.getElementById('editApellido').value = data.apellido;
+        document.getElementById('editEmail').value    = data.email;
+        document.getElementById('editTelefono').value = data.numeroTelefono;
+        document.getElementById('editRol').value      = data.rol;
+        document.getElementById('editPassword').value = '';
+        document.getElementById('editErrors').classList.add('d-none');
+
+        new bootstrap.Modal(document.getElementById('editModal')).show();
+    }
+
+    document.getElementById('editForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const fd = new FormData(this);
+        fd.set('__RequestVerificationToken', this.querySelector('[name="__RequestVerificationToken"]').value);
+
+        const res    = await fetch('/Users/Edit', { method: 'POST', body: fd });
+        const result = await res.json();
+
+        if (result.success) {
+            window.location.reload();
+        } else {
+            const box = document.getElementById('editErrors');
+            box.innerHTML = (result.errors ?? [result.message]).join('<br>');
+            box.classList.remove('d-none');
+        }
+    });
+
+    // ── Inactivar ────────────────────────────────────────────────────────────
+
+    let _pendingInactivarId = null;
+
+    function inactivarUsuario(id, nombre) {
+        _pendingInactivarId = id;
+        document.getElementById('confirmNombre').textContent = nombre;
+        new bootstrap.Modal(document.getElementById('confirmModal')).show();
+    }
+
+    document.getElementById('confirmBtn').addEventListener('click', async function () {
+        if (!_pendingInactivarId) return;
+
+        bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+
+        const fd = new FormData();
+        fd.append('id', _pendingInactivarId);
+        fd.append('__RequestVerificationToken', csrfToken);
+
+        const res    = await fetch('/Users/Deactivate', { method: 'POST', body: fd });
+        const result = await res.json();
+
+        _pendingInactivarId = null;
+
+        if (result.success) {
+            window.location.reload();
+        } else {
+            alert(result.message ?? 'Error al inactivar el usuario.');
+        }
+    });
+</script>
+}

@@ -1,0 +1,12 @@
+﻿CREATE TABLE [dbo].[Usuarios] (
+    [Id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [Username] NVARCHAR(50) NOT NULL,
+    [PasswordHaseado] NVARCHAR(256) NOT NULL,
+    [Email] NVARCHAR(120) NOT NULL,
+    [NumeroTelefono] NVARCHAR(30) NULL,
+    [Nombre] NVARCHAR(80) NOT NULL,
+    [Apellido] NVARCHAR(80) NOT NULL,
+    [Activo] BIT NOT NULL DEFAULT 1,
+    [CreadoEn] DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    [Rol] INT NOT NULL DEFAULT 4,
+);

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SistemaTickets</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/SistemaTickets.styles.css" asp-append-version="true" />
+</head>
+<body>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    var ctrl      = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var action    = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var role      = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+    var fullName  = User.Claims.LastOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Name)?.Value ?? "";
+    var esSoporte = role is "Administrador" or "Supervisor" or "Soporte";
+    var esAdmin   = role == "Administrador";
+
+    <!-- ═══ SIDEBAR ═══════════════════════════════════════════════ -->
+    <nav class="app-sidebar" id="appSidebar">
+
+        <div class="sidebar-brand">
+            <a asp-controller="Home" asp-action="Index" class="d-flex align-items-center justify-content-center">
+                <img src="~/images/logo.png" alt="TT Soluciones" class="sidebar-logo" />
+            </a>
+        </div>
+
+        <ul class="sidebar-nav">
+
+            <li class="sidebar-item">
+                <a asp-controller="Home" asp-action="Index"
+                   class="sidebar-link @(ctrl == "Home" ? "active" : "")">
+                    <i class="bi bi-house-fill"></i>
+                    <span>Inicio</span>
+                </a>
+            </li>
+
+            <li class="sidebar-item">
+                <a asp-controller="Tickets" asp-action="Index"
+                   class="sidebar-link @(ctrl == "Tickets" && action != "Nuevos" ? "active" : "")">
+                    <i class="bi bi-ticket-perforated-fill"></i>
+                    <span>Tickets</span>
+                </a>
+            </li>
+
+            @if (esSoporte)
+            {
+                <li class="sidebar-item">
+                    <a asp-controller="Tickets" asp-action="Nuevos"
+                       class="sidebar-link @(ctrl == "Tickets" && action == "Nuevos" ? "active" : "")">
+                        <i class="bi bi-ticket-detailed-fill"></i>
+                        <span>Tickets Nuevos</span>
+                    </a>
+                </li>
+
+                @if (role is "Administrador" or "Supervisor")
+                {
+                    <li class="sidebar-item">
+                        <a asp-controller="Supervisor" asp-action="Seguimiento"
+                           class="sidebar-link @(ctrl == "Supervisor" ? "active" : "")">
+                            <i class="bi bi-graph-up-arrow"></i>
+                            <span>Seguimiento</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item">
+                        <a asp-controller="Reportes" asp-action="Index"
+                           class="sidebar-link @(ctrl == "Reportes" ? "active" : "")">
+                            <i class="bi bi-file-earmark-spreadsheet-fill"></i>
+                            <span>Reportes</span>
+                        </a>
+                    </li>
+                }
+
+                <li class="sidebar-divider"></li>
+                <li class="sidebar-section">Operaciones</li>
+
+                <li class="sidebar-item">
+                    <a asp-controller="Dashboard" asp-action="Index"
+                       class="sidebar-link @(ctrl == "Dashboard" ? "active" : "")">
+                        <i class="bi bi-bar-chart-fill"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item">
+                    <a asp-controller="Inventario" asp-action="Activos"
+                       class="sidebar-link @(ctrl == "Inventario" ? "active" : "")">
+                        <i class="bi bi-box-seam-fill"></i>
+                        <span>Inventario</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item">
+                    <a asp-controller="Campo" asp-action="Visitas"
+                       class="sidebar-link @(ctrl == "Campo" ? "active" : "")">
+                        <i class="bi bi-tools"></i>
+                        <span>Campo</span>
+                    </a>
+                </li>
+            }
+
+            @if (esAdmin)
+            {
+                <li class="sidebar-divider"></li>
+                <li class="sidebar-section">Administración</li>
+
+                <li class="sidebar-item">
+                    <a asp-controller="Users" asp-action="Index"
+                       class="sidebar-link @(ctrl == "Users" ? "active" : "")">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Usuarios</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item">
+                    <a asp-controller="Configuracion" asp-action="Index"
+                       class="sidebar-link @(ctrl == "Configuracion" ? "active" : "")">
+                        <i class="bi bi-sliders"></i>
+                        <span>Configuración</span>
+                    </a>
+                </li>
+            }
+
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user-info">
+                <i class="bi bi-person-circle"></i>
+                <div class="overflow-hidden">
+                    <div class="sidebar-username text-truncate">
+                        @fullName
+                    </div>
+                    <div class="sidebar-role">@role</div>
+                </div>
+            </div>
+            <button type="button" class="sidebar-link" data-bs-toggle="modal" data-bs-target="#modalCambiarPassword">
+                <i class="bi bi-key-fill"></i>
+                <span>Cambiar contraseña</span>
+            </button>
+            <a asp-controller="Users" asp-action="Logout" class="sidebar-logout">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Salir</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- ═══ ÁREA PRINCIPAL ════════════════════════════════════════ -->
+    <div class="app-main" id="appMain">
+
+        <header class="app-topbar">
+            <div class="d-flex align-items-center gap-2">
+                <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle sidebar">
+                    <i class="bi bi-list"></i>
+                </button>
+                <span class="topbar-title">@ViewData["Title"]</span>
+            </div>
+        </header>
+
+        <main class="app-content">
+            @RenderBody()
+        </main>
+
+        <footer class="app-footer">
+            <small class="text-muted">&copy; 2026 TT Soluciones — SistemaTickets</small>
+        </footer>
+    </div>
+
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    @* ── Modal: Cambiar contraseña ──────────────────────────────────────── *@
+    <div class="modal fade" id="modalCambiarPassword" tabindex="-1" aria-labelledby="lblCambiarPassword" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom py-3">
+                    <h6 class="modal-title fw-semibold mb-0" id="lblCambiarPassword">
+                        <i class="bi bi-key-fill me-2 text-primary"></i>Cambiar contraseña
+                    </h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 py-4">
+                    <div id="alertCambiarPwd" class="alert d-none mb-3" role="alert"></div>
+                    <form id="formCambiarPassword">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small mb-1">Contraseña actual</label>
+                            <input type="password" class="form-control" id="cpwdActual"
+                                   name="PasswordActual" placeholder="Tu contraseña actual" autocomplete="current-password" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small mb-1">Nueva contraseña</label>
+                            <input type="password" class="form-control" id="cpwdNuevo"
+                                   name="NuevoPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password" />
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label fw-semibold small mb-1">Confirmar nueva contraseña</label>
+                            <input type="password" class="form-control" id="cpwdConfirmar"
+                                   name="ConfirmarPassword" placeholder="Repetir nueva contraseña" autocomplete="new-password" />
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer py-3">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnGuardarPassword">
+                        <i class="bi bi-check-lg me-1"></i>Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    @RenderBody()
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+<script>
+    (function () {
+        const sidebar   = document.getElementById('appSidebar');
+        const main      = document.getElementById('appMain');
+        const backdrop  = document.getElementById('sidebarBackdrop');
+        const toggleBtn = document.getElementById('sidebarToggle');
+
+        if (!toggleBtn) return;
+
+        function openSidebar() {
+            sidebar.classList.add('sidebar-open');
+            backdrop.classList.add('show');
+        }
+        function closeSidebar() {
+            sidebar.classList.remove('sidebar-open');
+            backdrop.classList.remove('show');
+        }
+
+        toggleBtn.addEventListener('click', function () {
+            sidebar.classList.contains('sidebar-open') ? closeSidebar() : openSidebar();
+        });
+        backdrop.addEventListener('click', closeSidebar);
+    })();
+</script>
+<script>
+(function () {
+    const modal   = document.getElementById('modalCambiarPassword');
+    const btnSave = document.getElementById('btnGuardarPassword');
+    if (!modal || !btnSave) return;
+
+    // Limpiar al abrir
+    modal.addEventListener('show.bs.modal', function () {
+        document.getElementById('alertCambiarPwd').className = 'alert d-none mb-3';
+        document.getElementById('formCambiarPassword').reset();
+    });
+
+    btnSave.addEventListener('click', async function () {
+        const alertEl   = document.getElementById('alertCambiarPwd');
+        const actual    = document.getElementById('cpwdActual').value;
+        const nuevo     = document.getElementById('cpwdNuevo').value;
+        const confirmar = document.getElementById('cpwdConfirmar').value;
+
+        function showErr(msg) {
+            alertEl.className   = 'alert alert-danger mb-3';
+            alertEl.textContent = msg;
+        }
+
+        alertEl.className = 'alert d-none mb-3';
+
+        if (!actual || !nuevo || !confirmar) return showErr('Todos los campos son requeridos.');
+        if (nuevo.length < 6)               return showErr('La nueva contraseña debe tener al menos 6 caracteres.');
+        if (nuevo !== confirmar)             return showErr('La nueva contraseña y su confirmación no coinciden.');
+
+        const token = document.querySelector('#formCambiarPassword input[name="__RequestVerificationToken"]').value;
+        const body  = new URLSearchParams({
+            PasswordActual: actual, NuevoPassword: nuevo,
+            ConfirmarPassword: confirmar, __RequestVerificationToken: token
+        });
+
+        btnSave.disabled     = true;
+        btnSave.innerHTML    = '<span class="spinner-border spinner-border-sm me-1"></span>Guardando...';
+
+        try {
+            const resp = await fetch('/Users/CambiarPassword', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body
+            });
+            const data = await resp.json();
+            if (data.success) {
+                alertEl.className   = 'alert alert-success mb-3';
+                alertEl.textContent = data.message;
+                document.getElementById('formCambiarPassword').reset();
+                setTimeout(() => bootstrap.Modal.getInstance(modal).hide(), 1800);
+            } else {
+                showErr(data.message || 'No se pudo cambiar la contraseña.');
+            }
+        } catch {
+            showErr('Error de conexión. Intenta de nuevo.');
+        } finally {
+            btnSave.disabled  = false;
+            btnSave.innerHTML = '<i class="bi bi-check-lg me-1"></i>Guardar';
+        }
+    });
+})();
+</script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

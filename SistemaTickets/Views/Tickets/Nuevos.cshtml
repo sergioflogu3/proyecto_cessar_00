@@ -1,0 +1,186 @@
+@model IList<SistemaTickets.Domain.Entities.Ticket>
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Tickets Nuevos";
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    var esSoporte = role == "Soporte";
+}
+
+@Html.AntiForgeryToken()
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold">Tickets Nuevos</h4>
+        <small class="text-muted">Incidencias sin asignar — disponibles para tomar</small>
+    </div>
+    <span class="badge bg-primary fs-6">@Model.Count sin asignar</span>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body text-center py-5">
+            <div class="display-6 mb-3 text-success">✅</div>
+            <h5 class="fw-semibold">Todo al día</h5>
+            <p class="text-muted small mb-0">No hay tickets pendientes de asignación.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4" style="width:50px">#</th>
+                            <th>Título</th>
+                            <th>Prioridad</th>
+                            <th>Categoría</th>
+                            <th>Creado por</th>
+                            <th>Hace</th>
+                            <th class="text-end pe-4">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in Model)
+                        {
+                            var hace = (DateTime.UtcNow - t.FechaCreacion);
+                            var haceLabel = hace.TotalDays >= 1
+                                ? $"{(int)hace.TotalDays}d"
+                                : hace.TotalHours >= 1
+                                    ? $"{(int)hace.TotalHours}h"
+                                    : $"{(int)hace.TotalMinutes}min";
+
+                            var urgente = hace.TotalDays >= 1;
+
+                            <tr id="row-@t.Id">
+                                <td class="ps-4 text-muted small">@t.Id</td>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@t.Id"
+                                       class="fw-semibold text-decoration-none text-dark">
+                                        @t.Titulo
+                                    </a>
+                                    @if (t.Descripcion?.Length > 0)
+                                    {
+                                        <div class="text-muted small text-truncate" style="max-width:320px">
+                                            @t.Descripcion
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    @if (t.Prioridad != null)
+                                    {
+                                        <span class="badge" style="background-color:@t.Prioridad.Color">
+                                            @t.Prioridad.Nombre
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted small fst-italic">Sin definir</span>
+                                    }
+                                </td>
+                                <td class="small text-muted">
+                                    @(t.Categoria?.Nombre ?? "—")
+                                </td>
+                                <td class="small text-muted">@t.CreadoPor.NombreCompleto</td>
+                                <td>
+                                    <span class="small @(urgente ? "text-danger fw-semibold" : "text-muted")">
+                                        @haceLabel
+                                        @if (urgente) {<span title="Lleva más de 1 día sin asignar"> ⚠</span>}
+                                    </span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-success btn-sm px-3 btn-tomar"
+                                            data-ticket-id="@t.Id"
+                                            data-titulo="@t.Titulo">
+                                        Tomar ticket
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@* Modal confirmación *@
+<div class="modal fade" id="modalTomar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h6 class="modal-title fw-bold">¿Tomar este ticket?</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-1 pb-2">
+                <p class="small text-muted mb-0">
+                    Se te asignará el ticket <strong id="tituloConfirm"></strong> y pasará a
+                    <span class="badge bg-warning text-dark">En Progreso</span>.
+                </p>
+            </div>
+            <div class="modal-footer border-0 pt-0 gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success btn-sm px-4" id="btnConfirmarTomar">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const csrf = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    let ticketIdSeleccionado = null;
+    const modal = new bootstrap.Modal(document.getElementById('modalTomar'));
+
+    document.querySelectorAll('.btn-tomar').forEach(btn => {
+        btn.addEventListener('click', function () {
+            ticketIdSeleccionado = this.dataset.ticketId;
+            document.getElementById('tituloConfirm').textContent = '#' + ticketIdSeleccionado + ' — ' + this.dataset.titulo;
+            modal.show();
+        });
+    });
+
+    document.getElementById('btnConfirmarTomar').addEventListener('click', async function () {
+        if (!ticketIdSeleccionado) return;
+
+        this.disabled = true;
+        this.textContent = 'Procesando...';
+
+        const fd = new FormData();
+        fd.append('ticketId', ticketIdSeleccionado);
+        fd.append('__RequestVerificationToken', csrf);
+
+        const res = await fetch('/Tickets/TomarTicket', { method: 'POST', body: fd });
+        const r   = await res.json();
+
+        if (r.success) {
+            modal.hide();
+            // Quitar la fila de la tabla con animación
+            const fila = document.getElementById('row-' + ticketIdSeleccionado);
+            if (fila) {
+                fila.style.transition = 'opacity 0.4s';
+                fila.style.opacity = '0';
+                setTimeout(() => {
+                    fila.remove();
+                    // Actualizar el contador
+                    const filas = document.querySelectorAll('tbody tr');
+                    const badge = document.querySelector('.badge.bg-primary.fs-6');
+                    if (badge) badge.textContent = filas.length + ' sin asignar';
+                    if (filas.length === 0) window.location.reload();
+                }, 400);
+            }
+        } else {
+            modal.hide();
+            alert(r.message ?? 'Error al tomar el ticket.');
+        }
+
+        this.disabled = false;
+        this.textContent = 'Confirmar';
+        ticketIdSeleccionado = null;
+    });
+</script>
+}

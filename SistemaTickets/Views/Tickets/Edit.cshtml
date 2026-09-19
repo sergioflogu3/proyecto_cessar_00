@@ -1,0 +1,72 @@
+@model SistemaTickets.Models.Tickets.TicketFormViewModel
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Editar Ticket";
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+}
+
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-sm">← Volver</a>
+    <h4 class="mb-0 fw-bold">Editar Ticket #@Model.Id</h4>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width:760px">
+    <div class="card-body p-4">
+        <form asp-action="Edit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
+            <div class="mb-3">
+                <label asp-for="Titulo" class="form-label fw-semibold">Título *</label>
+                <input asp-for="Titulo" class="form-control" />
+                <span asp-validation-for="Titulo" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Descripcion" class="form-label fw-semibold">Descripción *</label>
+                <textarea asp-for="Descripcion" class="form-control" rows="5"></textarea>
+                <span asp-validation-for="Descripcion" class="text-danger small"></span>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label asp-for="PrioridadId" class="form-label fw-semibold">Prioridad *</label>
+                    <select asp-for="PrioridadId" class="form-select"
+                            asp-items="@(new SelectList(Model.Prioridades, "Id", "Nombre"))">
+                        <option value="">Selecciona...</option>
+                    </select>
+                    <span asp-validation-for="PrioridadId" class="text-danger small"></span>
+                </div>
+
+                <div class="col-md-6">
+                    <label asp-for="CategoriaId" class="form-label fw-semibold">Categoría</label>
+                    <select asp-for="CategoriaId" class="form-select"
+                            asp-items="@(new SelectList(Model.Categorias, "Id", "Nombre"))">
+                        <option value="">Sin categoría</option>
+                    </select>
+                </div>
+            </div>
+
+            @if (role is "Administrador" or "Supervisor" && Model.Agentes.Any())
+            {
+                <div class="mb-4">
+                    <label asp-for="AsignadoAId" class="form-label fw-semibold">Asignado a</label>
+                    <select asp-for="AsignadoAId" class="form-select"
+                            asp-items="@(new SelectList(Model.Agentes, "Id", "NombreCompleto"))">
+                        <option value="">Sin asignar</option>
+                    </select>
+                </div>
+            }
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4">Guardar cambios</button>
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,140 @@
+@model SistemaTickets.Models.Supervisor.SeguimientoViewModel
+
+@{
+    ViewData["Title"] = "Seguimiento de Tickets";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold">Seguimiento de Tickets</h4>
+        <small class="text-muted">Estado general de tickets activos por técnico y prioridad</small>
+    </div>
+</div>
+
+@* ── KPIs resumen ───────────────────────────────────────────────────── *@
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-6">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="text-muted small mb-1">Tickets activos</div>
+            <div class="fs-2 fw-bold text-primary">@Model.TotalActivos</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-6">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="text-muted small mb-1">Sin asignar</div>
+            <div class="fs-2 fw-bold @(Model.SinAsignar > 0 ? "text-warning" : "text-success")">
+                @Model.SinAsignar
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Tabla por técnico ──────────────────────────────────────────────── *@
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-bottom py-3 d-flex align-items-center gap-2">
+        <i class="bi bi-person-badge-fill text-primary"></i>
+        <span class="fw-semibold">Tickets por técnico</span>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.PorTecnico.Any())
+        {
+            <div class="text-center text-muted py-5">No hay tickets activos.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Técnico</th>
+                            @foreach (var estado in Model.Estados)
+                            {
+                                <th class="text-center">@estado</th>
+                            }
+                            <th class="text-center pe-4">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var fila in Model.PorTecnico)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-semibold @(fila.Nombre == "(Sin asignar)" ? "text-muted fst-italic" : "")">
+                                    @if (fila.Nombre != "(Sin asignar)")
+                                    {
+                                        <i class="bi bi-person-fill text-secondary me-1"></i>
+                                    }
+                                    @fila.Nombre
+                                </td>
+                                @foreach (var estado in Model.Estados)
+                                {
+                                    var count = fila.PorEstado.GetValueOrDefault(estado, 0);
+                                    <td class="text-center">
+                                        @if (count > 0)
+                                        {
+                                            <span class="badge bg-secondary">@count</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">—</span>
+                                        }
+                                    </td>
+                                }
+                                <td class="text-center pe-4">
+                                    <span class="badge bg-primary rounded-pill">@fila.Total</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-light fw-semibold">
+                        <tr>
+                            <td class="ps-4">Total</td>
+                            @foreach (var estado in Model.Estados)
+                            {
+                                var total = Model.PorTecnico.Sum(f => f.PorEstado.GetValueOrDefault(estado, 0));
+                                <td class="text-center">@total</td>
+                            }
+                            <td class="text-center pe-4">@Model.TotalActivos</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@* ── Distribución por prioridad ─────────────────────────────────────── *@
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom py-3 d-flex align-items-center gap-2">
+        <i class="bi bi-flag-fill text-danger"></i>
+        <span class="fw-semibold">Distribución por prioridad</span>
+    </div>
+    <div class="card-body">
+        @if (!Model.PorPrioridad.Any())
+        {
+            <div class="text-center text-muted py-3">Sin datos.</div>
+        }
+        else
+        {
+            @foreach (var fila in Model.PorPrioridad)
+            {
+                var pct = Model.TotalActivos > 0
+                    ? (int)Math.Round((double)fila.Total / Model.TotalActivos * 100)
+                    : 0;
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge" style="background-color:@fila.Color">@fila.Nombre</span>
+                        </div>
+                        <span class="small text-muted">@fila.Total ticket@(fila.Total != 1 ? "s" : "") — @pct%</span>
+                    </div>
+                    <div class="progress" style="height:10px; border-radius:6px">
+                        <div class="progress-bar" role="progressbar"
+                             style="width:@pct%; background-color:@fila.Color"
+                             aria-valuenow="@pct" aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

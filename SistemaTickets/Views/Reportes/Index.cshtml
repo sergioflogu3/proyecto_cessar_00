@@ -1,0 +1,393 @@
+@model SistemaTickets.Models.Reportes.ReporteIndexViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Reportes";
+}
+
+<div class="d-flex align-items-center gap-3 mb-4">
+    <h4 class="mb-0 fw-bold">Módulo de Reportes</h4>
+    <span class="badge bg-success">Excel</span>
+    <span class="badge bg-danger">PDF</span>
+</div>
+
+@* ── Barra de filtros globales ─────────────────────────────────────────── *@
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white border-bottom py-3">
+        <span class="fw-semibold">Filtros</span>
+        <span class="text-muted small ms-2">Se aplican al descargar cada reporte</span>
+    </div>
+    <div class="card-body py-3">
+        <div class="row g-3 align-items-end" id="filtrosGlobales">
+
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small mb-1">Período</label>
+                <select id="filPeriodo" class="form-select form-select-sm">
+                    <option value="dia">Hoy</option>
+                    <option value="semana">Última semana</option>
+                    <option value="mes" selected>Este mes</option>
+                    <option value="anio">Este año</option>
+                    <option value="custom">Personalizado</option>
+                </select>
+            </div>
+
+            <div class="col-md-2" id="colDesde" style="display:none">
+                <label class="form-label fw-semibold small mb-1">Desde</label>
+                <input type="date" id="filDesde" class="form-control form-control-sm" />
+            </div>
+
+            <div class="col-md-2" id="colHasta" style="display:none">
+                <label class="form-label fw-semibold small mb-1">Hasta</label>
+                <input type="date" id="filHasta" class="form-control form-control-sm" />
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small mb-1">Estado</label>
+                <select id="filEstado" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    @foreach (var e in Model.Estados)
+                    {
+                        <option value="@e.Id">@e.Nombre</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small mb-1">Prioridad</label>
+                <select id="filPrioridad" class="form-select form-select-sm">
+                    <option value="">Todas</option>
+                    @foreach (var p in Model.Prioridades)
+                    {
+                        <option value="@p.Id">@p.Nombre</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small mb-1">Categoría</label>
+                <select id="filCategoria" class="form-select form-select-sm">
+                    <option value="">Todas</option>
+                    @foreach (var c in Model.Categorias)
+                    {
+                        <option value="@c.Id">@c.Nombre</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small mb-1">Cliente</label>
+                <select id="filCliente" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    @foreach (var u in Model.Clientes)
+                    {
+                        <option value="@u.Id">@u.NombreCompleto</option>
+                    }
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small mb-1">Técnico</label>
+                <select id="filTecnico" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    @foreach (var t in Model.Tecnicos)
+                    {
+                        <option value="@t.Id">@t.NombreCompleto</option>
+                    }
+                </select>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@* ── Grid de reportes ─────────────────────────────────────────────────── *@
+<div class="row g-4">
+
+    @* 1 — General *@
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column py-4 px-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="fs-4">📋</span>
+                    <h6 class="mb-0 fw-bold">Reporte General de Tickets</h6>
+                </div>
+                <p class="text-muted small flex-grow-1">
+                    Todos los tickets del período con categoría, prioridad, estado,
+                    solicitante, técnico y tiempo abierto.
+                </p>
+                <div class="text-muted small mb-3">
+                    <span class="badge bg-secondary-subtle text-secondary me-1">Período</span>
+                    <span class="badge bg-secondary-subtle text-secondary me-1">Estado</span>
+                    <span class="badge bg-secondary-subtle text-secondary me-1">Prioridad</span>
+                    <span class="badge bg-secondary-subtle text-secondary me-1">Cliente</span>
+                    <span class="badge bg-secondary-subtle text-secondary">Técnico</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success btn-sm flex-fill" onclick="descargar('general')">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Excel
+                    </button>
+                    <button class="btn btn-danger btn-sm flex-fill" onclick="descargarPdf('general')">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* 2 — Por Estado *@
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column py-4 px-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="fs-4">📊</span>
+                    <h6 class="mb-0 fw-bold">Tickets por Estado</h6>
+                </div>
+                <p class="text-muted small flex-grow-1">
+                    Cantidad y porcentaje de tickets agrupados por estado en el período.
+                </p>
+                <div class="text-muted small mb-3">
+                    <span class="badge bg-secondary-subtle text-secondary">Período</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success btn-sm flex-fill" onclick="descargar('estado')">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Excel
+                    </button>
+                    <button class="btn btn-danger btn-sm flex-fill" onclick="descargarPdf('estado')">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* 3 — Por Prioridad *@
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column py-4 px-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="fs-4">🚨</span>
+                    <h6 class="mb-0 fw-bold">Tickets por Prioridad</h6>
+                </div>
+                <p class="text-muted small flex-grow-1">
+                    Tickets agrupados por prioridad. Muestra abiertos y cerrados por cada nivel.
+                </p>
+                <div class="text-muted small mb-3">
+                    <span class="badge bg-secondary-subtle text-secondary me-1">Período</span>
+                    <span class="badge bg-secondary-subtle text-secondary">Estado</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success btn-sm flex-fill" onclick="descargar('prioridad')">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Excel
+                    </button>
+                    <button class="btn btn-danger btn-sm flex-fill" onclick="descargarPdf('prioridad')">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* 4 — Sin resolver *@
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column py-4 px-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="fs-4">⚠️</span>
+                    <h6 class="mb-0 fw-bold">Tickets sin Resolver</h6>
+                </div>
+                <p class="text-muted small flex-grow-1">
+                    Tickets abiertos creados en el período. Filas amarillas: &gt;7 días.
+                    Rojas: &gt;30 días.
+                </p>
+                <div class="text-muted small mb-3">
+                    <span class="badge bg-secondary-subtle text-secondary">Período creación</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success btn-sm flex-fill" onclick="descargar('sinresolver')">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Excel
+                    </button>
+                    <button class="btn btn-danger btn-sm flex-fill" onclick="descargarPdf('sinresolver')">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* 5 — Productividad *@
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column py-4 px-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="fs-4">👨‍💻</span>
+                    <h6 class="mb-0 fw-bold">Productividad por Técnico</h6>
+                </div>
+                <p class="text-muted small flex-grow-1">
+                    Por técnico: asignados, resueltos, pendientes y tiempo promedio de
+                    resolución en días.
+                </p>
+                <div class="text-muted small mb-3">
+                    <span class="badge bg-secondary-subtle text-secondary">Período</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success btn-sm flex-fill" onclick="descargar('productividad')">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Excel
+                    </button>
+                    <button class="btn btn-danger btn-sm flex-fill" onclick="descargarPdf('productividad')">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* 6 — Historial *@
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column py-4 px-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="fs-4">🔍</span>
+                    <h6 class="mb-0 fw-bold">Historial de Ticket</h6>
+                </div>
+                <p class="text-muted small flex-grow-1">
+                    Auditoría completa de cambios: estado, asignación, prioridad, comentarios.
+                    Filtrable por Ticket ID.
+                </p>
+                <div class="text-muted small mb-3">
+                    <span class="badge bg-secondary-subtle text-secondary">Período</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success btn-sm flex-fill" onclick="descargar('historial')">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Excel
+                    </button>
+                    <button class="btn btn-danger btn-sm flex-fill" onclick="descargarPdf('historial')">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* 7 — Comentarios *@
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column py-4 px-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="fs-4">💬</span>
+                    <h6 class="mb-0 fw-bold">Comentarios y Seguimiento</h6>
+                </div>
+                <p class="text-muted small flex-grow-1">
+                    Todos los comentarios del período. Notas internas resaltadas en amarillo.
+                </p>
+                <div class="text-muted small mb-3">
+                    <span class="badge bg-secondary-subtle text-secondary">Período</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success btn-sm flex-fill" onclick="descargar('comentarios')">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Excel
+                    </button>
+                    <button class="btn btn-danger btn-sm flex-fill" onclick="descargarPdf('comentarios')">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* 8 — Adjuntos *@
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column py-4 px-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="fs-4">📎</span>
+                    <h6 class="mb-0 fw-bold">Evidencias Adjuntas</h6>
+                </div>
+                <p class="text-muted small flex-grow-1">
+                    Archivos subidos a tickets en el período con tipo, tamaño y usuario.
+                </p>
+                <div class="text-muted small mb-3">
+                    <span class="badge bg-secondary-subtle text-secondary">Período</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success btn-sm flex-fill" onclick="descargar('adjuntos')">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Excel
+                    </button>
+                    <button class="btn btn-danger btn-sm flex-fill" onclick="descargarPdf('adjuntos')">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* 9 — Usuarios *@
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column py-4 px-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <span class="fs-4">👥</span>
+                    <h6 class="mb-0 fw-bold">Usuarios del Sistema</h6>
+                </div>
+                <p class="text-muted small flex-grow-1">
+                    Lista completa de usuarios con rol, estado activo y fecha de creación.
+                    No requiere filtro de período.
+                </p>
+                <div class="text-muted small mb-3">
+                    <span class="badge bg-secondary-subtle text-secondary">Sin filtros</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success btn-sm flex-fill" onclick="descargar('usuarios')">
+                        <i class="bi bi-file-earmark-excel-fill me-1"></i> Excel
+                    </button>
+                    <button class="btn btn-danger btn-sm flex-fill" onclick="descargarPdf('usuarios')">
+                        <i class="bi bi-file-earmark-pdf-fill me-1"></i> PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+<script>
+    // Mostrar/ocultar campos de fecha personalizada
+    document.getElementById('filPeriodo').addEventListener('change', function () {
+        const custom = this.value === 'custom';
+        document.getElementById('colDesde').style.display = custom ? '' : 'none';
+        document.getElementById('colHasta').style.display = custom ? '' : 'none';
+    });
+
+    function buildUrl(tipo) {
+        const params = new URLSearchParams();
+        params.set('tipo', tipo);
+        params.set('Periodo', document.getElementById('filPeriodo').value);
+
+        const desde = document.getElementById('filDesde').value;
+        const hasta = document.getElementById('filHasta').value;
+        if (desde) params.set('Desde', desde);
+        if (hasta) params.set('Hasta', hasta);
+
+        const estado    = document.getElementById('filEstado').value;
+        const prioridad = document.getElementById('filPrioridad').value;
+        const categoria = document.getElementById('filCategoria').value;
+        const cliente   = document.getElementById('filCliente').value;
+        const tecnico   = document.getElementById('filTecnico').value;
+        if (estado)    params.set('EstadoId',    estado);
+        if (prioridad) params.set('PrioridadId', prioridad);
+        if (categoria) params.set('CategoriaId', categoria);
+        if (cliente)   params.set('ClienteId',   cliente);
+        if (tecnico)   params.set('TecnicoId',   tecnico);
+
+        return '/Reportes/Descargar?' + params.toString();
+    }
+
+    function descargar(tipo) {
+        window.location.href = buildUrl(tipo);
+    }
+
+    function descargarPdf(tipo) {
+        window.location.href = buildUrl(tipo).replace('/Reportes/Descargar?', '/Reportes/DescargarPdf?');
+    }
+</script>
+}
