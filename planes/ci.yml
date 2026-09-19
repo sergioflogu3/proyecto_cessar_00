@@ -1,0 +1,77 @@
+# CI para SistemaTickets (.NET 8)
+# Ver planes/ci-cd-plan.md — Mover a .github/workflows/ci.yml para activar.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (.NET 8, Release)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          cache: true
+          cache-dependency-path: SistemaTickets/SistemaTickets.csproj
+
+      - name: Restore
+        run: dotnet restore SistemaTickets.sln
+
+      - name: Build
+        run: dotnet build SistemaTickets.sln -c Release --no-restore
+
+  format:
+    name: dotnet format (no bloqueante al inicio)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          cache: true
+          cache-dependency-path: SistemaTickets/SistemaTickets.csproj
+
+      - name: Verify formatting
+        run: dotnet format SistemaTickets.sln --verify-no-changes
+
+  security:
+    name: Vulnerable packages (warn)
+    runs-on: ubuntu-latest
+    continue-on-error: true # Cambiar a modo bloqueante tras periodo de gracia (ver plan, sección 2)
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+          cache: true
+          cache-dependency-path: SistemaTickets/SistemaTickets.csproj
+
+      - name: Check for vulnerable packages
+        run: >
+          dotnet list SistemaTickets.sln package --vulnerable --include-transitive
+          | tee vulnerable.txt
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vulnerable-packages-report
+          path: vulnerable.txt
+          if-no-files-found: ignore
