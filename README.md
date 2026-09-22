@@ -70,6 +70,14 @@ Edita `SistemaTickets/appsettings.json` antes de ejecutar:
 
 > **Importante**: La primera vez que ejecutes, configura `NHibernate:UpdateSchema` en `true` en `appsettings.json` para crear las tablas automáticamente. **Cámbialo a `false` después del primer arranque exitoso** para evitar migraciones accidentales.
 
+> **Jwt:Key y ConnectionStrings:DefaultConnection son obligatorias y se validan al arrancar**: la app **no inicia** si faltan, o si siguen siendo el valor de ejemplo del repo (`Jwt:Key` además exige mínimo 32 caracteres). `appsettings.json` solo trae placeholders — usa `appsettings.json.example` como referencia y define los valores reales con User Secrets (dev) o variables de entorno `Jwt__Key` / `ConnectionStrings__DefaultConnection` (producción/Docker), nunca en el archivo versionado:
+> ```bash
+> cd SistemaTickets
+> dotnet user-secrets set "Jwt:Key" "$(openssl rand -base64 48)"
+> dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost;Database=SISTickets;User Id=tu_usuario;Password=tu_password;TrustServerCertificate=True;"
+> ```
+> Si tu SQL Server local todavía usa el usuario/contraseña que estaban committeados en el repo (`ariel` / `ariel123`), **rótalos ahora**: esas credenciales quedaron expuestas en el historial de git y deben considerarse comprometidas aunque ya no aparezcan en el archivo actual.
+
 ## Levantar en Local
 
 ### 1. Base de datos SQL Server
@@ -124,6 +132,11 @@ Los archivos Docker ya están incluidos en el repositorio:
 # 1. Asegurar permisos de ejecución al script (Linux/Mac)
 chmod +x docker/sql/entrypoint.sh
 
+# 1.1. Crear tu .env local con una clave JWT real (no versionado, ver .env.example)
+cp .env.example .env
+# Edita .env y define JWT_KEY, por ejemplo:
+#   JWT_KEY=$(openssl rand -base64 48)
+
 # 2. Limpiar contenedores anteriores (recomendado si falló antes)
 docker-compose down -v
 
@@ -177,8 +190,8 @@ SistemaTickets/
 
 ## Seguridad
 
-- **No subas** `appsettings.json` con credenciales reales al repositorio.
-- Las claves `Jwt:Key` y `Encryption:Key` deben tener **al menos 32 caracteres**.
+- **No subas** `appsettings.json` con credenciales reales al repositorio; el archivo versionado solo debe contener placeholders (ver `appsettings.json.example`). `ConnectionStrings:DefaultConnection` se valida al arrancar igual que `Jwt:Key` (ver sección Configuración).
+- Las claves `Jwt:Key` y `Encryption:Key` deben tener **al menos 32 caracteres**. `Jwt:Key` se valida al arrancar la app (ver sección Configuración) y el arranque falla si quedó en su valor de ejemplo.
 - En producción, usa variables de entorno o Azure Key Vault para secretos.
 - El esquema de base de datos se actualiza automáticamente solo cuando `NHibernate:UpdateSchema` es `true`. Desactívalo en producción.
 

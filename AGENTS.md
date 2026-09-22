@@ -31,11 +31,12 @@ dotnet run --project SistemaTickets/SistemaTickets.csproj
 - **Critical**: `appsettings.json` → `NHibernate:UpdateSchema` controls `SchemaUpdate` on startup.
   - `true` = auto-creates/updates tables. Intended **only for first deploy**.
   - Set to `false` after initial schema is created to avoid accidental migrations in production.
-- Connection string lives in `appsettings.json` (`DefaultConnection`).
+- `ConnectionStrings:DefaultConnection` is validated at startup (`ValidateConnectionString` in `Program.cs`): the app refuses to start if it's missing or still a placeholder value. `appsettings.json` only holds placeholders (see `appsettings.json.example`) — set the real value via `dotnet user-secrets set "ConnectionStrings:DefaultConnection" "..."` (dev) or the `ConnectionStrings__DefaultConnection` env var (prod/Docker).
 - `ScriptsDB/` contains canonical DDL scripts (users, tickets, inventario, campo repuestos). Run these in order if bootstrapping a fresh database manually.
 
 ## Auth
 
+- `Jwt:Key` is validated at startup in `Program.cs` (`ValidateJwtKey`): the app refuses to start if the key is missing, shorter than 32 characters, or matches a known placeholder value. Set a real key via `dotnet user-secrets set "Jwt:Key" "..."` (dev) or the `Jwt__Key` env var (prod/Docker) — never a literal value in `appsettings.json`.
 - JWT Bearer + cookie dual mode:
   1. Respects `Authorization: Bearer <token>` header if present.
   2. Falls back to `jwt` cookie for browser MVC flows.
@@ -57,4 +58,4 @@ dotnet run --project SistemaTickets/SistemaTickets.csproj
 
 ## Safety
 
-- Do not commit real secrets in `appsettings.json`. Placeholder keys are present for `Jwt:Key` and `Encryption:Key`.
+- Do not commit real secrets in `appsettings.json`. Placeholder values are present for `Jwt:Key`, `Encryption:Key`, and `ConnectionStrings:DefaultConnection`; `Jwt:Key` and `ConnectionStrings:DefaultConnection` are enforced at startup (`Program.cs`) and `appsettings.json.example` documents the expected shape.

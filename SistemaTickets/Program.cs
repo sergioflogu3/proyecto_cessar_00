@@ -18,7 +18,7 @@ namespace SistemaTickets
             builder.Services.AddControllersWithViews();
 
             // NHibernate
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!;
+            var connectionString = ValidateConnectionString(builder.Configuration.GetConnectionString("DefaultConnection"));
 
             // updateSchema: true solo en primer deploy para crear las tablas en Azure SQL
             // Cámbialo a false después del primer arranque exitoso
@@ -48,7 +48,7 @@ namespace SistemaTickets
 
             // JWT
             var jwtSection = builder.Configuration.GetSection("Jwt");
-            var jwtKey = jwtSection["Key"]!;
+            var jwtKey = ValidateJwtKey(jwtSection["Key"]);
             var jwtIssuer = jwtSection["Issuer"];
             var jwtAudience = jwtSection["Audience"];
 
@@ -149,6 +149,84 @@ namespace SistemaTickets
 
             // Para local sin Docker, si luego quieres probar as�:
             app.Run();
+        }
+
+        // C1: la clave JWT nunca debe quedarse en su valor de ejemplo del repo,
+        // ni ser demasiado corta para HMAC-SHA256. Si esto falla, la app no arranca.
+        private const int MinJwtKeyLength = 32;
+
+        private static readonly string[] KnownPlaceholderJwtKeys =
+        {
+            "REEMPLAZAR-CON-CLAVE-JWT-SEGURA-MINIMO-32-CARACTERES-AQUI",
+            "TU-CLAVE-JWT-SUPER-SEGURA-DE-AL-MENOS-32-CARACTERES"
+        };
+
+        private static string ValidateJwtKey(string? key)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                throw new InvalidOperationException(
+                    "Jwt:Key no está configurada. Defínela mediante variable de entorno (Jwt__Key), " +
+                    "User Secrets o Azure Key Vault antes de iniciar la aplicación.");
+            }
+
+            if (key.Length < MinJwtKeyLength)
+            {
+                throw new InvalidOperationException(
+                    $"Jwt:Key es demasiado corta ({key.Length} caracteres). Debe tener al menos {MinJwtKeyLength} caracteres.");
+            }
+
+            var esPlaceholder =
+                KnownPlaceholderJwtKeys.Any(p => string.Equals(p, key, StringComparison.OrdinalIgnoreCase)) ||
+                key.Contains("REEMPLAZAR", StringComparison.OrdinalIgnoreCase) ||
+                key.Contains("CAMBIAR", StringComparison.OrdinalIgnoreCase) ||
+                key.Contains("PLACEHOLDER", StringComparison.OrdinalIgnoreCase) ||
+                key.Contains("TU-CLAVE", StringComparison.OrdinalIgnoreCase);
+
+            if (esPlaceholder)
+            {
+                throw new InvalidOperationException(
+                    "Jwt:Key todavía tiene un valor de ejemplo/placeholder. Reemplázala por una clave " +
+                    "aleatoria real (variable de entorno, User Secrets o Key Vault) antes de iniciar la aplicación.");
+            }
+
+            return key;
+        }
+
+        // C2: la cadena de conexión no debe quedarse en su valor de ejemplo del repo.
+        // Si esto falla, la app no arranca.
+        private static readonly string[] PlaceholderConnectionStringMarkers =
+        {
+            "REEMPLAZAR",
+            "PLACEHOLDER",
+            "TU-USUARIO",
+            "TU-PASSWORD",
+            "TU_USUARIO",
+            "TU_PASSWORD"
+        };
+
+        private static string ValidateConnectionString(string? connectionString)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "ConnectionStrings:DefaultConnection no está configurada. Defínela mediante variable de " +
+                    "entorno (ConnectionStrings__DefaultConnection), User Secrets o Azure Key Vault antes de " +
+                    "iniciar la aplicación.");
+            }
+
+            var esPlaceholder = PlaceholderConnectionStringMarkers.Any(
+                marker => connectionString.Contains(marker, StringComparison.OrdinalIgnoreCase));
+
+            if (esPlaceholder)
+            {
+                throw new InvalidOperationException(
+                    "ConnectionStrings:DefaultConnection todavía tiene un valor de ejemplo/placeholder. " +
+                    "Reemplázala por credenciales reales (variable de entorno, User Secrets o Key Vault) " +
+                    "antes de iniciar la aplicación.");
+            }
+
+            return connectionString;
         }
     }
 }

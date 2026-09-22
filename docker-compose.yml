@@ -47,7 +47,9 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: "Production"
       ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=SISTickets;User Id=sa;Password=TuPassword123!;TrustServerCertificate=True;"
-      Jwt__Key: "TU-CLAVE-JWT-SUPER-SEGURA-DE-AL-MENOS-32-CARACTERES"
+      # JWT_KEY debe venir de un archivo .env local (no versionado) o del entorno del host.
+      # Ver .env.example. La app rechaza arrancar si esta clave falta, es corta o es un placeholder.
+      Jwt__Key: "${JWT_KEY:?Define JWT_KEY en un archivo .env (copia .env.example) antes de levantar el stack}"
       Jwt__Issuer: "SistemaTickets"
       Jwt__Audience: "SistemaTicketsUsers"
       Jwt__ExpireMinutes: "120"
