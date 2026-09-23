@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SistemaTickets.Domain.Entities;
 using SistemaTickets.Domain.Services;
 using SistemaTickets.Infrastructure.Security;
@@ -16,15 +17,21 @@ namespace SistemaTickets.Controllers
         private readonly IUsuarioService _usuarioService;
         private readonly IConfiguration  _configuration;
         private readonly ITokenRevocationService _tokenRevocationService;
+        private readonly ILoginAttemptService _loginAttemptService;
+        private readonly ILogger<UsersController> _logger;
 
         public UsersController(
             IUsuarioService usuarioService,
             IConfiguration configuration,
-            ITokenRevocationService tokenRevocationService)
+            ITokenRevocationService tokenRevocationService,
+            ILoginAttemptService loginAttemptService,
+            ILogger<UsersController> logger)
         {
             _usuarioService = usuarioService;
             _configuration  = configuration;
             _tokenRevocationService = tokenRevocationService;
+            _loginAttemptService = loginAttemptService;
+            _logger = logger;
         }
 
         private int GetConfiguredExpireMinutes() => _configuration.GetValue<int?>("Jwt:ExpireMinutes") ?? 30;
@@ -44,17 +51,38 @@ namespace SistemaTickets.Controllers
         [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [EnableRateLimiting("login")]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid) return View(model);
+
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "desconocida";
+
+            // A1: bloqueo temporal por usuario tras varios intentos fallidos, además del
+            // rate limiting por IP de la política "login".
+            if (_loginAttemptService.IsLockedOut(model.Login, out var retryAfter))
+            {
+                _logger.LogWarning(
+                    "Login bloqueado temporalmente para '{Login}' desde {Ip}. Reintentar en {RetryAfterMinutes} min.",
+                    model.Login, ip, Math.Ceiling(retryAfter.TotalMinutes));
+
+                ModelState.AddModelError(string.Empty,
+                    $"Demasiados intentos fallidos. Intenta de nuevo en {Math.Ceiling(retryAfter.TotalMinutes)} minuto(s).");
+                return View(model);
+            }
 
             var isValid = await _usuarioService.ValidateCredentialsAsync(model.Login, model.Password);
 
             if (!isValid)
             {
+                _loginAttemptService.RegisterFailure(model.Login);
+                _logger.LogWarning("Intento de login fallido para '{Login}' desde {Ip}.", model.Login, ip);
+
                 ModelState.AddModelError(string.Empty, "Credenciales inválidas o usuario inactivo.");
                 return View(model);
             }
+
+            _loginAttemptService.RegisterSuccess(model.Login);
 
             var user = await _usuarioService.GetByLoginAsync(model.Login);
             if (user is null)

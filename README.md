@@ -195,6 +195,7 @@ SistemaTickets/
 - En producción, usa variables de entorno o Azure Key Vault para secretos.
 - El esquema de base de datos se actualiza automáticamente solo cuando `NHibernate:UpdateSchema` es `true`. Desactívalo en producción.
 - Los tokens JWT expiran a los `Jwt:ExpireMinutes` minutos (30 por defecto) y quedan revocados de inmediato al hacer logout o al desactivar un usuario — no hace falta esperar a que expire el token para que deje de aceptarse (ver detalle en `AGENTS.md`/`CLAUDE.md`, sección Auth).
+- El login (`/Users/Login` POST) tiene rate limiting por IP (10 solicitudes/minuto) y bloqueo temporal por usuario tras 5 intentos fallidos en 15 minutos, con log de cada intento fallido — mitiga ataques de fuerza bruta/diccionario contra credenciales (ver `AGENTS.md`/`CLAUDE.md`, sección Auth).
 
 ## Licencia
 

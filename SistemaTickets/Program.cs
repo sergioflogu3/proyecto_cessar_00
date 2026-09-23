@@ -5,7 +5,9 @@ using SistemaTickets.Infrastructure.Services;
 using SistemaTickets.Infrastructure.Persistence.Repositories;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 namespace SistemaTickets
 {
@@ -47,6 +49,38 @@ namespace SistemaTickets
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddSingleton<IStorageService, AzureBlobStorageService>();
             builder.Services.AddSingleton<ITokenRevocationService, InMemoryTokenRevocationService>();
+            builder.Services.AddSingleton<ILoginAttemptService, InMemoryLoginAttemptService>();
+
+            // A1: rate limiting por IP para el endpoint de login (mitiga fuerza bruta/diccionario).
+            // Se complementa con el bloqueo temporal por usuario de ILoginAttemptService.
+            builder.Services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                options.AddPolicy("login", httpContext =>
+                    RateLimitPartition.GetSlidingWindowLimiter(
+                        partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "desconocida",
+                        factory: _ => new SlidingWindowRateLimiterOptions
+                        {
+                            PermitLimit = 10,
+                            Window = TimeSpan.FromMinutes(1),
+                            SegmentsPerWindow = 4,
+                            QueueLimit = 0
+                        }));
+
+                options.OnRejected = async (context, token) =>
+                {
+                    context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+                    if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+                    {
+                        context.HttpContext.Response.Headers.RetryAfter =
+                            ((int)retryAfter.TotalSeconds).ToString();
+                    }
+
+                    await context.HttpContext.Response.WriteAsync(
+                        "Demasiados intentos de acceso. Intenta de nuevo en unos minutos.", token);
+                };
+            });
 
             // JWT
             var jwtSection = builder.Configuration.GetSection("Jwt");
@@ -151,6 +185,8 @@ namespace SistemaTickets
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseRateLimiter();
 
             app.UseAuthentication();
             app.UseAuthorization();
