@@ -109,12 +109,24 @@ Ejecuta los scripts en `SistemaTickets/ScriptsDB/` en orden:
 # Restaurar paquetes
 dotnet restore SistemaTickets.sln
 
-# Ejecutar
+# Ejecutar (usa el perfil "https" por defecto — ver nota abajo)
 dotnet run --project SistemaTickets/SistemaTickets.csproj
 
 # La aplicación estará disponible en:
-# https://localhost:7046 (o el puerto que indique la consola)
+# https://localhost:7114 (o el puerto que indique la consola)
 ```
+
+> **A3**: la cookie de sesión (`jwt`) es `Secure=true` en todo entorno real (Docker,
+> producción) — ahí **necesita HTTPS** para funcionar. Localmente (`ASPNETCORE_ENVIRONMENT=
+> Development`, que es lo que ponen los tres perfiles de `launchSettings.json`) esa excepción
+> no aplica, así que **podés probar con el perfil `http`** sin certificados:
+> ```bash
+> dotnet run --project SistemaTickets/SistemaTickets.csproj --launch-profile http
+> # http://localhost:5213
+> ```
+> Para probar con HTTPS local (recomendado si querés replicar el comportamiento real), confiá
+> el certificado de desarrollo una sola vez — `dotnet dev-certs https --trust` — y corré con
+> `--launch-profile https` (o sin flag, ya que es el perfil por defecto).
 
 Usuario por defecto: debes crearlo desde la interfaz o insertarlo directamente en la tabla `Usuarios` (la contraseña debe hashearse con BCrypt).
 
@@ -122,9 +134,23 @@ Usuario por defecto: debes crearlo desde la interfaz o insertarlo directamente e
 
 Los archivos Docker ya están incluidos en el repositorio:
 - **`Dockerfile`** — Multi-etapa (build + runtime)
-- **`docker-compose.yml`** — App + SQL Server + Azurite (emulador Azure Blob Storage)
+- **`docker-compose.yml`** — App + SQL Server + Azurite (emulador Azure Blob Storage) + Caddy (proxy HTTPS)
 - **`docker/sql/init.sql`** — Crea la base de datos `SISTickets`
 - **`docker/sql/entrypoint.sh`** — Arranca SQL Server y ejecuta el script de inicialización
+- **`docker/caddy/Caddyfile`** — Termina TLS con un certificado autofirmado local y reenvía a la app
+
+> **A3**: hay dos formas de entrar, las dos publicadas en `localhost`:
+> - **HTTP directo** — `http://localhost:8080` (host y puerto parametrizables en `.env` con
+>   `APP_HOST`/`APP_PORT`; por defecto se publica solo en `127.0.0.1`, no en toda la red). Esto
+>   funciona porque el servicio `app` corre con `ASPNETCORE_ENVIRONMENT=Development`, que
+>   deshabilita el `Secure` de la cookie de sesión (`jwt`) — ver detalle en `AGENTS.md`/
+>   `CLAUDE.md`, sección Auth.
+> - **HTTPS vía proxy** — `https://localhost:8443`, a través del servicio `caddy` (certificado
+>   autofirmado local; el navegador va a advertir que no es de una CA pública, es esperado).
+>
+> Si cambiás `ASPNETCORE_ENVIRONMENT` a `Production` en `docker-compose.yml` (para simular un
+> despliegue real), la cookie vuelve a exigir `Secure=true` siempre y el acceso por HTTP directo
+> deja de sostener el login — en ese caso usá el proxy Caddy.
 
 ### Instrucciones Docker
 
@@ -193,6 +219,11 @@ SistemaTickets/
 - **No subas** `appsettings.json` con credenciales reales al repositorio; el archivo versionado solo debe contener placeholders (ver `appsettings.json.example`). `ConnectionStrings:DefaultConnection` se valida al arrancar igual que `Jwt:Key` (ver sección Configuración).
 - Las claves `Jwt:Key` y `Encryption:Key` deben tener **al menos 32 caracteres**. `Jwt:Key` se valida al arrancar la app (ver sección Configuración) y el arranque falla si quedó en su valor de ejemplo.
 - En producción, usa variables de entorno o Azure Key Vault para secretos.
+- La cookie de sesión (`jwt`) se emite con `Secure=true` en todo entorno real (Docker,
+  producción) — ahí solo viaja por HTTPS; `docker-compose` ya incluye un proxy Caddy con TLS
+  local para esto (ver sección Docker). En `Development` (`ASPNETCORE_ENVIRONMENT`, no el
+  esquema de la petición) esa restricción no aplica, para poder probar localmente por HTTP sin
+  certificados (ver sección "Ejecutar la aplicación").
 - El esquema de base de datos se actualiza automáticamente solo cuando `NHibernate:UpdateSchema` es `true`. Desactívalo en producción.
 - Los tokens JWT expiran a los `Jwt:ExpireMinutes` minutos (30 por defecto) y quedan revocados de inmediato al hacer logout o al desactivar un usuario — no hace falta esperar a que expire el token para que deje de aceptarse (ver detalle en `AGENTS.md`/`CLAUDE.md`, sección Auth).
 - El login (`/Users/Login` POST) tiene rate limiting por IP (10 solicitudes/minuto) y bloqueo temporal por usuario tras 5 intentos fallidos en 15 minutos, con log de cada intento fallido — mitiga ataques de fuerza bruta/diccionario contra credenciales (ver `AGENTS.md`/`CLAUDE.md`, sección Auth).

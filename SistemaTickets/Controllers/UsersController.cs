@@ -19,19 +19,22 @@ namespace SistemaTickets.Controllers
         private readonly ITokenRevocationService _tokenRevocationService;
         private readonly ILoginAttemptService _loginAttemptService;
         private readonly ILogger<UsersController> _logger;
+        private readonly IWebHostEnvironment _environment;
 
         public UsersController(
             IUsuarioService usuarioService,
             IConfiguration configuration,
             ITokenRevocationService tokenRevocationService,
             ILoginAttemptService loginAttemptService,
-            ILogger<UsersController> logger)
+            ILogger<UsersController> logger,
+            IWebHostEnvironment environment)
         {
             _usuarioService = usuarioService;
             _configuration  = configuration;
             _tokenRevocationService = tokenRevocationService;
             _loginAttemptService = loginAttemptService;
             _logger = logger;
+            _environment = environment;
         }
 
         private int GetConfiguredExpireMinutes() => _configuration.GetValue<int?>("Jwt:ExpireMinutes") ?? 30;
@@ -98,7 +101,13 @@ namespace SistemaTickets.Controllers
             Response.Cookies.Append("jwt", token, new CookieOptions
             {
                 HttpOnly  = true,
-                Secure    = HttpContext.Request.IsHttps,
+                // A3: Secure=true en todo entorno real (Docker/producción), sin importar si
+                // esta petición en particular llegó por HTTPS — así un proxy mal configurado
+                // nunca puede downgradear la cookie en silencio. La única excepción es
+                // Development, para poder probar localmente con el perfil "http" sin lidiar
+                // con certificados; esto se decide por ASPNETCORE_ENVIRONMENT (fijo por
+                // despliegue), nunca por el esquema de la petición entrante.
+                Secure    = !_environment.IsDevelopment(),
                 SameSite  = SameSiteMode.Lax,
                 Path      = "/",
                 Expires   = DateTimeOffset.UtcNow.AddMinutes(GetConfiguredExpireMinutes())

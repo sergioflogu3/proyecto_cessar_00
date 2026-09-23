@@ -20,6 +20,15 @@ namespace SistemaTickets
             // MVC
             builder.Services.AddControllersWithViews();
 
+            // A3: HSTS con preload + subdominios + vigencia larga (se aplica vía UseHsts más
+            // abajo, que ya está gateado a "fuera de Development").
+            builder.Services.AddHsts(options =>
+            {
+                options.Preload = true;
+                options.IncludeSubDomains = true;
+                options.MaxAge = TimeSpan.FromDays(365);
+            });
+
             // NHibernate
             var connectionString = ValidateConnectionString(builder.Configuration.GetConnectionString("DefaultConnection"));
 
@@ -96,7 +105,10 @@ namespace SistemaTickets
                 })
                 .AddJwtBearer(options =>
                 {
-                    options.RequireHttpsMetadata = false;
+                    // A3: exigir HTTPS siempre (no solo fuera de Development). Esta app no usa
+                    // Authority/MetadataAddress, así que no afecta el arranque local; deja
+                    // explícito que no se acepta una postura insegura "solo en producción".
+                    options.RequireHttpsMetadata = true;
                     options.SaveToken = true;
 
                     options.TokenValidationParameters = new TokenValidationParameters

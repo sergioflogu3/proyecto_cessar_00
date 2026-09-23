@@ -42,10 +42,16 @@ services:
         condition: service_healthy
       azurite:
         condition: service_started
+    # Publicado en localhost (127.0.0.1) por defecto — host y puerto parametrizables en .env
+    # (APP_HOST / APP_PORT, ver .env.example). Docker exige una IP real en el bind, "localhost"
+    # como string no es válido ahí; 127.0.0.1 es lo que resuelve "http://localhost:<puerto>".
+    # Nota (A3): esto solo sostiene el login porque ASPNETCORE_ENVIRONMENT=Development hace que
+    # la cookie "jwt" no exija HTTPS (Secure=false). Fuera de Development sigue exigiendo HTTPS
+    # siempre — para eso está el servicio "caddy" (ver más abajo).
     ports:
-      - "8080:8080"
+      - "${APP_HOST:-127.0.0.1}:${APP_PORT:-8080}:8080"
     environment:
-      ASPNETCORE_ENVIRONMENT: "Production"
+      ASPNETCORE_ENVIRONMENT: "Development"
       ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=SISTickets;User Id=sa;Password=TuPassword123!;TrustServerCertificate=True;"
       # JWT_KEY debe venir de un archivo .env local (no versionado) o del entorno del host.
       # Ver .env.example. La app rechaza arrancar si esta clave falta, es corta o es un placeholder.
@@ -59,9 +65,27 @@ services:
     networks:
       - sistickets-network
 
+  # A3: reverse proxy que termina TLS con un certificado autofirmado local (Caddy lo genera
+  # solo). Es el único servicio publicado al host — accedé a la app por
+  # https://localhost:8443 (el navegador va a advertir que el certificado no es de una CA
+  # pública; es esperado en este setup local).
+  caddy:
+    image: caddy:2-alpine
+    container_name: sistickets-proxy
+    depends_on:
+      - app
+    ports:
+      - "8443:443"
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    networks:
+      - sistickets-network
+
 volumes:
   sqlserver_data:
   azurite_data:
+  caddy_data:
 
 networks:
   sistickets-network:

@@ -1,0 +1,8 @@
+# A3: termina TLS acá (certificado local autofirmado por Caddy) y reenvía en texto plano
+# solo dentro de la red interna de docker-compose hacia el contenedor de la app.
+# El navegador va a mostrar una advertencia de certificado no confiable la primera vez;
+# es esperado en local — es un certificado autofirmado, no uno real.
+localhost {
+	tls internal
+	reverse_proxy app:8080
+}
