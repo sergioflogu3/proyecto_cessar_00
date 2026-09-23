@@ -19,6 +19,7 @@ namespace SistemaTickets.Infrastructure.Security
             var key = jwtSection["Key"]!;
             var issuer = jwtSection["Issuer"];
             var audience = jwtSection["Audience"];
+            var expireMinutes = jwtSection.GetValue<int?>("ExpireMinutes") ?? 30;
 
             var claims = new List<Claim>
             {
@@ -27,7 +28,8 @@ namespace SistemaTickets.Infrastructure.Security
                 new Claim(JwtRegisteredClaimNames.UniqueName, username),
                 new Claim(ClaimTypes.Name, fullName),
                 new Claim(ClaimTypes.Email, email),
-                new Claim(ClaimTypes.Role, rol.ToString())
+                new Claim(ClaimTypes.Role, rol.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
@@ -37,7 +39,7 @@ namespace SistemaTickets.Infrastructure.Security
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(2),
+                expires: DateTime.UtcNow.AddMinutes(expireMinutes),
                 signingCredentials: credentials
             );
 

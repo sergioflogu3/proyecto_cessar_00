@@ -5,6 +5,7 @@ using SistemaTickets.Domain.Services;
 using SistemaTickets.Infrastructure.Security;
 using SistemaTickets.Models.Auth;
 using SistemaTickets.Models.Users;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace SistemaTickets.Controllers
@@ -14,12 +15,19 @@ namespace SistemaTickets.Controllers
     {
         private readonly IUsuarioService _usuarioService;
         private readonly IConfiguration  _configuration;
+        private readonly ITokenRevocationService _tokenRevocationService;
 
-        public UsersController(IUsuarioService usuarioService, IConfiguration configuration)
+        public UsersController(
+            IUsuarioService usuarioService,
+            IConfiguration configuration,
+            ITokenRevocationService tokenRevocationService)
         {
             _usuarioService = usuarioService;
             _configuration  = configuration;
+            _tokenRevocationService = tokenRevocationService;
         }
+
+        private int GetConfiguredExpireMinutes() => _configuration.GetValue<int?>("Jwt:ExpireMinutes") ?? 30;
 
         // ── Auth ─────────────────────────────────────────────────────────────
 
@@ -65,7 +73,7 @@ namespace SistemaTickets.Controllers
                 Secure    = HttpContext.Request.IsHttps,
                 SameSite  = SameSiteMode.Lax,
                 Path      = "/",
-                Expires   = DateTimeOffset.UtcNow.AddHours(2)
+                Expires   = DateTimeOffset.UtcNow.AddMinutes(GetConfiguredExpireMinutes())
             });
 
             return RedirectToAction("Index", "Home");
@@ -74,6 +82,14 @@ namespace SistemaTickets.Controllers
         [HttpGet]
         public IActionResult Logout()
         {
+            // C3: además de borrar la cookie, revocamos el JWT server-side (jti) para que
+            // no siga siendo válido si alguien lo capturó antes del logout.
+            var jti = User.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+            if (!string.IsNullOrEmpty(jti))
+            {
+                _tokenRevocationService.Revoke(jti, DateTimeOffset.UtcNow.AddMinutes(GetConfiguredExpireMinutes()));
+            }
+
             Response.Cookies.Delete("jwt");
             return RedirectToAction(nameof(Login));
         }

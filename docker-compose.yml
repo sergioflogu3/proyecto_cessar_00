@@ -52,7 +52,7 @@ services:
       Jwt__Key: "${JWT_KEY:?Define JWT_KEY en un archivo .env (copia .env.example) antes de levantar el stack}"
       Jwt__Issuer: "SistemaTickets"
       Jwt__Audience: "SistemaTicketsUsers"
-      Jwt__ExpireMinutes: "120"
+      Jwt__ExpireMinutes: "30"
       Encryption__Key: "TU-CLAVE-AES-256-DE-AL-MENOS-32-CARACTERES"
       AzureBlobStorage__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
       AzureBlobStorage__ContainerName: "sistema"

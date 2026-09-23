@@ -4,6 +4,7 @@ using SistemaTickets.Infrastructure.Persistence;
 using SistemaTickets.Infrastructure.Services;
 using SistemaTickets.Infrastructure.Persistence.Repositories;
 using System.Text;
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 namespace SistemaTickets
@@ -45,6 +46,7 @@ namespace SistemaTickets
             builder.Services.AddScoped<IReporteService, ReporteService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
             builder.Services.AddSingleton<IStorageService, AzureBlobStorageService>();
+            builder.Services.AddSingleton<ITokenRevocationService, InMemoryTokenRevocationService>();
 
             // JWT
             var jwtSection = builder.Configuration.GetSection("Jwt");
@@ -99,6 +101,37 @@ namespace SistemaTickets
                             }
 
                             return Task.CompletedTask;
+                        },
+
+                        // C3: rechaza tokens revocados (logout) y usuarios desactivados desde que
+                        // se les revisa el siguiente request, en vez de esperar a que expire el JWT.
+                        OnTokenValidated = async ctx =>
+                        {
+                            var jti = ctx.Principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+                            var revocationService = ctx.HttpContext.RequestServices
+                                .GetRequiredService<ITokenRevocationService>();
+
+                            if (!string.IsNullOrEmpty(jti) && revocationService.IsRevoked(jti))
+                            {
+                                ctx.Fail("Token revocado.");
+                                return;
+                            }
+
+                            var userIdClaim = ctx.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                            if (!int.TryParse(userIdClaim, out var userId))
+                            {
+                                ctx.Fail("Token inválido.");
+                                return;
+                            }
+
+                            var usuarioService = ctx.HttpContext.RequestServices
+                                .GetRequiredService<IUsuarioService>();
+                            var usuario = await usuarioService.GetByIdAsync(userId);
+
+                            if (usuario is null || !usuario.Activo)
+                            {
+                                ctx.Fail("Usuario inactivo o inexistente.");
+                            }
                         }
                     };
                 });

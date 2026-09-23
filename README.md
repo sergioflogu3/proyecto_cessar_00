@@ -47,7 +47,7 @@ Edita `SistemaTickets/appsettings.json` antes de ejecutar:
     "Key": "TU-CLAVE-JWT-SUPER-SEGURA-DE-AL-MENOS-32-CARACTERES",
     "Issuer": "SistemaTickets",
     "Audience": "SistemaTicketsUsers",
-    "ExpireMinutes": "120"
+    "ExpireMinutes": "30"
   },
   "Encryption": {
     "Key": "TU-CLAVE-AES-256-DE-AL-MENOS-32-CARACTERES"
@@ -194,6 +194,7 @@ SistemaTickets/
 - Las claves `Jwt:Key` y `Encryption:Key` deben tener **al menos 32 caracteres**. `Jwt:Key` se valida al arrancar la app (ver sección Configuración) y el arranque falla si quedó en su valor de ejemplo.
 - En producción, usa variables de entorno o Azure Key Vault para secretos.
 - El esquema de base de datos se actualiza automáticamente solo cuando `NHibernate:UpdateSchema` es `true`. Desactívalo en producción.
+- Los tokens JWT expiran a los `Jwt:ExpireMinutes` minutos (30 por defecto) y quedan revocados de inmediato al hacer logout o al desactivar un usuario — no hace falta esperar a que expire el token para que deje de aceptarse (ver detalle en `AGENTS.md`/`CLAUDE.md`, sección Auth).
 
 ## Licencia
 

@@ -43,6 +43,7 @@ dotnet run --project SistemaTickets/SistemaTickets.csproj
 - Role-based: `Administrador`, `Supervisor`, `Soporte`, `Usuario`.
 - Unauthenticated HTML requests to protected pages get **redirected to `/Users/Login`** (not 401 JSON).
 - `[ValidateAntiForgeryToken]` is used on POSTs.
+- **Token lifetime & revocation (C3)**: `Jwt:ExpireMinutes` (default 30) is actually wired into `JwtHelper.CreateToken` and into the `jwt` cookie's `Expires`. Every token carries a `jti` claim. `Program.cs`'s `OnTokenValidated` event rejects a request if the `jti` is in `ITokenRevocationService` (in-memory, `Infrastructure/Services/InMemoryTokenRevocationService`) or if the user looked up by `ClaimTypes.NameIdentifier` is missing/`Activo == false` — so a deactivated user or a stolen-but-logged-out token is rejected on the **next request**, not just at token expiry. `UsersController.Logout` revokes the current token's `jti` before deleting the cookie. Known limitation: the revocation list is in-memory only — it resets on app restart and isn't shared across instances; migrate to a persisted `RevokedTokens` table if deploying with multiple instances or frequent restarts.
 
 ## External dependencies
 
