@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SistemaTickets.Domain.Entities;
 using SistemaTickets.Domain.Services;
+using SistemaTickets.Infrastructure.Security;
 using SistemaTickets.Models.Tickets;
 using System.Security.Claims;
 
@@ -119,14 +120,34 @@ namespace SistemaTickets.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(TicketFormViewModel model)
         {
-            // Validar archivos antes del ModelState general
+            // A2: validar archivos antes del ModelState general — tamaño, extensión permitida
+            // (lista blanca) y que el contenido real (magic bytes) coincida con la extensión
+            // declarada. Los streams válidos se mantienen abiertos para subirlos más abajo,
+            // recién después de crear el ticket, sin volver a abrirlos.
+            var archivosValidos = new List<(IFormFile File, Stream Stream, string ContentType)>();
+
             if (model.Archivos != null)
             {
-                foreach (var f in model.Archivos)
+                foreach (var f in model.Archivos.Where(f => f.Length > 0))
                 {
                     if (f.Length > MaxFileBytes)
+                    {
+                        ModelState.AddModelError("Archivos", $"'{f.FileName}' supera el límite de 10 MB.");
+                        continue;
+                    }
+
+                    var stream = f.OpenReadStream();
+                    var contentType = await AttachmentValidator.ValidateAndResolveContentTypeAsync(f.FileName, stream);
+
+                    if (contentType is null)
+                    {
                         ModelState.AddModelError("Archivos",
-                            $"'{f.FileName}' supera el límite de 10 MB.");
+                            $"'{f.FileName}' no es un tipo de archivo permitido, o su contenido no coincide con la extensión.");
+                        await stream.DisposeAsync();
+                        continue;
+                    }
+
+                    archivosValidos.Add((f, stream, contentType));
                 }
             }
 
@@ -147,6 +168,9 @@ namespace SistemaTickets.Controllers
 
             if (!ModelState.IsValid)
             {
+                foreach (var (_, stream, _) in archivosValidos)
+                    await stream.DisposeAsync();
+
                 await PopulateFormCatalogs(model);
                 return View(model);
             }
@@ -174,25 +198,22 @@ namespace SistemaTickets.Controllers
             var id = await _ticketService.CreateAsync(ticket, solicitanteId);
 
             // ── Subir adjuntos a Azure Blob Storage ────────────────────────
-            if (model.Archivos != null)
+            // A2: se usa el content-type canónico ya validado por extensión/magic bytes,
+            // nunca el que reportó el navegador (file.ContentType).
+            foreach (var (file, stream, contentType) in archivosValidos)
             {
-                foreach (var file in model.Archivos.Where(f => f.Length > 0))
-                {
-                    await using var stream = file.OpenReadStream();
-                    var blobPath = await _storageService.UploadAsync(
-                        stream, file.FileName,
-                        file.ContentType ?? "application/octet-stream",
-                        id);
+                await using var _ = stream;
 
-                    await _ticketService.AddAdjuntoAsync(new TicketAdjunto
-                    {
-                        Ticket        = new Ticket { Id = id },
-                        NombreArchivo = file.FileName,
-                        RutaArchivo   = blobPath,
-                        TipoContenido = file.ContentType,
-                        TamanioBytes  = file.Length
-                    }, CurrentUserId());
-                }
+                var blobPath = await _storageService.UploadAsync(stream, file.FileName, contentType, id);
+
+                await _ticketService.AddAdjuntoAsync(new TicketAdjunto
+                {
+                    Ticket        = new Ticket { Id = id },
+                    NombreArchivo = file.FileName,
+                    RutaArchivo   = blobPath,
+                    TipoContenido = contentType,
+                    TamanioBytes  = file.Length
+                }, CurrentUserId());
             }
 
             if (model.EnviarCopia)
@@ -224,6 +245,12 @@ namespace SistemaTickets.Controllers
 
             var (stream, contentType) = await _storageService.DownloadAsync(adjunto.RutaArchivo);
 
+            // A2: nunca renderizar el adjunto inline — siempre forzar descarga, y evitar que
+            // el navegador intente "adivinar" el tipo de contenido a partir del contenido.
+            Response.Headers.Append("X-Content-Type-Options", "nosniff");
+
+            // El tercer argumento (fileDownloadName) hace que MVC agregue
+            // Content-Disposition: attachment; filename="...".
             return File(stream, contentType, adjunto.NombreArchivo);
         }
 

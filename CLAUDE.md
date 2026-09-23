@@ -77,6 +77,7 @@ All DI wiring (repositories, services, JWT, auth) happens in `Program.cs` — th
 - `[ValidateAntiForgeryToken]` on POST actions (CSRF protection).
 - Unauthenticated/forbidden HTML requests (401/403) are redirected to `/Users/Login` via `UseStatusCodePages` in `Program.cs`, rather than returning a bare status code — this only applies when the request's `Accept` header wants `text/html`.
 - Default route is `{controller=Users}/{action=Login}/{id?}`.
+- **Ticket attachments (A2)**: `TicketsController.Create` validates every upload with `Infrastructure/Security/AttachmentValidator` — extension allow-list (pdf, jpg/jpeg, png, gif, webp, doc, docx, xls, xlsx, txt, csv) plus a magic-bytes check that the file's actual content matches the claimed extension. The browser-supplied `IFormFile.ContentType` is discarded; the stored/served content-type is always the validator's canonical MIME for that extension. `TicketsController.DescargarAdjunto` serves attachments with `Content-Disposition: attachment` (via `File(..., fileDownloadName)`) and an explicit `X-Content-Type-Options: nosniff` header, so nothing renders inline in the browser.
 
 ### External dependencies
 
