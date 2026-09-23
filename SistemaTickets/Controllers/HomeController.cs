@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SistemaTickets.Models;
+using System.Diagnostics;
 using System.Security.Claims;
 
 namespace SistemaTickets.Controllers
@@ -52,6 +54,16 @@ namespace SistemaTickets.Controllers
         {
             ViewBag.UserName = User.Claims.LastOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
             ViewBag.UserRole = User.FindFirst(ClaimTypes.Role)?.Value;
+        }
+
+        [AllowAnonymous]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier
+            });
         }
     }
 }
