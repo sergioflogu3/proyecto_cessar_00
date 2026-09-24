@@ -32,7 +32,7 @@
 ```bash
 cd SistemaTickets
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" \
-  "Server=localhost;Database=SISTickets;User Id=<usuario>;Password=<password>;TrustServerCertificate=True;"
+  "Server=localhost;Database=SISTickets;User Id=<usuario>;Password=<password>;Encrypt=True;TrustServerCertificate=False;"
 dotnet run --project SistemaTickets.csproj
 ```
 

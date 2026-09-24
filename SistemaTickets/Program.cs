@@ -186,6 +186,23 @@ namespace SistemaTickets
 
             var app = builder.Build();
 
+            // A5: TrustServerCertificate=True deshabilita la validación del certificado TLS
+            // del SQL Server (habilita MITM en la red). Es aceptable en Development contra un
+            // SQL Server local/Docker con certificado autofirmado, pero fuera de Development
+            // hace falta un certificado válido y Encrypt=True;TrustServerCertificate=False.
+            // No es un fail-fast (a diferencia de C1/C2): a diferencia de un placeholder, este
+            // valor puede ser una elección legítima según el SQL Server real, así que solo se
+            // advierte en logs en vez de impedir el arranque.
+            if (!app.Environment.IsDevelopment() &&
+                connectionString.Contains("TrustServerCertificate=true", StringComparison.OrdinalIgnoreCase))
+            {
+                app.Logger.LogWarning(
+                    "ConnectionStrings:DefaultConnection tiene TrustServerCertificate=True fuera de " +
+                    "Development. Esto deshabilita la validación del certificado TLS del SQL Server y " +
+                    "permite un MITM en la red. Usa un certificado válido para el SQL Server y configura " +
+                    "Encrypt=True;TrustServerCertificate=False.");
+            }
+
             // Manejo de errores en producci�n
             if (!app.Environment.IsDevelopment())
             {

@@ -41,7 +41,7 @@ Edita `SistemaTickets/appsettings.json` antes de ejecutar:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=SISTickets;User Id=sa;Password=TuPassword123;TrustServerCertificate=True;"
+    "DefaultConnection": "Server=localhost;Database=SISTickets;User Id=sa;Password=TuPassword123;Encrypt=True;TrustServerCertificate=False;"
   },
   "Jwt": {
     "Key": "TU-CLAVE-JWT-SUPER-SEGURA-DE-AL-MENOS-32-CARACTERES",
@@ -74,9 +74,17 @@ Edita `SistemaTickets/appsettings.json` antes de ejecutar:
 > ```bash
 > cd SistemaTickets
 > dotnet user-secrets set "Jwt:Key" "$(openssl rand -base64 48)"
-> dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost;Database=SISTickets;User Id=tu_usuario;Password=tu_password;TrustServerCertificate=True;"
+> dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost;Database=SISTickets;User Id=tu_usuario;Password=tu_password;Encrypt=True;TrustServerCertificate=False;"
 > ```
 > Si tu SQL Server local todavía usa el usuario/contraseña que estaban committeados en el repo (`ariel` / `ariel123`), **rótalos ahora**: esas credenciales quedaron expuestas en el historial de git y deben considerarse comprometidas aunque ya no aparezcan en el archivo actual.
+>
+> **`TrustServerCertificate=False` exige que tu SQL Server tenga un certificado TLS válido** (uno
+> real, o al menos uno cuya CA esté instalada como confiable en tu máquina). Si tu SQL Server
+> local usa el certificado autofirmado por defecto y todavía no configuraste uno propio, vas a
+> ver un error de conexión por certificado no confiable — la solución correcta es instalarle un
+> certificado válido, no volver a `TrustServerCertificate=True` sin más. Si de todos modos lo
+> hacés como atajo temporal en desarrollo, la app lo va a loggear con una advertencia apenas
+> `ASPNETCORE_ENVIRONMENT` no sea `Development` (ver A5 en `cambios/`).
 
 ## Levantar en Local
 
@@ -227,6 +235,8 @@ SistemaTickets/
 - El esquema de base de datos se actualiza automáticamente solo cuando `NHibernate:UpdateSchema` es `true`. Desactívalo en producción.
 - Los tokens JWT expiran a los `Jwt:ExpireMinutes` minutos (30 por defecto) y quedan revocados de inmediato al hacer logout o al desactivar un usuario — no hace falta esperar a que expire el token para que deje de aceptarse (ver detalle en `AGENTS.md`/`CLAUDE.md`, sección Auth).
 - El login (`/Users/Login` POST) tiene rate limiting por IP (10 solicitudes/minuto) y bloqueo temporal por usuario tras 5 intentos fallidos en 15 minutos, con log de cada intento fallido — mitiga ataques de fuerza bruta/diccionario contra credenciales (ver `AGENTS.md`/`CLAUDE.md`, sección Auth).
+- Los errores AJAX no filtran mensajes internos de NHibernate/SqlClient al cliente — solo pasan mensajes de negocio conocidos (p. ej. "Ticket no encontrado"); cualquier otra excepción se loggea completa en el servidor y se devuelve un mensaje genérico.
+- `ConnectionStrings:DefaultConnection` debería usar `Encrypt=True;TrustServerCertificate=False` con un SQL Server de certificado válido — `TrustServerCertificate=True` deshabilita la validación del certificado TLS (MITM en la red). La app loggea una advertencia al arrancar si detecta `TrustServerCertificate=True` fuera de `Development`.
 - Los adjuntos de tickets solo aceptan una lista blanca de extensiones (pdf, imágenes, doc/docx, xls/xlsx, txt/csv), verificada contra el contenido real del archivo (magic bytes) — el `Content-Type` que manda el navegador se ignora. Se descargan siempre como archivo adjunto (`Content-Disposition: attachment`) con `X-Content-Type-Options: nosniff`, nunca se renderizan inline (ver `AGENTS.md`/`CLAUDE.md`).
 
 ## Licencia

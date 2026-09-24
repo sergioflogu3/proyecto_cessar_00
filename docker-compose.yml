@@ -52,7 +52,12 @@ services:
       - "${APP_HOST:-127.0.0.1}:${APP_PORT:-8080}:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
-      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=SISTickets;User Id=sa;Password=TuPassword123!;TrustServerCertificate=True;"
+      # A5: TrustServerCertificate=True es aceptado acá a propósito porque este "sqlserver" es
+      # un contenedor local con certificado autofirmado (sin PKI propia) y ASPNETCORE_ENVIRONMENT
+      # ya está en Development (no dispara la advertencia de Program.cs). Para simular un
+      # despliegue real, hace falta un SQL Server con certificado válido y cambiar a
+      # Encrypt=True;TrustServerCertificate=False (y volver ASPNETCORE_ENVIRONMENT a Production).
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=SISTickets;User Id=sa;Password=TuPassword123!;Encrypt=True;TrustServerCertificate=True;"
       # JWT_KEY debe venir de un archivo .env local (no versionado) o del entorno del host.
       # Ver .env.example. La app rechaza arrancar si esta clave falta, es corta o es un placeholder.
       Jwt__Key: "${JWT_KEY:?Define JWT_KEY en un archivo .env (copia .env.example) antes de levantar el stack}"

@@ -17,6 +17,7 @@ funcionalidad existente** del sistema.
 | [A2](./A2-adjuntos-sin-whitelist.md) | Adjuntos sin lista blanca de tipos/extensión | Alta | Whitelist + magic bytes + descarga forzada con `nosniff` |
 | [A3](./A3-https-forzado.md) | `RequireHttpsMetadata=false` y cookie `Secure` condicional | Alta | Cookie `Secure=true` fijo + HSTS con preload + proxy HTTPS local en Docker |
 | [A4](./A4-excepciones-mensaje-interno.md) | Excepciones con mensaje interno al cliente | Alta | Mensajes de negocio pasan, el resto se loggea y se generaliza (13 sitios en 4 controladores) |
+| [A5](./A5-trustservercertificate.md) | `TrustServerCertificate=True` en la cadena de conexión | Alta | Plantillas con `Encrypt=True;TrustServerCertificate=False` + advertencia al arrancar fuera de Development |
 
 ## Notas generales
 
