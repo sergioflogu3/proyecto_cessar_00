@@ -242,6 +242,7 @@ SistemaTickets/
 - Los adjuntos de tickets solo aceptan una lista blanca de extensiones (pdf, imágenes, doc/docx, xls/xlsx, txt/csv), verificada contra el contenido real del archivo (magic bytes) — el `Content-Type` que manda el navegador se ignora. Se descargan siempre como archivo adjunto (`Content-Disposition: attachment`) con `X-Content-Type-Options: nosniff`, nunca se renderizan inline (ver `AGENTS.md`/`CLAUDE.md`).
 - Acceder a una ruta protegida sin sesión (o con la sesión vencida/revocada/usuario inactivo) redirige a `/Users/Login` en vez de mostrar una página en blanco — corregido un bug de orden de middleware en `Program.cs` donde `UseStatusCodePages` quedaba después de `UseAuthentication`/`UseAuthorization` y por eso nunca se ejecutaba para un 401/403 (ver `AGENTS.md`/`CLAUDE.md`).
 - Los cambios de rol y las desactivaciones de usuario quedan registrados en la tabla `AuditoriaUsuarios` (quién, a quién, campo, valor anterior/nuevo y fecha) — ver `AGENTS.md`/`CLAUDE.md`, sección Auth.
+- Si el token JWT no trae un identificador de usuario válido (claim faltante o corrupto), la petición se rechaza con 401 antes de llegar al controlador, en vez de continuar con un `UsuarioId=0` — ver `AGENTS.md`/`CLAUDE.md`, sección Auth.
 
 ## Licencia
 

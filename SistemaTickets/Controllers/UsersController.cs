@@ -252,7 +252,10 @@ namespace SistemaTickets.Controllers
                     Rol            = model.Rol
                 };
 
-                var modificadoPorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                // M4: RequireValidUserIdFilter ya garantizó que este claim existe y es un
+                // entero válido antes de que la acción se ejecute — no hace falta (ni
+                // corresponde) un fallback a "0".
+                var modificadoPorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
                 await _usuarioService.UpdateAsync(usuario, model.Password, modificadoPorId);
                 return Json(new { success = true });
             }
@@ -280,7 +283,7 @@ namespace SistemaTickets.Controllers
                 return Json(new { success = false, message = string.IsNullOrWhiteSpace(mensaje) ? "Datos inválidos." : mensaje });
             }
 
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var ok = await _usuarioService.CambiarPasswordAsync(userId, model.PasswordActual, model.NuevoPassword);
 
             return ok
@@ -293,7 +296,7 @@ namespace SistemaTickets.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Deactivate(int id)
         {
-            var currentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var currentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
             if (id == currentId)
                 return Json(new { success = false, message = "No puedes inactivar tu propia cuenta." });

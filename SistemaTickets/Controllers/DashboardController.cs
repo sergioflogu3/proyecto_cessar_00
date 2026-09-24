@@ -17,7 +17,10 @@ namespace SistemaTickets.Controllers
         public async Task<IActionResult> Index()
         {
             var role   = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
-            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            // M4: RequireValidUserIdFilter ya garantizó que este claim existe y es un entero
+            // válido antes de que la acción se ejecute — no hace falta (ni corresponde) un
+            // fallback a "0".
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             var nombre = User.Claims.LastOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
             var esAdminOSupervisor = role is "Administrador" or "Supervisor";
 

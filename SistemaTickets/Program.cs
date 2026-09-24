@@ -3,6 +3,7 @@ using SistemaTickets.Domain.Services;
 using SistemaTickets.Infrastructure.Persistence;
 using SistemaTickets.Infrastructure.Services;
 using SistemaTickets.Infrastructure.Persistence.Repositories;
+using SistemaTickets.Infrastructure.Security;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using System.Threading.RateLimiting;
@@ -18,7 +19,11 @@ namespace SistemaTickets
             var builder = WebApplication.CreateBuilder(args);
 
             // MVC
-            builder.Services.AddControllersWithViews();
+            // M4: RequireValidUserIdFilter corta con 401 cualquier acción autenticada cuyo
+            // claim NameIdentifier falte o no sea un entero válido, antes de que el controller
+            // llegue a resolverlo.
+            builder.Services.AddControllersWithViews(options =>
+                options.Filters.Add<RequireValidUserIdFilter>());
 
             // A3: HSTS con preload + subdominios + vigencia larga (se aplica vía UseHsts más
             // abajo, que ya está gateado a "fuera de Development").

@@ -48,8 +48,10 @@ namespace SistemaTickets.Controllers
 
         // ── Helpers ──────────────────────────────────────────────────────────
 
+        // M4: RequireValidUserIdFilter ya garantizó que este claim existe y es un entero válido
+        // antes de que la acción se ejecute — no hace falta (ni corresponde) un fallback a "0".
         private int CurrentUserId()
-            => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
         private string CurrentRole()
             => User.FindFirst(ClaimTypes.Role)?.Value ?? string.Empty;
