@@ -142,10 +142,13 @@
                 <i class="bi bi-key-fill"></i>
                 <span>Cambiar contraseña</span>
             </button>
-            <a asp-controller="Users" asp-action="Logout" class="sidebar-logout">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Salir</span>
-            </a>
+            <form asp-controller="Users" asp-action="Logout" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="sidebar-logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Salir</span>
+                </button>
+            </form>
         </div>
     </nav>
 

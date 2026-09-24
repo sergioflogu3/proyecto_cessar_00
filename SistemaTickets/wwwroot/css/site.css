@@ -180,6 +180,16 @@ button.sidebar-link {
     cursor: pointer;
 }
 
+/* Reset browser defaults cuando sidebar-logout se usa en <button> (M5: antes era <a>) */
+button.sidebar-logout {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+}
+
 /* =============================================
    ÁREA PRINCIPAL
    ============================================= */

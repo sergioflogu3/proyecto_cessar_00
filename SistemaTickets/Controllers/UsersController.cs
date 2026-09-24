@@ -140,7 +140,12 @@ namespace SistemaTickets.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        [HttpGet]
+        // M5: POST + antiforgery en vez de GET — un GET es "seguro" según HTTP y no requiere
+        // interacción del usuario para dispararse (un <img src>, un <link>, una petición
+        // cross-site cualquiera), así que cualquier página podía cerrarle la sesión a un
+        // usuario sin su consentimiento con solo hacer que su navegador pegara un GET acá.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Logout()
         {
             // C3: además de borrar la cookie, revocamos el JWT server-side (jti) para que

@@ -243,6 +243,7 @@ SistemaTickets/
 - Acceder a una ruta protegida sin sesión (o con la sesión vencida/revocada/usuario inactivo) redirige a `/Users/Login` en vez de mostrar una página en blanco — corregido un bug de orden de middleware en `Program.cs` donde `UseStatusCodePages` quedaba después de `UseAuthentication`/`UseAuthorization` y por eso nunca se ejecutaba para un 401/403 (ver `AGENTS.md`/`CLAUDE.md`).
 - Los cambios de rol y las desactivaciones de usuario quedan registrados en la tabla `AuditoriaUsuarios` (quién, a quién, campo, valor anterior/nuevo y fecha) — ver `AGENTS.md`/`CLAUDE.md`, sección Auth.
 - Si el token JWT no trae un identificador de usuario válido (claim faltante o corrupto), la petición se rechaza con 401 antes de llegar al controlador, en vez de continuar con un `UsuarioId=0` — ver `AGENTS.md`/`CLAUDE.md`, sección Auth.
+- Cerrar sesión (`/Users/Logout`) requiere POST + token anti-forgery, no GET — así ninguna página externa puede cerrarle la sesión a un usuario sin que él lo haga explícitamente (por ejemplo con un `<img src="...">` apuntando a esa URL).
 
 ## Licencia
 

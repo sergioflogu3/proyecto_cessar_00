@@ -22,6 +22,7 @@ funcionalidad existente** del sistema.
 | [M2](./M2-politica-contrasenas.md) | Política de contraseñas débil/no visible | Media | Mínimo 12 caracteres + complejidad (mayúscula/minúscula/número/especial) + lista de ~10k contraseñas comunes (SecLists) + requisito visible en la UI |
 | [M3](./M3-auditoria-cambios-rol.md) | Sin validación de reproducción/cambio de rol en `Edit` | Media | Tabla `AuditoriaUsuarios` + registro de quién/cuándo/valor anterior→nuevo en cambios de rol y desactivación |
 | [M4](./M4-fallback-usuarioid-cero.md) | `CurrentUserId()` con fallback `"0"` | Media | Filtro global `RequireValidUserIdFilter` — 401 antes de la acción si el claim falta o es inválido |
+| [M5](./M5-logout-get-sin-csrf.md) | `Logout` por GET sin protección anti-CSRF | Media | `Logout` pasa a POST + `[ValidateAntiForgeryToken]`; el link del sidebar pasa a un form |
 
 ## Bugs (no son hallazgos del plan de seguridad, pero surgieron durante este trabajo)
 
