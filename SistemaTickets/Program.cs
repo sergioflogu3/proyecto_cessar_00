@@ -217,10 +217,14 @@ namespace SistemaTickets
 
             app.UseRateLimiter();
 
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            // Redirigir a login si intenta entrar al sitio sin autenticaci�n
+            // Redirigir a login si intenta entrar al sitio sin autenticación (o si la sesión
+            // venció/fue revocada/el usuario quedó inactivo — todo eso también resulta en 401
+            // vía el middleware de autenticación/autorización). Tiene que ir ANTES de
+            // UseAuthentication/UseAuthorization: cada "Use..." envuelve al resto del pipeline,
+            // y cuando la autorización falla corta la ejecución ahí mismo (Challenge/Forbid) sin
+            // llegar a lo que esté registrado después — si este middleware quedara después,
+            // nunca se ejecutaría para un 401/403 y la página quedaba en blanco en vez de
+            // redirigir.
             app.UseStatusCodePages(async ctx =>
             {
                 var status = ctx.HttpContext.Response.StatusCode;
@@ -237,6 +241,9 @@ namespace SistemaTickets
                     ctx.HttpContext.Response.Redirect("/Users/Login");
                 }
             });
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapControllerRoute(
                 name: "default",

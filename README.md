@@ -240,6 +240,7 @@ SistemaTickets/
 - El login (`/Users/Login`) no permite enumerar usuarios: un mismo mensaje genérico cubre login inexistente, contraseña incorrecta y usuario inactivo, y el tiempo de respuesta también se equipara (se verifica contra un hash BCrypt señuelo aunque el usuario no exista) para que ni el mensaje ni la latencia delaten si una cuenta existe.
 - Las contraseñas requieren **mínimo 12 caracteres**, al menos una minúscula, una mayúscula, un número y un carácter especial, y no pueden estar en una lista de ~10.000 contraseñas comunes/filtradas (ver `AGENTS.md`/`CLAUDE.md`, sección Auth) — se valida en creación de usuario y en cambio de contraseña, con el requisito visible en el formulario antes de escribir.
 - Los adjuntos de tickets solo aceptan una lista blanca de extensiones (pdf, imágenes, doc/docx, xls/xlsx, txt/csv), verificada contra el contenido real del archivo (magic bytes) — el `Content-Type` que manda el navegador se ignora. Se descargan siempre como archivo adjunto (`Content-Disposition: attachment`) con `X-Content-Type-Options: nosniff`, nunca se renderizan inline (ver `AGENTS.md`/`CLAUDE.md`).
+- Acceder a una ruta protegida sin sesión (o con la sesión vencida/revocada/usuario inactivo) redirige a `/Users/Login` en vez de mostrar una página en blanco — corregido un bug de orden de middleware en `Program.cs` donde `UseStatusCodePages` quedaba después de `UseAuthentication`/`UseAuthorization` y por eso nunca se ejecutaba para un 401/403 (ver `AGENTS.md`/`CLAUDE.md`).
 
 ## Licencia
 

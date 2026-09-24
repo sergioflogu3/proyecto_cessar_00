@@ -21,6 +21,12 @@ funcionalidad existente** del sistema.
 | [M1](./M1-enumeracion-usuarios.md) | Enumeración de usuarios por mensajes de error diferenciados | Media | Mensaje único + tiempo de respuesta equiparado (BCrypt contra hash señuelo) |
 | [M2](./M2-politica-contrasenas.md) | Política de contraseñas débil/no visible | Media | Mínimo 12 caracteres + complejidad (mayúscula/minúscula/número/especial) + lista de ~10k contraseñas comunes (SecLists) + requisito visible en la UI |
 
+## Bugs (no son hallazgos del plan de seguridad, pero surgieron durante este trabajo)
+
+| Bug | Título | Detalle |
+|---|---|---|
+| [B1](./B1-blanco-al-vencer-sesion.md) | Página en blanco al acceder sin sesión válida | Orden de middleware: `UseStatusCodePages` reordenado antes de `UseAuthentication`/`UseAuthorization` |
+
 ## Notas generales
 
 - Ningún cambio requirió tocar la lógica de negocio de tickets/inventario/campo/reportes;
