@@ -68,5 +68,15 @@ namespace SistemaTickets.Infrastructure.Persistence.Repositories
             await _session.MergeAsync(usuario);
             await tx.CommitAsync();
         }
+
+        public async Task RegistrarAuditoriaAsync(AuditoriaUsuario auditoria)
+        {
+            using var tx = _session.BeginTransaction();
+            await _session.SaveAsync(auditoria);
+            await tx.CommitAsync();
+        }
+
+        public T GetRef<T>(int id) where T : class
+            => _session.Load<T>(id);
     }
 }

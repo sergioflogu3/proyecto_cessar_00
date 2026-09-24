@@ -100,10 +100,15 @@ namespace SistemaTickets.Infrastructure.Services
             await _usuarioRepository.SaveAsync(usuario);
         }
 
-        public async Task UpdateAsync(Usuario usuario, string? newPlainPassword)
+        public async Task UpdateAsync(Usuario usuario, string? newPlainPassword, int modificadoPorId)
         {
             var existing = await _usuarioRepository.GetByIdAsync(usuario.Id)
                 ?? throw new InvalidOperationException("Usuario no encontrado");
+
+            // M3: capturar el valor previo ANTES de MergeAsync — NHibernate resuelve 'existing'
+            // a la misma instancia trackeada por la sesión que Merge va a mutar (identity map
+            // por Id), así que leer existing.Rol después del UpdateAsync ya daría el valor nuevo.
+            var rolAnterior = existing.Rol;
 
             var updated = new Usuario
             {
@@ -124,12 +129,20 @@ namespace SistemaTickets.Infrastructure.Services
             };
 
             await _usuarioRepository.UpdateAsync(updated);
+
+            // M3: auditoría de cambio de rol.
+            if (rolAnterior != updated.Rol)
+                await RegistrarAuditoriaAsync(existing.Id, modificadoPorId, "Rol",
+                    rolAnterior.ToString(), updated.Rol.ToString());
         }
 
-        public async Task DeactivateAsync(int id)
+        public async Task DeactivateAsync(int id, int modificadoPorId)
         {
             var existing = await _usuarioRepository.GetByIdAsync(id)
                 ?? throw new InvalidOperationException("Usuario no encontrado");
+
+            // M3: mismo motivo que en UpdateAsync — capturar antes del Merge.
+            var estabaActivo = existing.Activo;
 
             await _usuarioRepository.UpdateAsync(new Usuario
             {
@@ -144,6 +157,10 @@ namespace SistemaTickets.Infrastructure.Services
                 Activo         = false,
                 CreadoEn       = existing.CreadoEn
             });
+
+            // M3: auditoría de desactivación (solo si realmente cambió de estado).
+            if (estabaActivo)
+                await RegistrarAuditoriaAsync(existing.Id, modificadoPorId, "Activo", "True", "False");
         }
 
         public async Task<bool> CambiarPasswordAsync(int userId, string passwordActual, string nuevoPassword)
@@ -171,6 +188,20 @@ namespace SistemaTickets.Infrastructure.Services
         }
 
         // ── Helpers privados ─────────────────────────────────────────────────
+
+        private async Task RegistrarAuditoriaAsync(
+            int usuarioId, int modificadoPorId, string campo, string? valorAnterior, string? valorNuevo)
+        {
+            await _usuarioRepository.RegistrarAuditoriaAsync(new AuditoriaUsuario
+            {
+                Usuario        = _usuarioRepository.GetRef<Usuario>(usuarioId),
+                ModificadoPor  = _usuarioRepository.GetRef<Usuario>(modificadoPorId),
+                Campo          = campo,
+                ValorAnterior  = valorAnterior,
+                ValorNuevo     = valorNuevo,
+                FechaCambio    = DateTime.UtcNow
+            });
+        }
 
         private async Task<Usuario?> GetRawByLoginAsync(string login)
         {

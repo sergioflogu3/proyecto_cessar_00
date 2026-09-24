@@ -13,8 +13,8 @@ namespace SistemaTickets.Domain.Services
 
         Task<(IList<Usuario> Items, int Total)> GetPagedAsync(int page, int pageSize, string? search, bool? activo);
         Task CreateAsync(Usuario usuario, string plainPassword);
-        Task UpdateAsync(Usuario usuario, string? newPlainPassword);
-        Task DeactivateAsync(int id);
+        Task UpdateAsync(Usuario usuario, string? newPlainPassword, int modificadoPorId);
+        Task DeactivateAsync(int id, int modificadoPorId);
         Task<bool> CambiarPasswordAsync(int userId, string passwordActual, string nuevoPassword);
     }
 }

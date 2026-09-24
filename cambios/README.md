@@ -20,6 +20,7 @@ funcionalidad existente** del sistema.
 | [A5](./A5-trustservercertificate.md) | `TrustServerCertificate=True` en la cadena de conexión | Alta | Plantillas con `Encrypt=True;TrustServerCertificate=False` + advertencia al arrancar fuera de Development |
 | [M1](./M1-enumeracion-usuarios.md) | Enumeración de usuarios por mensajes de error diferenciados | Media | Mensaje único + tiempo de respuesta equiparado (BCrypt contra hash señuelo) |
 | [M2](./M2-politica-contrasenas.md) | Política de contraseñas débil/no visible | Media | Mínimo 12 caracteres + complejidad (mayúscula/minúscula/número/especial) + lista de ~10k contraseñas comunes (SecLists) + requisito visible en la UI |
+| [M3](./M3-auditoria-cambios-rol.md) | Sin validación de reproducción/cambio de rol en `Edit` | Media | Tabla `AuditoriaUsuarios` + registro de quién/cuándo/valor anterior→nuevo en cambios de rol y desactivación |
 
 ## Bugs (no son hallazgos del plan de seguridad, pero surgieron durante este trabajo)
 

@@ -252,7 +252,8 @@ namespace SistemaTickets.Controllers
                     Rol            = model.Rol
                 };
 
-                await _usuarioService.UpdateAsync(usuario, model.Password);
+                var modificadoPorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+                await _usuarioService.UpdateAsync(usuario, model.Password, modificadoPorId);
                 return Json(new { success = true });
             }
             catch (Exception ex)
@@ -299,7 +300,7 @@ namespace SistemaTickets.Controllers
 
             try
             {
-                await _usuarioService.DeactivateAsync(id);
+                await _usuarioService.DeactivateAsync(id, currentId);
                 return Json(new { success = true });
             }
             catch (Exception ex)

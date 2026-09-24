@@ -11,5 +11,9 @@ namespace SistemaTickets.Domain.Repositories
         Task<(IList<Usuario> Items, int Total)> GetPagedAsync(int page, int pageSize, string? search, bool? activo);
         Task SaveAsync(Usuario usuario);
         Task UpdateAsync(Usuario usuario);
+
+        // M3: auditoría de cambios de rol / activo.
+        Task RegistrarAuditoriaAsync(AuditoriaUsuario auditoria);
+        T GetRef<T>(int id) where T : class;
     }
 }
