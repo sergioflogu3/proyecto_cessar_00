@@ -39,6 +39,11 @@ namespace SistemaTickets.Controllers
 
         private int GetConfiguredExpireMinutes() => _configuration.GetValue<int?>("Jwt:ExpireMinutes") ?? 30;
 
+        // M1: un único mensaje para cualquier motivo de rechazo de login (usuario inexistente,
+        // contraseña incorrecta, usuario inactivo) — no debe ser posible distinguir por el
+        // mensaje si una cuenta existe o no.
+        private const string LoginGenericoError = "Credenciales inválidas o usuario inactivo.";
+
         // A4: las InvalidOperationException las lanza a propósito la capa de servicios con un
         // mensaje pensado para mostrarse al usuario (p.ej. "Usuario no encontrado"); cualquier
         // otra excepción (NHibernate, SqlClient, etc.) se loggea completa acá y al cliente solo
@@ -94,7 +99,7 @@ namespace SistemaTickets.Controllers
                 _loginAttemptService.RegisterFailure(model.Login);
                 _logger.LogWarning("Intento de login fallido para '{Login}' desde {Ip}.", model.Login, ip);
 
-                ModelState.AddModelError(string.Empty, "Credenciales inválidas o usuario inactivo.");
+                ModelState.AddModelError(string.Empty, LoginGenericoError);
                 return View(model);
             }
 
@@ -103,7 +108,13 @@ namespace SistemaTickets.Controllers
             var user = await _usuarioService.GetByLoginAsync(model.Login);
             if (user is null)
             {
-                ModelState.AddModelError(string.Empty, "No se encontró el usuario.");
+                // No debería pasar (ValidateCredentialsAsync ya confirmó que existe y está
+                // activo), pero si pasa, el mensaje es el mismo genérico — nunca uno distinto
+                // que delate por qué falló.
+                _logger.LogWarning(
+                    "ValidateCredentialsAsync devolvió true pero GetByLoginAsync no encontró a '{Login}'.",
+                    model.Login);
+                ModelState.AddModelError(string.Empty, LoginGenericoError);
                 return View(model);
             }
 

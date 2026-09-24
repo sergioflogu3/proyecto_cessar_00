@@ -11,6 +11,13 @@ namespace SistemaTickets.Infrastructure.Services
         private readonly IUsuarioRepository _usuarioRepository;
         private readonly string _encryptionKey;
 
+        // M1: hash "señuelo" (no corresponde a ninguna cuenta real) contra el que se verifica
+        // igual cuando el login no existe o el usuario está inactivo, para que el tiempo de
+        // respuesta no delate si esa cuenta existe (BCrypt.Verify es la parte lenta de este
+        // método; sin esto, un login inexistente responde notablemente más rápido).
+        private static readonly string DummyPasswordHash =
+            EncryptionHelper.HashPassword(Guid.NewGuid().ToString());
+
         public UsuarioService(IUsuarioRepository usuarioRepository, IConfiguration configuration)
         {
             _usuarioRepository = usuarioRepository;
@@ -60,7 +67,14 @@ namespace SistemaTickets.Infrastructure.Services
         public async Task<bool> ValidateCredentialsAsync(string login, string password)
         {
             var user = await GetRawByLoginAsync(login);
-            if (user is null || !user.Activo) return false;
+
+            if (user is null || !user.Activo)
+            {
+                // Paga el mismo costo de BCrypt que una verificación real (ver DummyPasswordHash).
+                EncryptionHelper.VerifyPassword(password, DummyPasswordHash);
+                return false;
+            }
+
             return EncryptionHelper.VerifyPassword(password, user.PasswordHaseado);
         }
 
