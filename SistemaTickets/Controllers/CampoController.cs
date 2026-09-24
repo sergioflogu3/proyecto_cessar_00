@@ -13,15 +13,31 @@ namespace SistemaTickets.Controllers
         private readonly ICampoService   _campoService;
         private readonly ITicketService  _ticketService;
         private readonly IInventarioService _inventarioService;
+        private readonly ILogger<CampoController> _logger;
 
         public CampoController(
             ICampoService campoService,
             ITicketService ticketService,
-            IInventarioService inventarioService)
+            IInventarioService inventarioService,
+            ILogger<CampoController> logger)
         {
             _campoService       = campoService;
             _ticketService      = ticketService;
             _inventarioService  = inventarioService;
+            _logger             = logger;
+        }
+
+        // A4: las InvalidOperationException las lanza a propósito la capa de servicios con un
+        // mensaje pensado para mostrarse al usuario; cualquier otra excepción (NHibernate,
+        // SqlClient, etc.) se loggea completa acá y al cliente solo le llega un mensaje
+        // genérico, para no filtrar detalles internos del backend.
+        private IActionResult JsonError(Exception ex, string accion)
+        {
+            if (ex is InvalidOperationException)
+                return Json(new { success = false, message = ex.Message });
+
+            _logger.LogError(ex, "Error inesperado en CampoController.{Accion}", accion);
+            return Json(new { success = false, message = "Ocurrió un error inesperado. Intenta de nuevo más tarde." });
         }
 
         private int CurrentUserId()
@@ -152,7 +168,7 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonError(ex, nameof(VisitaCambiarEstado));
             }
         }
 
@@ -259,7 +275,7 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonError(ex, nameof(AjustarStock));
             }
         }
 
@@ -289,7 +305,7 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonError(ex, nameof(RegistrarConsumo));
             }
         }
 

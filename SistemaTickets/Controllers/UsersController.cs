@@ -39,6 +39,19 @@ namespace SistemaTickets.Controllers
 
         private int GetConfiguredExpireMinutes() => _configuration.GetValue<int?>("Jwt:ExpireMinutes") ?? 30;
 
+        // A4: las InvalidOperationException las lanza a propósito la capa de servicios con un
+        // mensaje pensado para mostrarse al usuario (p.ej. "Usuario no encontrado"); cualquier
+        // otra excepción (NHibernate, SqlClient, etc.) se loggea completa acá y al cliente solo
+        // le llega un mensaje genérico, para no filtrar detalles internos del backend.
+        private IActionResult JsonError(Exception ex, string accion)
+        {
+            if (ex is InvalidOperationException)
+                return Json(new { success = false, message = ex.Message });
+
+            _logger.LogError(ex, "Error inesperado en UsersController.{Accion}", accion);
+            return Json(new { success = false, message = "Ocurrió un error inesperado. Intenta de nuevo más tarde." });
+        }
+
         // ── Auth ─────────────────────────────────────────────────────────────
 
         [AllowAnonymous]
@@ -233,7 +246,12 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, errors = new[] { ex.Message } });
+                // A4: mismo criterio que JsonError, pero esta vista espera "errors" (array).
+                if (ex is InvalidOperationException)
+                    return Json(new { success = false, errors = new[] { ex.Message } });
+
+                _logger.LogError(ex, "Error inesperado en UsersController.{Accion}", nameof(Edit));
+                return Json(new { success = false, errors = new[] { "Ocurrió un error inesperado. Intenta de nuevo más tarde." } });
             }
         }
 
@@ -269,7 +287,7 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonError(ex, nameof(Deactivate));
             }
         }
     }

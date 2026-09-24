@@ -15,6 +15,7 @@ namespace SistemaTickets.Controllers
         private readonly IUsuarioService _usuarioService;
         private readonly IEmailService   _emailService;
         private readonly IStorageService _storageService;
+        private readonly ILogger<TicketsController> _logger;
 
         private const long MaxFileBytes = 10 * 1024 * 1024; // 10 MB
 
@@ -22,12 +23,27 @@ namespace SistemaTickets.Controllers
             ITicketService  ticketService,
             IUsuarioService usuarioService,
             IEmailService   emailService,
-            IStorageService storageService)
+            IStorageService storageService,
+            ILogger<TicketsController> logger)
         {
             _ticketService  = ticketService;
             _usuarioService = usuarioService;
             _emailService   = emailService;
             _storageService = storageService;
+            _logger = logger;
+        }
+
+        // A4: las InvalidOperationException las lanza a propósito la capa de servicios con un
+        // mensaje pensado para mostrarse al usuario; cualquier otra excepción (NHibernate,
+        // SqlClient, etc.) se loggea completa acá y al cliente solo le llega un mensaje
+        // genérico, para no filtrar detalles internos del backend.
+        private IActionResult JsonError(Exception ex, string accion)
+        {
+            if (ex is InvalidOperationException)
+                return Json(new { success = false, message = ex.Message });
+
+            _logger.LogError(ex, "Error inesperado en TicketsController.{Accion}", accion);
+            return Json(new { success = false, message = "Ocurrió un error inesperado. Intenta de nuevo más tarde." });
         }
 
         // ── Helpers ──────────────────────────────────────────────────────────
@@ -103,7 +119,7 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonError(ex, nameof(TomarTicket));
             }
         }
 
@@ -355,7 +371,7 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonError(ex, nameof(CambiarEstado));
             }
         }
 
@@ -374,7 +390,7 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonError(ex, nameof(AsignarPrioridad));
             }
         }
 
@@ -393,7 +409,7 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonError(ex, nameof(Asignar));
             }
         }
 
@@ -412,7 +428,7 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonError(ex, nameof(Cerrar));
             }
         }
 
@@ -443,7 +459,7 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonError(ex, nameof(AgregarComentario));
             }
         }
 

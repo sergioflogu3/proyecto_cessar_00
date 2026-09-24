@@ -13,11 +13,29 @@ namespace SistemaTickets.Controllers
     {
         private readonly IInventarioService _inventarioService;
         private readonly IUsuarioService    _usuarioService;
+        private readonly ILogger<InventarioController> _logger;
 
-        public InventarioController(IInventarioService inventarioService, IUsuarioService usuarioService)
+        public InventarioController(
+            IInventarioService inventarioService,
+            IUsuarioService usuarioService,
+            ILogger<InventarioController> logger)
         {
             _inventarioService = inventarioService;
             _usuarioService    = usuarioService;
+            _logger = logger;
+        }
+
+        // A4: las InvalidOperationException las lanza a propósito la capa de servicios con un
+        // mensaje pensado para mostrarse al usuario; cualquier otra excepción (NHibernate,
+        // SqlClient, etc.) se loggea completa acá y al cliente solo le llega un mensaje
+        // genérico, para no filtrar detalles internos del backend.
+        private IActionResult JsonError(Exception ex, string accion)
+        {
+            if (ex is InvalidOperationException)
+                return Json(new { success = false, message = ex.Message });
+
+            _logger.LogError(ex, "Error inesperado en InventarioController.{Accion}", accion);
+            return Json(new { success = false, message = "Ocurrió un error inesperado. Intenta de nuevo más tarde." });
         }
 
         private int CurrentUserId()
@@ -126,7 +144,7 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonError(ex, nameof(ActivoBaja));
             }
         }
 
@@ -142,7 +160,7 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonError(ex, nameof(AsignarActivo));
             }
         }
 
@@ -271,7 +289,7 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonError(ex, nameof(AsignarHerramienta));
             }
         }
 
@@ -290,7 +308,7 @@ namespace SistemaTickets.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return JsonError(ex, nameof(DevolverHerramienta));
             }
         }
 

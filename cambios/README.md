@@ -16,6 +16,7 @@ funcionalidad existente** del sistema.
 | [A1](./A1-fuerza-bruta-login.md) | Sin límite de intentos de login (fuerza bruta) | Alta | Rate limiting por IP + bloqueo temporal por usuario + logging |
 | [A2](./A2-adjuntos-sin-whitelist.md) | Adjuntos sin lista blanca de tipos/extensión | Alta | Whitelist + magic bytes + descarga forzada con `nosniff` |
 | [A3](./A3-https-forzado.md) | `RequireHttpsMetadata=false` y cookie `Secure` condicional | Alta | Cookie `Secure=true` fijo + HSTS con preload + proxy HTTPS local en Docker |
+| [A4](./A4-excepciones-mensaje-interno.md) | Excepciones con mensaje interno al cliente | Alta | Mensajes de negocio pasan, el resto se loggea y se generaliza (13 sitios en 4 controladores) |
 
 ## Notas generales
 
