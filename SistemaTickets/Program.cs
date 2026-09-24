@@ -34,6 +34,13 @@ namespace SistemaTickets
                 options.MaxAge = TimeSpan.FromDays(365);
             });
 
+            // M6: a diferencia de Email (opcional — EmailService se salta el envío si no está
+            // configurado), el almacenamiento de adjuntos no es opcional: todo el flujo de
+            // tickets con archivos depende de él. Validar acá, temprano, evita que la primera
+            // falla sea una excepción críptica de Azure.Storage.Blobs recién cuando alguien sube
+            // un adjunto.
+            ValidateAzureBlobStorageConnectionString(builder.Configuration["AzureBlobStorage:ConnectionString"]);
+
             // NHibernate
             var connectionString = ValidateConnectionString(builder.Configuration.GetConnectionString("DefaultConnection"));
 
@@ -337,6 +344,23 @@ namespace SistemaTickets
             }
 
             return connectionString;
+        }
+
+        // M6: a diferencia de C1/C2, acá no hay un valor "placeholder" reconocible que detectar
+        // — "UseDevelopmentStorage=true" (el valor por defecto committeado, para Azurite/el
+        // emulador local) es una cadena de conexión real y funcional, no un placeholder a
+        // reemplazar. Lo único que se puede validar en general es que no esté vacía; que sea la
+        // cadena correcta para el entorno real (Azurite en dev/Docker, una cuenta real de Azure
+        // Storage en producción) queda fuera del alcance de una validación estática.
+        private static void ValidateAzureBlobStorageConnectionString(string? connectionString)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException(
+                    "AzureBlobStorage:ConnectionString no está configurada. Defínela mediante variable de " +
+                    "entorno (AzureBlobStorage__ConnectionString), User Secrets o Azure Key Vault antes de " +
+                    "iniciar la aplicación.");
+            }
         }
     }
 }

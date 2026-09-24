@@ -90,8 +90,8 @@ All DI wiring (repositories, services, JWT, auth) happens in `Program.cs` — th
 
 ### External dependencies
 
-- **Azure Blob Storage** (`AzureBlobStorageService`, registered as `IStorageService`) for ticket attachments (10 MB max), config under `AzureBlobStorage:*`. Azurite emulates this locally via Docker.
-- **Email** via SMTP (`EmailService`), config under `Email:*` (Gmail defaults in sample config). A failure here does not block ticket creation — services are isolated behind interfaces.
+- **Azure Blob Storage** (`AzureBlobStorageService`, registered as `IStorageService`) for ticket attachments (10 MB max), config under `AzureBlobStorage:*`. Azurite emulates this locally via Docker. **M6**: `AzureBlobStorage:ConnectionString` is validated at startup (`ValidateAzureBlobStorageConnectionString` in `Program.cs`) — the app refuses to start if it's empty. Unlike `Jwt:Key`/the DB connection string, there's no placeholder-text check here: the committed default (`UseDevelopmentStorage=true`) is a real, working value for the local emulator, not a placeholder to replace — only real production deployments need to override it (via `AzureBlobStorage__ConnectionString` env var or a secret manager, never hardcoded in `appsettings.json`).
+- **Email** via SMTP (`EmailService`), config under `Email:*` (Gmail defaults in sample config). A failure here does not block ticket creation — services are isolated behind interfaces. **M6**: unlike the blob connection string, this is genuinely optional — `EmailService` skips sending (logs at `Debug`) if `Email:SmtpHost` is empty — so there's no startup validation for it. If you configure real SMTP credentials, they go via `dotnet user-secrets` (dev) or the `Email__Username`/`Email__Password`/etc. env vars (`docker-compose.yml` sources them from the gitignored `.env`, see `.env.example`) — never hardcoded into `appsettings.json`.
 - **Reports**: QuestPDF (PDF) and ClosedXML (Excel), driven from `ReporteService` / `ReportesController`.
 
 ## Configuration notes

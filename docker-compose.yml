@@ -65,8 +65,24 @@ services:
       Jwt__Audience: "SistemaTicketsUsers"
       Jwt__ExpireMinutes: "30"
       Encryption__Key: "TU-CLAVE-AES-256-DE-AL-MENOS-32-CARACTERES"
-      AzureBlobStorage__ConnectionString: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
+      # M6: la key de arriba es la "well-known key" pública de Azurite/el emulador de Azure
+      # Storage (documentada por Microsoft, la misma en cualquier instalación de Azurite del
+      # mundo) — no es un secreto real, así que está bien que quede hardcodeada acá. Para un
+      # Azure Storage real en producción, la cadena de conexión SÍ es un secreto: pasala por
+      # AZURE_BLOB_CONNECTION_STRING en el .env local (nunca la escribas acá ni en appsettings.json).
+      AzureBlobStorage__ConnectionString: "${AZURE_BLOB_CONNECTION_STRING:-DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;}"
       AzureBlobStorage__ContainerName: "sistema"
+      # M6: Email es opcional (EmailService se salta el envío si Email:SmtpHost queda vacío) —
+      # por eso estas variables tienen default vacío/no-op en vez de un "${...:?obligatorio}"
+      # como Jwt__Key. Si en algún momento hace falta mandar correos reales desde Docker, las
+      # credenciales van en el .env local (ver .env.example), nunca acá ni en appsettings.json.
+      Email__SmtpHost: "${EMAIL_SMTP_HOST:-smtp.gmail.com}"
+      Email__SmtpPort: "${EMAIL_SMTP_PORT:-587}"
+      Email__EnableSsl: "${EMAIL_ENABLE_SSL:-true}"
+      Email__Username: "${EMAIL_USERNAME:-}"
+      Email__Password: "${EMAIL_PASSWORD:-}"
+      Email__FromAddress: "${EMAIL_FROM_ADDRESS:-}"
+      Email__FromName: "${EMAIL_FROM_NAME:-SistemaTickets - Soporte}"
     networks:
       - sistickets-network
 

@@ -59,8 +59,8 @@ dotnet run --project SistemaTickets/SistemaTickets.csproj
 
 ## External dependencies
 
-- **Azure Blob Storage** (`AzureBlobStorageService`) for ticket file attachments. Config: `AzureBlobStorage:ConnectionString` / `ContainerName`.
-- **Email** via SMTP (Gmail defaults in config). Config: `Email:*`.
+- **Azure Blob Storage** (`AzureBlobStorageService`) for ticket file attachments. Config: `AzureBlobStorage:ConnectionString` / `ContainerName`. **Secrets out of the repo from day 1 (M6)**: `AzureBlobStorage:ConnectionString` is validated at startup (`ValidateAzureBlobStorageConnectionString` in `Program.cs`, throws if empty — no placeholder-text check like `Jwt:Key`/the DB connection string, since the committed default `UseDevelopmentStorage=true` is a genuinely working value for the local Azurite emulator, not something to replace in dev). A real Azure Storage account's connection string goes via `AzureBlobStorage__ConnectionString` (env var / `docker-compose.yml` reads it from the gitignored `.env`, see `AZURE_BLOB_CONNECTION_STRING` in `.env.example`) or a secret manager — never hardcoded into `appsettings.json` or `docker-compose.yml`.
+- **Email** via SMTP (Gmail defaults in config). Config: `Email:*`. Genuinely optional — unlike the blob storage connection string, `EmailService` just skips sending (`LogDebug`, no error) if `Email:SmtpHost` is empty, so there's no startup validation for it (M6). If you do configure real SMTP credentials, they go via `dotnet user-secrets` (dev) or the `Email__Username`/`Email__Password`/`Email__FromAddress`/etc. env vars — `docker-compose.yml`'s `app` service sources those from `EMAIL_USERNAME`/`EMAIL_PASSWORD`/`EMAIL_FROM_ADDRESS` in the gitignored `.env` (empty by default, same no-email behavior as today), never hardcoded in `appsettings.json`.
 - **Reports**: QuestPDF + ClosedXML.
 
 ## Build / run notes

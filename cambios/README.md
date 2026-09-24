@@ -23,6 +23,7 @@ funcionalidad existente** del sistema.
 | [M3](./M3-auditoria-cambios-rol.md) | Sin validación de reproducción/cambio de rol en `Edit` | Media | Tabla `AuditoriaUsuarios` + registro de quién/cuándo/valor anterior→nuevo en cambios de rol y desactivación |
 | [M4](./M4-fallback-usuarioid-cero.md) | `CurrentUserId()` con fallback `"0"` | Media | Filtro global `RequireValidUserIdFilter` — 401 antes de la acción si el claim falta o es inválido |
 | [M5](./M5-logout-get-sin-csrf.md) | `Logout` por GET sin protección anti-CSRF | Media | `Logout` pasa a POST + `[ValidateAntiForgeryToken]`; el link del sidebar pasa a un form |
+| [M6](./M6-secretos-email-blob.md) | SMIME/SMTP y Blob con credenciales futuras en texto plano | Media | Validación al arrancar para `AzureBlobStorage:ConnectionString` + `Email:*`/`AzureBlobStorage` reales vía `.env`/env vars, nunca en `appsettings.json` |
 
 ## Bugs (no son hallazgos del plan de seguridad, pero surgieron durante este trabajo)
 
