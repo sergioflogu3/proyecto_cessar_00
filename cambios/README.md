@@ -19,6 +19,7 @@ funcionalidad existente** del sistema.
 | [A4](./A4-excepciones-mensaje-interno.md) | Excepciones con mensaje interno al cliente | Alta | Mensajes de negocio pasan, el resto se loggea y se generaliza (13 sitios en 4 controladores) |
 | [A5](./A5-trustservercertificate.md) | `TrustServerCertificate=True` en la cadena de conexión | Alta | Plantillas con `Encrypt=True;TrustServerCertificate=False` + advertencia al arrancar fuera de Development |
 | [M1](./M1-enumeracion-usuarios.md) | Enumeración de usuarios por mensajes de error diferenciados | Media | Mensaje único + tiempo de respuesta equiparado (BCrypt contra hash señuelo) |
+| [M2](./M2-politica-contrasenas.md) | Política de contraseñas débil/no visible | Media | Mínimo 12 caracteres + complejidad (mayúscula/minúscula/número/especial) + lista de ~10k contraseñas comunes (SecLists) + requisito visible en la UI |
 
 ## Notas generales
 

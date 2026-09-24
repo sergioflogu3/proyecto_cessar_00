@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using SistemaTickets.Domain.Enums;
+using SistemaTickets.Models.Validation;
 
 namespace SistemaTickets.Models.Users
 {
@@ -13,7 +14,9 @@ namespace SistemaTickets.Models.Users
         public string Username { get; set; } = string.Empty;
 
         [DataType(DataType.Password)]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "Mínimo 6 caracteres")]
+        [StringLength(100, MinimumLength = 12, ErrorMessage = "Mínimo 12 caracteres")]
+        [PasswordComplexity]
+        [NotCommonPassword]
         [Display(Name = "Contraseña")]
         public string? Password { get; set; }
 

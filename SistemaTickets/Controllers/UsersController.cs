@@ -271,7 +271,13 @@ namespace SistemaTickets.Controllers
         public async Task<IActionResult> CambiarPassword(CambiarPasswordViewModel model)
         {
             if (!ModelState.IsValid)
-                return Json(new { success = false, message = "Datos inválidos." });
+            {
+                // M2: mostrar el motivo real (p.ej. longitud mínima, contraseña muy común) en
+                // vez de un "Datos inválidos" genérico — la política de contraseñas debe ser
+                // visible para quien la está por incumplir, no solo aplicada en silencio.
+                var mensaje = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return Json(new { success = false, message = string.IsNullOrWhiteSpace(mensaje) ? "Datos inválidos." : mensaje });
+            }
 
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var ok = await _usuarioService.CambiarPasswordAsync(userId, model.PasswordActual, model.NuevoPassword);

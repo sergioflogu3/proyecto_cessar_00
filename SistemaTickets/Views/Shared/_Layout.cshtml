@@ -194,7 +194,8 @@
                         <div class="mb-3">
                             <label class="form-label fw-semibold small mb-1">Nueva contraseña</label>
                             <input type="password" class="form-control" id="cpwdNuevo"
-                                   name="NuevoPassword" placeholder="Mínimo 6 caracteres" autocomplete="new-password" />
+                                   name="NuevoPassword" placeholder="Mínimo 12 caracteres" autocomplete="new-password" />
+                            <div class="form-text">Mínimo 12 caracteres, con mayúscula, minúscula, número y carácter especial. Evitá contraseñas comunes.</div>
                         </div>
                         <div class="mb-0">
                             <label class="form-label fw-semibold small mb-1">Confirmar nueva contraseña</label>
@@ -271,7 +272,10 @@ else
         alertEl.className = 'alert d-none mb-3';
 
         if (!actual || !nuevo || !confirmar) return showErr('Todos los campos son requeridos.');
-        if (nuevo.length < 6)               return showErr('La nueva contraseña debe tener al menos 6 caracteres.');
+        if (nuevo.length < 12)               return showErr('La nueva contraseña debe tener al menos 12 caracteres.');
+        if (!/[a-z]/.test(nuevo) || !/[A-Z]/.test(nuevo) || !/[0-9]/.test(nuevo) || !/[^A-Za-z0-9]/.test(nuevo)) {
+            return showErr('La nueva contraseña debe incluir mayúscula, minúscula, número y carácter especial.');
+        }
         if (nuevo !== confirmar)             return showErr('La nueva contraseña y su confirmación no coinciden.');
 
         const token = document.querySelector('#formCambiarPassword input[name="__RequestVerificationToken"]').value;
