@@ -24,6 +24,7 @@ funcionalidad existente** del sistema.
 | [M4](./M4-fallback-usuarioid-cero.md) | `CurrentUserId()` con fallback `"0"` | Media | Filtro global `RequireValidUserIdFilter` — 401 antes de la acción si el claim falta o es inválido |
 | [M5](./M5-logout-get-sin-csrf.md) | `Logout` por GET sin protección anti-CSRF | Media | `Logout` pasa a POST + `[ValidateAntiForgeryToken]`; el link del sidebar pasa a un form |
 | [M6](./M6-secretos-email-blob.md) | SMIME/SMTP y Blob con credenciales futuras en texto plano | Media | Validación al arrancar para `AzureBlobStorage:ConnectionString` + `Email:*`/`AzureBlobStorage` reales vía `.env`/env vars, nunca en `appsettings.json` |
+| [B2](./B2-dependencias-vulnerables.md) | Dependencias sin revisión de CVEs / sin escaneo automático | Baja | ⚠️ Parcial — 8 paquetes directos + 2 pines transitivos actualizados (0 vulnerabilidades hoy); CI/Dependabot queda pendiente de decisión del usuario |
 
 ## Bugs (no son hallazgos del plan de seguridad, pero surgieron durante este trabajo)
 

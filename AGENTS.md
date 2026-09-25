@@ -68,6 +68,7 @@ dotnet run --project SistemaTickets/SistemaTickets.csproj
 - No test projects exist. Verification is manual or via running the app.
 - `libman.json` is present but empty; client libraries are likely checked into `wwwroot/`.
 - Standard `dotnet build` / `dotnet run` workflow.
+- **Dependency hygiene (B2)**: direct `PackageReference`s in `SistemaTickets.csproj` were bumped to their latest minor/patch versions (NHibernate 5.7.0, FluentNHibernate 3.5.0, Microsoft.Data.SqlClient 7.1.0, Microsoft.AspNetCore.Authentication.JwtBearer 8.0.31 — pinned within the 8.x line on purpose, no jump to the unrelated 10.x package version that also exists on NuGet — QuestPDF 2024.12.3, ClosedXML 0.105.1, Azure.Storage.Blobs 12.29.2, BCrypt.Net-Next 4.2.0), plus two explicit transitive pins (`System.Net.Http` 4.3.4, `System.Security.Cryptography.X509Certificates` 4.3.2 — both pulled in by NHibernate's `Antlr3.Runtime` → old `NETStandard.Library`, see `cambios/B2-dependencias-vulnerables.md` for the dependency graph). `dotnet list SistemaTickets.sln package --vulnerable --include-transitive` reports zero known vulnerabilities as of this writing — re-run it periodically, this isn't automated (no CI/Dependabot installed yet, see below).
 
 ## Safety
 

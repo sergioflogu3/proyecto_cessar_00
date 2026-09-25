@@ -19,13 +19,13 @@ Sistema de gestión de tickets de soporte técnico desarrollado en ASP.NET Core 
 |------------|---------|
 | .NET | 8.0 |
 | ASP.NET Core MVC | 8.0 |
-| NHibernate | 5.5.2 |
-| FluentNHibernate | 3.4.1 |
+| NHibernate | 5.7.0 |
+| FluentNHibernate | 3.5.0 |
 | SQL Server | 2012+ |
-| Azure.Storage.Blobs | 12.28.0 |
-| QuestPDF | 2024.12.0 |
-| ClosedXML | 0.102.3 |
-| BCrypt.Net-Next | 4.0.3 |
+| Azure.Storage.Blobs | 12.29.2 |
+| QuestPDF | 2024.12.3 |
+| ClosedXML | 0.105.1 |
+| BCrypt.Net-Next | 4.2.0 |
 
 ## Requisitos Previos
 
