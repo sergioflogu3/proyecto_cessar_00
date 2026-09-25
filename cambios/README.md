@@ -26,6 +26,7 @@ funcionalidad existente** del sistema.
 | [M6](./M6-secretos-email-blob.md) | SMIME/SMTP y Blob con credenciales futuras en texto plano | Media | Validación al arrancar para `AzureBlobStorage:ConnectionString` + `Email:*`/`AzureBlobStorage` reales vía `.env`/env vars, nunca en `appsettings.json` |
 | [B2](./B2-dependencias-vulnerables.md) | Dependencias sin revisión de CVEs / sin escaneo automático | Baja | ⚠️ Parcial — 8 paquetes directos + 2 pines transitivos actualizados (0 vulnerabilidades hoy); CI/Dependabot queda pendiente de decisión del usuario |
 | [B3](./B3-allowedhosts-wildcard.md) | `AllowedHosts: "*"` | Baja | Restringido a `localhost;127.0.0.1` (únicos hosts reales hoy; sin dominio de producción documentado) |
+| [B4](./B4-saneamiento-logs.md) | Logs sin política de saneamiento | Baja | Eco de SQL de NHibernate (con valores de parámetros) apagado fuera de Development; `Microsoft: Warning` en producción; `EmailService` ya no loguea el email en texto plano |
 
 ## Bugs (no son hallazgos del plan de seguridad, pero surgieron durante este trabajo)
 

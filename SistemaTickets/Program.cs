@@ -47,9 +47,13 @@ namespace SistemaTickets
             // updateSchema: true solo en primer deploy para crear las tablas en Azure SQL
             // Cámbialo a false después del primer arranque exitoso
             var isFirstDeploy = builder.Configuration.GetValue<bool>("NHibernate:UpdateSchema");
+            // B4: el eco de SQL de NHibernate (con valores de parámetros) va directo a consola,
+            // sin pasar por Microsoft.Extensions.Logging — ningún LogLevel lo apaga. Solo tiene
+            // sentido prendido para depurar localmente.
             var sessionFactory = NHibernateBootstrap.BuildSessionFactory(
                 connectionString,
-                updateSchema: isFirstDeploy
+                updateSchema: isFirstDeploy,
+                showSql: builder.Environment.IsDevelopment()
             );
 
             builder.Services.AddSingleton(sessionFactory);

@@ -246,6 +246,7 @@ SistemaTickets/
 - Cerrar sesión (`/Users/Logout`) requiere POST + token anti-forgery, no GET — así ninguna página externa puede cerrarle la sesión a un usuario sin que él lo haga explícitamente (por ejemplo con un `<img src="...">` apuntando a esa URL).
 - `AzureBlobStorage:ConnectionString` se valida al arrancar igual que `Jwt:Key`/la cadena de conexión a la base (falla si está vacía). Las credenciales reales de Email/Azure Blob Storage (cuando se necesiten) van por `dotnet user-secrets` en desarrollo o variables de entorno en Docker/producción — nunca escritas en `appsettings.json` (ver `AGENTS.md`/`CLAUDE.md`, sección Configuración/External dependencies).
 - `AllowedHosts` está restringido a `localhost;127.0.0.1` (no `"*"`) — cualquier request con un header `Host` distinto se rechaza con `400`, mitigando host-header injection. Si en algún momento se despliega con un dominio propio, hay que agregarlo acá (ver `AGENTS.md`/`CLAUDE.md`).
+- El eco de SQL de NHibernate (que incluye el valor real de cada parámetro — título/descripción de tickets, usernames, etc.) solo está activo en `Development`; fuera de ahí (Docker con `ASPNETCORE_ENVIRONMENT=Production`) queda apagado. En producción, además, los logs de namespaces `Microsoft.*` bajan a nivel `Warning` (`appsettings.Production.json`) para reducir ruido. Ningún log de la aplicación incluye el JWT ni un volcado de claims; el envío de copia de ticket por correo ya no loguea la dirección de email en texto plano (ver `AGENTS.md`/`CLAUDE.md`).
 
 ## Licencia
 

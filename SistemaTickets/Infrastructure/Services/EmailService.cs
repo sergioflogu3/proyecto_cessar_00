@@ -73,7 +73,12 @@ namespace SistemaTickets.Infrastructure.Services
                 msg.To.Add(new MailAddress(toEmail, solicitante.NombreCompleto, Encoding.UTF8));
 
                 await smtp.SendMailAsync(msg);
-                _logger.LogInformation("Copia de ticket #{TicketId} enviada a {Email}.", ticketId, toEmail);
+                // B4: no loguear el email en texto plano — es un dato desencriptado justo para
+                // este envío (se guarda cifrado en la BD); el UsuarioId alcanza para correlacionar
+                // en logs sin volver a exponer el correo.
+                _logger.LogInformation(
+                    "Copia de ticket #{TicketId} enviada al solicitante (UsuarioId {UsuarioId}).",
+                    ticketId, solicitante.Id);
             }
             catch (Exception ex)
             {
