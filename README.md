@@ -245,6 +245,7 @@ SistemaTickets/
 - Si el token JWT no trae un identificador de usuario válido (claim faltante o corrupto), la petición se rechaza con 401 antes de llegar al controlador, en vez de continuar con un `UsuarioId=0` — ver `AGENTS.md`/`CLAUDE.md`, sección Auth.
 - Cerrar sesión (`/Users/Logout`) requiere POST + token anti-forgery, no GET — así ninguna página externa puede cerrarle la sesión a un usuario sin que él lo haga explícitamente (por ejemplo con un `<img src="...">` apuntando a esa URL).
 - `AzureBlobStorage:ConnectionString` se valida al arrancar igual que `Jwt:Key`/la cadena de conexión a la base (falla si está vacía). Las credenciales reales de Email/Azure Blob Storage (cuando se necesiten) van por `dotnet user-secrets` en desarrollo o variables de entorno en Docker/producción — nunca escritas en `appsettings.json` (ver `AGENTS.md`/`CLAUDE.md`, sección Configuración/External dependencies).
+- `AllowedHosts` está restringido a `localhost;127.0.0.1` (no `"*"`) — cualquier request con un header `Host` distinto se rechaza con `400`, mitigando host-header injection. Si en algún momento se despliega con un dominio propio, hay que agregarlo acá (ver `AGENTS.md`/`CLAUDE.md`).
 
 ## Licencia
 
