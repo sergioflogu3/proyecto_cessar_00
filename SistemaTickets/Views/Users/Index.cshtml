@@ -116,15 +116,15 @@
                                     }
                                 </td>
                                 <td class="text-end pe-4">
-                                    <button class="btn btn-outline-primary btn-sm"
+                                    <button class="btn btn-outline-primary btn-sm" title="Editar"
                                             onclick="abrirEdicion(@u.Id)">
-                                        Editar
+                                        <i class="fa-solid fa-pen"></i>
                                     </button>
                                     @if (u.Activo)
                                     {
-                                        <button class="btn btn-outline-danger btn-sm ms-1"
+                                        <button class="btn btn-outline-danger btn-sm ms-1" title="Inactivar"
                                                 onclick="inactivarUsuario(@u.Id, '@u.NombreCompleto')">
-                                            Inactivar
+                                            <i class="fa-solid fa-ban"></i>
                                         </button>
                                     }
                                 </td>

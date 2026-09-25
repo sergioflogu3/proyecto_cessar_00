@@ -113,14 +113,15 @@
                                         }
                                     </td>
                                     <td class="text-end px-4">
-                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                        <button type="button" class="btn btn-outline-primary btn-sm" title="Editar"
                                                 onclick="abrirEditCat(@c.Id, '@Html.Raw(c.Nombre.Replace("'","\\\'"))', '@Html.Raw((c.Descripcion ?? "").Replace("'","\\\'"  ))')">
-                                            Editar
+                                            <i class="fa-solid fa-pen"></i>
                                         </button>
                                         <form asp-action="ToggleCategoria" method="post" class="d-inline">
                                             <input type="hidden" name="id" value="@c.Id" />
-                                            <button type="submit" class="btn btn-sm @(c.Activo ? "btn-outline-secondary" : "btn-outline-success")">
-                                                @(c.Activo ? "Desactivar" : "Activar")
+                                            <button type="submit" class="btn btn-sm @(c.Activo ? "btn-outline-secondary" : "btn-outline-success")"
+                                                    title="@(c.Activo ? "Desactivar" : "Activar")">
+                                                <i class="fa-solid @(c.Activo ? "fa-ban" : "fa-circle-check")"></i>
                                             </button>
                                         </form>
                                     </td>
@@ -240,14 +241,15 @@
                                         }
                                     </td>
                                     <td class="text-end px-4">
-                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                        <button type="button" class="btn btn-outline-primary btn-sm" title="Editar"
                                                 onclick="abrirEditPri(@p.Id, '@Html.Raw(p.Nombre.Replace("'","\\\'"))', '@p.Color', @p.Orden, '@Html.Raw((p.Descripcion ?? "").Replace("'","\\\'"  ))')">
-                                            Editar
+                                            <i class="fa-solid fa-pen"></i>
                                         </button>
                                         <form asp-action="TogglePrioridad" method="post" class="d-inline">
                                             <input type="hidden" name="id" value="@p.Id" />
-                                            <button type="submit" class="btn btn-sm @(p.Activo ? "btn-outline-secondary" : "btn-outline-success")">
-                                                @(p.Activo ? "Desactivar" : "Activar")
+                                            <button type="submit" class="btn btn-sm @(p.Activo ? "btn-outline-secondary" : "btn-outline-success")"
+                                                    title="@(p.Activo ? "Desactivar" : "Activar")">
+                                                <i class="fa-solid @(p.Activo ? "fa-ban" : "fa-circle-check")"></i>
                                             </button>
                                         </form>
                                     </td>
@@ -389,9 +391,9 @@
                                         }
                                     </td>
                                     <td class="text-end px-4">
-                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                        <button type="button" class="btn btn-outline-primary btn-sm" title="Editar"
                                                 onclick="abrirEditEst(@e.Id, '@e.Color', @e.Orden)">
-                                            Editar
+                                            <i class="fa-solid fa-pen"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -488,14 +490,15 @@
                                         }
                                     </td>
                                     <td class="text-end px-4">
-                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                        <button type="button" class="btn btn-outline-primary btn-sm" title="Editar"
                                                 onclick="abrirEditTipo(@t.Id, '@Html.Raw(t.Nombre.Replace("'","\\\'"))')">
-                                            Editar
+                                            <i class="fa-solid fa-pen"></i>
                                         </button>
                                         <form asp-action="ToggleActivoTipo" method="post" class="d-inline">
                                             <input type="hidden" name="id" value="@t.Id" />
-                                            <button type="submit" class="btn btn-sm @(t.Activo ? "btn-outline-secondary" : "btn-outline-success")">
-                                                @(t.Activo ? "Desactivar" : "Activar")
+                                            <button type="submit" class="btn btn-sm @(t.Activo ? "btn-outline-secondary" : "btn-outline-success")"
+                                                    title="@(t.Activo ? "Desactivar" : "Activar")">
+                                                <i class="fa-solid @(t.Activo ? "fa-ban" : "fa-circle-check")"></i>
                                             </button>
                                         </form>
                                     </td>
@@ -599,14 +602,15 @@
                                         }
                                     </td>
                                     <td class="text-end px-4">
-                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                        <button type="button" class="btn btn-outline-primary btn-sm" title="Editar"
                                                 onclick="abrirEditSede(@s.Id, '@Html.Raw(s.Nombre.Replace("'","\\\'"))', '@Html.Raw(s.Ciudad.Replace("'","\\\'"))', '@Html.Raw((s.Direccion ?? "").Replace("'","\\\'"))')">
-                                            Editar
+                                            <i class="fa-solid fa-pen"></i>
                                         </button>
                                         <form asp-action="ToggleSede" method="post" class="d-inline">
                                             <input type="hidden" name="id" value="@s.Id" />
-                                            <button type="submit" class="btn btn-sm @(s.Activa ? "btn-outline-secondary" : "btn-outline-success")">
-                                                @(s.Activa ? "Desactivar" : "Activar")
+                                            <button type="submit" class="btn btn-sm @(s.Activa ? "btn-outline-secondary" : "btn-outline-success")"
+                                                    title="@(s.Activa ? "Desactivar" : "Activar")">
+                                                <i class="fa-solid @(s.Activa ? "fa-ban" : "fa-circle-check")"></i>
                                             </button>
                                         </form>
                                     </td>
@@ -728,14 +732,15 @@
                                         }
                                     </td>
                                     <td class="text-end px-4">
-                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                        <button type="button" class="btn btn-outline-primary btn-sm" title="Editar"
                                                 onclick="abrirEditArea(@a.Id, '@Html.Raw(a.Nombre.Replace("'","\\\'"))', @a.Sede.Id)">
-                                            Editar
+                                            <i class="fa-solid fa-pen"></i>
                                         </button>
                                         <form asp-action="ToggleArea" method="post" class="d-inline">
                                             <input type="hidden" name="id" value="@a.Id" />
-                                            <button type="submit" class="btn btn-sm @(a.Activa ? "btn-outline-secondary" : "btn-outline-success")">
-                                                @(a.Activa ? "Desactivar" : "Activar")
+                                            <button type="submit" class="btn btn-sm @(a.Activa ? "btn-outline-secondary" : "btn-outline-success")"
+                                                    title="@(a.Activa ? "Desactivar" : "Activar")">
+                                                <i class="fa-solid @(a.Activa ? "fa-ban" : "fa-circle-check")"></i>
                                             </button>
                                         </form>
                                     </td>
