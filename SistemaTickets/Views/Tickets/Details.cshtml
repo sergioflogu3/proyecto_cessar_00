@@ -299,20 +299,20 @@
                     {
                         var ext = System.IO.Path.GetExtension(a.NombreArchivo).ToLowerInvariant();
                         var icon = ext switch {
-                            ".pdf"                    => "bi-file-earmark-pdf-fill text-danger",
-                            ".doc" or ".docx"         => "bi-file-earmark-word-fill text-primary",
-                            ".xls" or ".xlsx"         => "bi-file-earmark-excel-fill text-success",
-                            ".ppt" or ".pptx"         => "bi-file-earmark-ppt-fill text-warning",
+                            ".pdf"                    => "fa-file-pdf text-danger",
+                            ".doc" or ".docx"         => "fa-file-word text-primary",
+                            ".xls" or ".xlsx"         => "fa-file-excel text-success",
+                            ".ppt" or ".pptx"         => "fa-file-powerpoint text-warning",
                             ".jpg" or ".jpeg"
                                 or ".png" or ".gif"
-                                or ".webp"            => "bi-file-earmark-image-fill text-info",
+                                or ".webp"            => "fa-file-image text-info",
                             ".mp4" or ".mov"
-                                or ".avi" or ".mkv"   => "bi-file-earmark-play-fill text-secondary",
-                            ".zip" or ".rar"          => "bi-file-earmark-zip-fill text-dark",
-                            _                         => "bi-file-earmark-fill text-muted"
+                                or ".avi" or ".mkv"   => "fa-file-video text-secondary",
+                            ".zip" or ".rar"          => "fa-file-zipper text-dark",
+                            _                         => "fa-file text-muted"
                         };
                         <div class="d-flex align-items-center gap-2 px-3 py-2 border-bottom">
-                            <i class="bi @icon fs-5 flex-shrink-0"></i>
+                            <i class="fa-solid @icon fs-5 flex-shrink-0"></i>
                             <div class="overflow-hidden flex-grow-1">
                                 <a asp-action="DescargarAdjunto" asp-route-id="@a.Id"
                                    class="small fw-semibold text-decoration-none text-truncate d-block"
@@ -327,7 +327,7 @@
                             </div>
                             <a asp-action="DescargarAdjunto" asp-route-id="@a.Id"
                                class="btn btn-link btn-sm p-0 text-muted" title="Descargar" target="_blank">
-                                <i class="bi bi-download"></i>
+                                <i class="fa-solid fa-download"></i>
                             </a>
                         </div>
                     }

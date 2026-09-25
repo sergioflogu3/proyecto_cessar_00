@@ -32,7 +32,7 @@
 @* ── Tabla por técnico ──────────────────────────────────────────────── *@
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white border-bottom py-3 d-flex align-items-center gap-2">
-        <i class="bi bi-person-badge-fill text-primary"></i>
+        <i class="fa-solid fa-id-badge text-primary"></i>
         <span class="fw-semibold">Tickets por técnico</span>
     </div>
     <div class="card-body p-0">
@@ -61,7 +61,7 @@
                                 <td class="ps-4 fw-semibold @(fila.Nombre == "(Sin asignar)" ? "text-muted fst-italic" : "")">
                                     @if (fila.Nombre != "(Sin asignar)")
                                     {
-                                        <i class="bi bi-person-fill text-secondary me-1"></i>
+                                        <i class="fa-solid fa-user text-secondary me-1"></i>
                                     }
                                     @fila.Nombre
                                 </td>
@@ -105,7 +105,7 @@
 @* ── Distribución por prioridad ─────────────────────────────────────── *@
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white border-bottom py-3 d-flex align-items-center gap-2">
-        <i class="bi bi-flag-fill text-danger"></i>
+        <i class="fa-solid fa-flag text-danger"></i>
         <span class="fw-semibold">Distribución por prioridad</span>
     </div>
     <div class="card-body">
