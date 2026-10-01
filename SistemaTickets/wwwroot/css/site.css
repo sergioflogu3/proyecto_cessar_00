@@ -370,8 +370,8 @@ button.sidebar-logout {
 
 .login-show-btn {
     background: none; border: none; color: var(--color-primary);
-    font-size: 0.72rem; font-weight: 600; cursor: pointer;
-    padding: 0; letter-spacing: 0.05em; flex-shrink: 0;
+    font-size: 1rem; cursor: pointer;
+    padding: 0.25rem; flex-shrink: 0;
 }
 .login-show-btn:hover { color: var(--color-secondary); }
 

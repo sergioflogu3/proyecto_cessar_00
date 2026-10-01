@@ -34,7 +34,7 @@
 
                     <div class="mb-3">
                         <div class="login-input-group">
-                            <span class="login-input-icon">👤</span>
+                            <i class="fa-solid fa-user login-input-icon"></i>
                             <input asp-for="Login"
                                    class="login-input"
                                    placeholder="Usuario, correo o teléfono"
@@ -45,14 +45,14 @@
 
                     <div class="mb-4">
                         <div class="login-input-group">
-                            <span class="login-input-icon">🔒</span>
+                            <i class="fa-solid fa-lock login-input-icon"></i>
                             <input asp-for="Password"
                                    id="passwordInput"
                                    class="login-input"
                                    placeholder="Contraseña"
                                    autocomplete="current-password" />
-                            <button type="button" class="login-show-btn" onclick="togglePassword()">
-                                <span id="showLabel">MOSTRAR</span>
+                            <button type="button" class="login-show-btn" onclick="togglePassword()" title="Mostrar contraseña">
+                                <i class="fa-solid fa-eye" id="showIcon"></i>
                             </button>
                         </div>
                         <span asp-validation-for="Password" class="text-danger small"></span>
@@ -74,13 +74,16 @@
     <script>
         function togglePassword() {
             const input = document.getElementById('passwordInput');
-            const label = document.getElementById('showLabel');
+            const icon  = document.getElementById('showIcon');
+            const btn   = icon.closest('button');
             if (input.type === 'password') {
                 input.type = 'text';
-                label.textContent = 'OCULTAR';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+                btn.title = 'Ocultar contraseña';
             } else {
                 input.type = 'password';
-                label.textContent = 'MOSTRAR';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+                btn.title = 'Mostrar contraseña';
             }
         }
     </script>
