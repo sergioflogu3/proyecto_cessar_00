@@ -11,8 +11,13 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
 - Migración de íconos Bootstrap → FontAwesome completada (dashboard, Usuarios, Configuración).
 - README actualizado para otros ambientes de desarrollo.
 - Sin tests automatizados, sin CI instalado, sin 2FA.
+- Constitución con 6 principios en `docs/constitution.md` (stack, specs, lógica/UI, tests,
+  datos, idioma). `AGENTS.md` y `CLAUDE.md` ahora están en español.
+- MCP de Chrome DevTools y Context7 en `.mcp.json`.
 
 ## Decisiones (y por qué)
+- Specs en `/specs` (raíz, no en `docs/`); la spec manda sobre el código. Aún no hay ninguna.
+- Tests: sin instalar dependencias; se verifica con `dotnet build` + Chrome DevTools.
 - Un solo proyecto web en capas (Controllers → Domain → Infrastructure), DI toda en
   `Program.cs`: simple de desplegar y de seguir.
 - NHibernate + FluentNHibernate sobre SQL Server; `NHibernate:UpdateSchema=true` solo en el
@@ -38,6 +43,8 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
 - Cambiar el `.txt` de contraseñas comunes exige actualizar también su `LogicalName`.
 
 ## Próximos pasos
+- Escribir la primera spec en `/specs` (deuda del principio 2).
+- Migrar a ViewModels las 4 vistas ligadas a entidades (deuda del principio 3).
 - Decidir si instalar CI (`planes/ci.yml` → `.github/workflows/`) o Dependabot (B2).
 - Añadir proyecto de tests (hoy `dotnet build` + prueba manual son la única validación).
 - Persistir revocación de tokens e intentos de login si se escala a varias instancias.
