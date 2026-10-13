@@ -80,6 +80,11 @@ dotnet run --project SistemaTickets/SistemaTickets.csproj
 
 - Do not commit real secrets in `appsettings.json`. Placeholder values are present for `Jwt:Key`, `Encryption:Key`, and `ConnectionStrings:DefaultConnection`; `Jwt:Key` and `ConnectionStrings:DefaultConnection` are enforced at startup (`Program.cs`) and `appsettings.json.example` documents the expected shape.
 
+## Verificación
+
+- Después de cada cambio, verifica con el MCP de Chrome DevTools: levanta la app (`dotnet run --project SistemaTickets/SistemaTickets.csproj`, o Docker en `http://localhost:8080`), abre la vista afectada (la ruta por defecto es `/Users/Login`), prueba la funcionalidad, revisa la consola y comprueba la vista móvil.
+- Si el cambio es solo de backend o de documentación y no tiene efecto visible, indícalo en lugar de omitir el paso en silencio.
+
 ## Memoria
 
 - Al empezar, lee `MEMORY.md` para conocer el estado del proyecto y las decisiones tomadas.

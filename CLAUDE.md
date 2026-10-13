@@ -110,6 +110,11 @@ All DI wiring (repositories, services, JWT, auth) happens in `Program.cs` — th
 - No automated tests, no CI pipeline currently wired up (`planes/ci.yml` is a draft, not installed), no 2FA. `planes/01-problemas-de-seguridad.md`, `planes/02-ci-cd-plan.md`, and `planes/03-plan-arquitectura.md` catalog known security issues and proposed architecture/CI improvements — consult them before proposing security or CI/CD changes so you don't duplicate or contradict existing analysis.
 - **B2 (dependency CVEs)**: partially resolved — direct package versions were bumped to their latest minor/patch (see `cambios/B2-dependencias-vulnerables.md`), and `dotnet list package --vulnerable --include-transitive` reports zero known vulnerabilities as of this writing. The CI half of the remediation (installing `planes/ci.yml` → `.github/workflows/ci.yml`, or GitHub Dependabot) is still deliberately **not** installed — the repo has a real GitHub remote, so activating it would start running Actions on every push/PR; that's a decision left to the user, not something to do unprompted.
 
+## Verificación
+
+- Después de cada cambio, verifica con el MCP de Chrome DevTools: levanta la app (`dotnet run --project SistemaTickets/SistemaTickets.csproj`, o Docker en `http://localhost:8080`), abre la vista afectada (la ruta por defecto es `/Users/Login`), prueba la funcionalidad, revisa la consola y comprueba la vista móvil.
+- Si el cambio es solo de backend o de documentación y no tiene efecto visible, indícalo en lugar de omitir el paso en silencio.
+
 ## Memoria
 
 - Al empezar, lee `MEMORY.md` para conocer el estado del proyecto y las decisiones tomadas.
