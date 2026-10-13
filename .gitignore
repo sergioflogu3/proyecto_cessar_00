@@ -364,3 +364,5 @@ FodyWeavers.xsd
 
 # Local secrets for docker-compose (see .env.example)
 .env
+
+.DS_Store

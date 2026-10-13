@@ -74,6 +74,7 @@ Edita `SistemaTickets/appsettings.json` antes de ejecutar:
 > ```bash
 > cd SistemaTickets
 > dotnet user-secrets set "Jwt:Key" "$(openssl rand -base64 48)"
+> dotnet user-secrets set "Encryption:Key" "$(openssl rand -base64 32)"
 > dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost;Database=SISTickets;User Id=tu_usuario;Password=tu_password;Encrypt=True;TrustServerCertificate=False;"
 > ```
 > Si tu SQL Server local todavía usa el usuario/contraseña que estaban committeados en el repo (`ariel` / `ariel123`), **rótalos ahora**: esas credenciales quedaron expuestas en el historial de git y deben considerarse comprometidas aunque ya no aparezcan en el archivo actual.
@@ -110,6 +111,7 @@ Ejecuta los scripts en `SistemaTickets/ScriptsDB/` en orden:
 3. `inventario.sql`
 4. `campo_repuestos.sql`
 5. `alter_tickets_prioridad_nullable.sql`
+6. `auditoria_usuarios.sql`
 
 ### 3. Ejecutar la aplicación
 
@@ -135,6 +137,55 @@ dotnet run --project SistemaTickets/SistemaTickets.csproj
 > Para probar con HTTPS local (recomendado si querés replicar el comportamiento real), confiá
 > el certificado de desarrollo una sola vez — `dotnet dev-certs https --trust` — y corré con
 > `--launch-profile https` (o sin flag, ya que es el perfil por defecto).
+
+### Primer arranque en otra máquina (Windows)
+
+Los User Secrets **no viajan con el repo**: cada desarrollador tiene que configurar los suyos
+antes del primer `dotnet run`. Como mínimo hacen falta estos tres:
+
+| Secret | Obligatorio | Notas |
+|---|---|---|
+| `ConnectionStrings:DefaultConnection` | Sí (se valida al arrancar) | Cadena hacia **tu** SQL Server local |
+| `Jwt:Key` | Sí (se valida al arrancar) | Mínimo 32 caracteres, aleatoria; puede ser distinta en cada máquina |
+| `Encryption:Key` | Sí (no se valida al arrancar, pero se usa al guardar o leer usuarios) | Cifra el email y el teléfono de los usuarios en la BD — ver nota abajo |
+
+Ejecutá los comandos **desde la carpeta `SistemaTickets/`** (la que contiene `SistemaTickets.csproj`)
+o agregá `--project SistemaTickets\SistemaTickets.csproj` si estás en la raíz del repo.
+
+Generar las claves en PowerShell (compatible con Windows PowerShell 5.1 y con PowerShell 7):
+
+```powershell
+cd SistemaTickets
+
+$bytes = New-Object byte[] 48
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+dotnet user-secrets set "Jwt:Key" ([Convert]::ToBase64String($bytes))
+
+$bytes = New-Object byte[] 32
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+dotnet user-secrets set "Encryption:Key" ([Convert]::ToBase64String($bytes))
+
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=<TU_SERVIDOR>;Database=SISTickets;User Id=<usuario>;Password=<password>;Encrypt=True;TrustServerCertificate=False;"
+
+# Verificar que estén los tres
+dotnet user-secrets list
+```
+
+> **`Encryption:Key` y bases compartidas**: si usás tu propia base local (creada con los scripts
+> de `ScriptsDB/`), cualquier clave aleatoria sirve. Si usás una **copia de la base de otro
+> desarrollador o una base compartida**, tenés que usar **exactamente la misma `Encryption:Key`**
+> que se usó para guardar esos datos; si no, los emails y teléfonos no se van a poder descifrar.
+> Pasala por un canal privado, nunca por el repo.
+
+#### Errores conocidos
+
+| Error | Causa | Solución |
+|---|---|---|
+| `FluentConfigurationException: An invalid or incomplete configuration was used while creating a SessionFactory` en `NHibernateBootstrap.BuildSessionFactory` | Es un error genérico: NHibernate abre una conexión al construir el SessionFactory (aunque `UpdateSchema` sea `false`) y cualquier fallo de conexión aparece así | En Visual Studio, expandí **"Excepción interna"** (o usá "Copiar detalles") hasta llegar a la `SqlException`: ahí está la causa real |
+| `SqlException: ... La cadena de certificación fue emitida por una entidad en la que no se confía` (*The certificate chain was issued by an authority that is not trusted*) | Tu SQL Server local usa un certificado autofirmado y la cadena tiene `TrustServerCertificate=False` | **Solo en desarrollo local**: usar `TrustServerCertificate=True` en tu user-secret (la conexión sigue cifrada con `Encrypt=True`; `Program.cs` solo avisa fuera de `Development`). La alternativa correcta es instalarle un certificado de confianza al SQL Server |
+| `InvalidOperationException: Jwt:Key todavía tiene un valor de ejemplo/placeholder` (o *no está configurada* / *es demasiado corta*) | No configuraste `Jwt:Key` y se está usando el placeholder de `appsettings.json` | Generar una clave con el bloque de PowerShell de arriba |
+| PowerShell: `[System.Security.Cryptography.RandomNumberGenerator] no contiene ningún método llamado 'GetBytes'` | Windows PowerShell 5.1 corre sobre .NET Framework, que no tiene el método estático `RandomNumberGenerator.GetBytes(int)` | Usar la forma `New-Object byte[] N` + `RandomNumberGenerator::Create().GetBytes($bytes)` de arriba |
+| `Could not find a MSBuild project file in C:\...` al ejecutar `dotnet user-secrets` | Estás en una carpeta sin `.csproj` (por ejemplo, la raíz del repo, que solo tiene el `.sln`) | `cd SistemaTickets` (confirmar con `dir *.csproj`) o agregar `--project SistemaTickets\SistemaTickets.csproj` |
 
 Usuario por defecto: debes crearlo desde la interfaz o insertarlo directamente en la tabla `Usuarios` (la contraseña debe hashearse con BCrypt).
 
