@@ -16,7 +16,7 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
 - MCP de Chrome DevTools y Context7 en `.mcp.json`.
 
 ## Decisiones (y por qué)
-- Specs en `/specs` (raíz, no en `docs/`); la spec manda sobre el código. Aún no hay ninguna.
+- Specs en `/specs` (raíz, no en `docs/`); la spec manda sobre el código. 001-deudaTecnica aprobada, rev. 2 tras QA (sin implementar).
 - Tests: sin instalar dependencias; se verifica con `dotnet build` + Chrome DevTools.
 - Un solo proyecto web en capas (Controllers → Domain → Infrastructure), DI toda en
   `Program.cs`: simple de desplegar y de seguir.
@@ -43,8 +43,8 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
 - Cambiar el `.txt` de contraseñas comunes exige actualizar también su `LogicalName`.
 
 ## Próximos pasos
-- Escribir la primera spec en `/specs` (deuda del principio 2).
-- Migrar a ViewModels las 4 vistas ligadas a entidades (deuda del principio 3).
+- Implementar `specs/001-deudaTecnica` (pantalla a pantalla): 4 vistas ligadas a entidades (principio 3).
+- Especificar el resto del comportamiento en `/specs` (principio 2).
 - Decidir si instalar CI (`planes/ci.yml` → `.github/workflows/`) o Dependabot (B2).
 - Añadir proyecto de tests (hoy `dotnet build` + prueba manual son la única validación).
 - Persistir revocación de tokens e intentos de login si se escala a varias instancias.

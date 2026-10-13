@@ -25,5 +25,5 @@ Seis principios innegociables. Si un cambio los rompe, se cambia el cambio, no e
    visibles y del `git log`.
 
 ## Deuda conocida
-- `/specs` aún no existe: la primera spec está pendiente (principio 2).
-- 4 vistas se enlazan a entidades: `RepuestoDetails`, `ActivoDetails`, `VisitaDetails`, `HerramientaDetails` (principio 3).
+- `/specs` solo tiene `001-deudaTecnica`; el resto del comportamiento no está especificado (principio 2).
+- 4 vistas se enlazan a entidades (principio 3): detalle de repuesto (`RepuestoDetails`), de activo (`ActivoDetails`), de visita técnica (`VisitaDetails`) y de herramienta (`HerramientaDetails`). Ver `specs/001-deudaTecnica`.

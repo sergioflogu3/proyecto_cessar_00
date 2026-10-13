@@ -2,7 +2,7 @@
 
 Aplicación ASP.NET Core 8 MVC de un solo proyecto para gestión de tickets. Sin suite de tests y sin CI. Docker se usa solo como entorno local de desarrollo (ver `CLAUDE.md`).
 
-Antes de proponer cambios, lee `docs/constitution.md`: define los seis principios innegociables del proyecto.
+Lee `docs/constitution.md` y la spec activa (`specs/NNN-*/`) antes de tocar código.
 
 ## Inicio rápido
 
