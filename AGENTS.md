@@ -79,3 +79,15 @@ dotnet run --project SistemaTickets/SistemaTickets.csproj
 ## Safety
 
 - Do not commit real secrets in `appsettings.json`. Placeholder values are present for `Jwt:Key`, `Encryption:Key`, and `ConnectionStrings:DefaultConnection`; `Jwt:Key` and `ConnectionStrings:DefaultConnection` are enforced at startup (`Program.cs`) and `appsettings.json.example` documents the expected shape.
+
+## Memoria
+
+- Al empezar, lee `MEMORY.md` para conocer el estado del proyecto y las decisiones tomadas.
+- Al terminar una tarea, actualízalo: estado actual, decisiones importantes (con su porqué) y errores a evitar.
+- Mantenlo breve (máximo ~50 líneas): resume o elimina lo que ya no aporte.
+- Si algo se convierte en una regla permanente, propón moverlo a `AGENTS.md` en lugar de dejarlo en la memoria.
+- No guardes nunca datos sensibles (claves, tokens, datos personales).
+
+## Límites
+
+- ✅ Siempre: actualizar `MEMORY.md` al terminar cada tarea.

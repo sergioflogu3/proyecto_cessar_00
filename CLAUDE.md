@@ -109,3 +109,15 @@ All DI wiring (repositories, services, JWT, auth) happens in `Program.cs` — th
 
 - No automated tests, no CI pipeline currently wired up (`planes/ci.yml` is a draft, not installed), no 2FA. `planes/01-problemas-de-seguridad.md`, `planes/02-ci-cd-plan.md`, and `planes/03-plan-arquitectura.md` catalog known security issues and proposed architecture/CI improvements — consult them before proposing security or CI/CD changes so you don't duplicate or contradict existing analysis.
 - **B2 (dependency CVEs)**: partially resolved — direct package versions were bumped to their latest minor/patch (see `cambios/B2-dependencias-vulnerables.md`), and `dotnet list package --vulnerable --include-transitive` reports zero known vulnerabilities as of this writing. The CI half of the remediation (installing `planes/ci.yml` → `.github/workflows/ci.yml`, or GitHub Dependabot) is still deliberately **not** installed — the repo has a real GitHub remote, so activating it would start running Actions on every push/PR; that's a decision left to the user, not something to do unprompted.
+
+## Memoria
+
+- Al empezar, lee `MEMORY.md` para conocer el estado del proyecto y las decisiones tomadas.
+- Al terminar una tarea, actualízalo: estado actual, decisiones importantes (con su porqué) y errores a evitar.
+- Mantenlo breve (máximo ~50 líneas): resume o elimina lo que ya no aporte.
+- Si algo se convierte en una regla permanente, propón moverlo a `AGENTS.md` en lugar de dejarlo en la memoria.
+- No guardes nunca datos sensibles (claves, tokens, datos personales).
+
+## Límites
+
+- ✅ Siempre: actualizar `MEMORY.md` al terminar cada tarea.
