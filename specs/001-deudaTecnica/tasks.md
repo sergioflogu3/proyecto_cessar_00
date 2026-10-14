@@ -1,6 +1,6 @@
 # Tareas 001 — Pantallas de detalle desacopladas de los registros internos
 
-**Estado:** Aprobado (2026-10-14) · Deriva de `spec.md` (rev. 3) y `plan.md` (aprobado) · Fase 0 completada (2026-10-14) · Activo: commit `4def1f1`, pendientes A-3 y A-8 (navegador) · Herramienta: commit `44c149c`, pendientes H-3 y H-8 (navegador) · Repuesto: implementada y verificada por HTML; pendientes R-3, R-8 (navegador) y R-12 (commit)
+**Estado:** Aprobado (2026-10-14) · Deriva de `spec.md` (rev. 3) y `plan.md` (aprobado) · Fase 0 completada (2026-10-14) · Activo: commit `4def1f1`, pendientes A-3 y A-8 (navegador) · Herramienta: commit `44c149c`, pendientes H-3 y H-8 (navegador) · Repuesto: commit `20edeba`, pendientes R-3 y R-8 (navegador) · Visita: implementada y verificada por HTML; pendientes V-3, V-8 (navegador) y V-12 (commit)
 
 ## Convenciones
 - Cada tarea dura como máximo 20–30 min. Se cumplen en el orden en que aparecen; dentro de cada pantalla el orden es estricto.
@@ -141,30 +141,41 @@
 - **Checklist para el commit (R-12):** Pantalla Repuesto · 2026-10-14 · Docker local · Inventario hecho · Línea base HTML 42 casos × 2 · Resultado igual (byte a byte), build 0 errores · S3, S4 y S5 sí (S1 y S2 no aplican) · RF-11 ajuste de stock igual · Búsqueda 2→1, D10 sí · Defectos: los 4 anteriores · Falta: 375/768 px y consola.
 
 ## Pantalla 4 — Detalle de Visita técnica
-- [ ] **V-1 Inventario previo (≈20 min).** RF-3, RF-7, RF-9, RF-10, RF-11, RF-14.
+- [x] **V-1 Inventario previo (≈20 min).** RF-3, RF-7, RF-9, RF-10, RF-11, RF-14.
   Hecho cuando: la checklist anota que la vista lee la lista de estados de la entidad, los campos opcionales, las acciones (cambiar estado, editar) y el contenido por rol (propietario, Administrador, Supervisor), y dice si ya cumple algo.
-- [ ] **V-2 Línea base en escritorio (≈25 min).** RF-1, RF-3, RF-5, RF-6.
+- [x] **V-2 Línea base en escritorio (≈25 min).** RF-1, RF-3, RF-5, RF-6.
   Hecho cuando: Administrador y Supervisor ven la visita completa y la vacía a 1280 px; Soporte propietario la ve y Soporte ajeno recibe la denegación; Usuario, sesión caducada y visita inexistente con Soporte están anotados.
 - [ ] **V-3 Línea base móvil, consola y volumen (≈20 min).** RF-1, RF-7.
   Hecho cuando: 375 px y 768 px registrados, consola previa listada y anotado cómo carga la visita con más consumos.
-- [ ] **V-4 Crear `VisitaDetailsViewModel` (≈25 min).** RF-9, RF-10.
+- [x] **V-4 Crear `VisitaDetailsViewModel` (≈25 min).** RF-9, RF-10.
   Hecho cuando: existe con valores simples, la lista de estados posibles como texto (D6) y una clase de elemento propia para consumos, y `grep -n "Domain" Models/Campo/VisitaDetailsViewModel.cs` no devuelve nada.
-- [ ] **V-5 Escribir el mapeo en `CampoController` (≈25 min).** RF-1, RF-2, RF-3, RF-6, RF-8.
+- [x] **V-5 Escribir el mapeo en `CampoController` (≈25 min).** RF-1, RF-2, RF-3, RF-6, RF-8.
   Hecho cuando: el método privado propaga el nulo de ticket y los datos del técnico, y `dotnet build` pasa con el método sin conectar.
-- [ ] **V-6 Conectar la acción y migrar la vista (≈30 min).** RF-1, RF-3, RF-6, RF-9, RF-10, RF-11.
+- [x] **V-6 Conectar la acción y migrar la vista (≈30 min).** RF-1, RF-3, RF-6, RF-9, RF-10, RF-11.
   Hecho cuando: `VisitaDetails` conserva el orden existe → permiso de Soporte → mapeo, la vista deja de leer la lista estática de la entidad, usa el ViewModel sin `SistemaTickets.Domain` y `dotnet build` pasa.
-- [ ] **V-7 Verificación funcional (≈25 min).** RF-1, RF-3, RF-5, RF-7, RF-8, RF-11, RF-12.
+- [x] **V-7 Verificación funcional (≈25 min).** RF-1, RF-3, RF-5, RF-7, RF-8, RF-11, RF-12.
   Hecho cuando: visita completa y vacía coinciden con la línea base en cada rol; cambiar estado, editar y el enlace al ticket funcionan igual; los identificadores inválidos dan la misma respuesta.
 - [ ] **V-8 Verificación móvil, consola y volumen (≈20 min).** RF-1, RF-7.
   Hecho cuando: 375 px y 768 px coinciden, consola sin errores nuevos y la visita con más consumos carga sin empeorar de forma perceptible.
-- [ ] **V-9 Comprobaciones de seguridad (≈20 min).** RF-3, RF-5, RF-6.
+- [x] **V-9 Comprobaciones de seguridad (≈20 min).** RF-3, RF-5, RF-6.
   Hecho cuando: S1, S3, S4 y S5 están ejecutadas y anotadas, igual que la línea base.
-- [ ] **V-10 Búsqueda de verificación y revisión contra D10 (≈15 min).** RF-9, RF-10.
+- [x] **V-10 Búsqueda de verificación y revisión contra D10 (≈15 min).** RF-9, RF-10.
   Hecho cuando: la búsqueda ya no lista `VisitaDetails`, el ViewModel cumple D10 y la vista no recibe datos sueltos.
-- [ ] **V-11 Registrar defectos preexistentes (≈10 min).** RF-13.
+- [x] **V-11 Registrar defectos preexistentes (≈10 min).** RF-13.
   Hecho cuando: defectos anotados sin corregir y listados al responsable (o "ninguno").
 - [ ] **V-12 Entregar la pantalla (≈15 min).** RF-13, criterios de finalización.
   Hecho cuando: commit independiente en español con la checklist en el mensaje y casilla de Visita marcada en la spec.
+
+### Resultado de la pantalla de Visita técnica (2026-10-14)
+- **Atributos leídos antes de fijar reglas:** `VisitaDetails` solo tiene `[HttpGet]`; el acceso por clase es Administrador, Supervisor y Soporte; el orden de comprobaciones es existe (404) y, solo para Soporte, propietario (403 → redirección al inicio de sesión). Se conserva tal cual (D8).
+- **Inventario (V-1):** sin datos sueltos; la vista leía la lista de estados desde la entidad (ahora `EstadosPosibles` en el modelo, D6); opcionales: Ticket, Descripción, Observaciones, y Código del repuesto y Observaciones de cada consumo; acciones: Editar (Administrador y Supervisor, o el propietario si no está Completada), Cambiar estado (si no está Completada ni Cancelada, para Administrador, Supervisor o propietario), Registrar consumo (si no está Cancelada), enlace al ticket; no cumplía RF-9/RF-10 de forma parcial.
+- **Datos de prueba añadidos:** visitas en estado Completada (4), Cancelada (5), En Curso (6) y con técnico desactivado (7, con un consumo), para recorrer todas las ramas de la vista.
+- **Línea base y comparación (V-2, V-7, V-9):** 77 casos (7 perfiles, incluido el técnico de Soporte ajeno, × ids 2, 3, 1, 4, 5, 6, 7, 999, 0, -1 y abc), capturada dos veces antes (idéntica) y una después: **idéntico byte a byte**, mismos estados y redirecciones. Cubre RF-1 a RF-3, RF-5 a RF-8 y S1, S3, S4 y S5.
+- **RF-11:** cambio de estado de la visita 3 (Programada → En Curso → Programada) y registro de un consumo (0 → 1, con nombre del repuesto): la pantalla lo refleja igual que la base de datos; todo se restauró o se borró.
+- **Pendiente V-3 y V-8:** 375 px, 768 px y consola, por falta del MCP de Chrome DevTools en la sesión.
+- **Búsqueda de verificación (V-10):** de 1 a **0 resultados**; el ViewModel y la vista no contienen `Domain` ni `ViewBag`.
+- **Defectos preexistentes (V-11), sin corregir:** (1) **seguridad:** la acción de cambiar estado no comprueba el propietario: un técnico de Soporte al que el detalle le deniega la visita puede cambiar su estado (verificado con una visita ajena y restaurado); (2) el selector "Descontar de sede" del modal nunca se rellena y el script pide dos listas que no usa, con comentarios de trabajo pendiente; (3) reglas por rol dentro de la vista.
+- **Checklist para el commit (V-12):** Pantalla Visita · 2026-10-14 · Docker local · Inventario hecho · Línea base HTML 77 casos × 2 · Resultado igual (byte a byte), build 0 errores · S1, S3, S4 y S5 sí (S2 no aplica) · RF-11 cambio de estado y registro de consumo iguales · Búsqueda 1→0, D10 sí · Defectos: los 3 anteriores · Falta: 375/768 px y consola.
 
 ## Cierre
 - [ ] **Z-1 Confirmar el cierre técnico (≈10 min).** RF-9, RF-10.

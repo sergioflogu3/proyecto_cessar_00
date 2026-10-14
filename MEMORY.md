@@ -15,8 +15,8 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
 
 ## Decisiones (y por qué)
 - Specs en `/specs` (raíz, no en `docs/`); la spec manda sobre el código. 001-deudaTecnica (spec, plan, tasks aprobados): fase 0 hecha (datos QA en BD Docker, ids en
-  tasks.md); Activo y Herramienta commiteados, Repuesto migrada (sin commit), las tres verificadas por
-  HTML; falta DevTools (375/768 px, consola) en las tres; sigue Visita.
+  tasks.md); Activo, Herramienta y Repuesto commiteados; Visita migrada (sin commit). Las 4 verificadas
+  por HTML; falta DevTools (375/768 px, consola) en las 4, y cerrar la spec (casillas, deuda).
 - Tests: sin instalar dependencias; se verifica con `dotnet build` + Chrome DevTools.
 - Un solo proyecto web en capas, DI toda en `Program.cs`: simple de desplegar y de seguir.
 - NHibernate + FluentNHibernate sobre SQL Server; `NHibernate:UpdateSchema=true` solo en el
@@ -37,8 +37,8 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
   (identity map de NHibernate devuelve la misma instancia).
 - `UseStatusCodePages` debe registrarse antes de `UseAuthentication`/`UseAuthorization`.
 - Tras desplegar con dominio real, actualizar `AllowedHosts` o todo da 400.
-- Pendiente de incidencia: el detalle de herramienta no filtra por técnico (el listado sí). Al
-  fijar reglas de rol en una spec, leer el atributo de esa acción, no el de la vecina.
+- Incidencias de seguridad previas: el detalle de herramienta no filtra por técnico (el listado
+  sí) y VisitaCambiarEstado no comprueba propietario. Leer el atributo de cada acción, no el vecino.
 - Login limitado a 10 intentos/min por IP: al capturar HTML por rol, espaciar las ejecuciones
   (~60 s) o los logins fallan en silencio.
 - Línea base por curl (HTML sin token antiforgery) permite diff byte a byte.

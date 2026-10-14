@@ -119,7 +119,7 @@ namespace SistemaTickets.Controllers
             if (CurrentRole() == "Soporte" && visita.Tecnico.Id != CurrentUserId())
                 return Forbid();
 
-            return View(visita);
+            return View(BuildVisitaDetails(visita));
         }
 
         [HttpGet]
@@ -326,6 +326,31 @@ namespace SistemaTickets.Controllers
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────
+
+        private static VisitaDetailsViewModel BuildVisitaDetails(VisitaTecnica visita) => new()
+        {
+            Id                    = visita.Id,
+            Direccion             = visita.Direccion,
+            Estado                = visita.Estado,
+            Descripcion           = visita.Descripcion,
+            Observaciones         = visita.Observaciones,
+            FechaVisita           = visita.FechaVisita,
+            FechaCreacion         = visita.FechaCreacion,
+            TecnicoId             = visita.Tecnico.Id,
+            TecnicoNombreCompleto = visita.Tecnico.NombreCompleto,
+            TicketId              = visita.Ticket?.Id,
+            EstadosPosibles       = VisitaTecnica.Estados.ToList(),
+            Consumos              = visita.Consumos.Select(c => new VisitaConsumoItem
+            {
+                RepuestoNombre        = c.Repuesto.Nombre,
+                RepuestoCodigo        = c.Repuesto.Codigo,
+                RepuestoUnidadMedida  = c.Repuesto.UnidadMedida,
+                FechaConsumo          = c.FechaConsumo,
+                TecnicoNombreCompleto = c.Tecnico.NombreCompleto,
+                Observaciones         = c.Observaciones,
+                Cantidad              = c.Cantidad
+            }).ToList()
+        };
 
         private static RepuestoDetailsViewModel BuildRepuestoDetails(
             Repuesto repuesto, IList<StockRepuesto> stocks, IList<Sede> sedes) => new()

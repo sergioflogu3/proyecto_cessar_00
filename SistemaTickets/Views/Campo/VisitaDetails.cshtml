@@ -1,11 +1,11 @@
-@model SistemaTickets.Domain.Entities.VisitaTecnica
+@model SistemaTickets.Models.Campo.VisitaDetailsViewModel
 @using System.Security.Claims
 
 @{
     ViewData["Title"] = $"Visita #{Model.Id}";
     var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
     var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-    var esPropietario = Model.Tecnico.Id == userId;
+    var esPropietario = Model.TecnicoId == userId;
     var esAdminOSupervisor = role is "Administrador" or "Supervisor";
     var puedeEditar = esAdminOSupervisor || (esPropietario && Model.Estado != "Completada");
 }
@@ -31,10 +31,10 @@
                 };
             }
             <span class="badge bg-@estadoColor fs-6">@Model.Estado</span>
-            @if (Model.Ticket is not null)
+            @if (Model.TicketId is not null)
             {
-                <a asp-controller="Tickets" asp-action="Details" asp-route-id="@Model.Ticket.Id"
-                   class="badge bg-info text-decoration-none">Ticket #@Model.Ticket.Id</a>
+                <a asp-controller="Tickets" asp-action="Details" asp-route-id="@Model.TicketId"
+                   class="badge bg-info text-decoration-none">Ticket #@Model.TicketId</a>
             }
         </div>
     </div>
@@ -53,7 +53,7 @@
                         Cambiar estado
                     </button>
                     <ul class="dropdown-menu">
-                        @foreach (var e in SistemaTickets.Domain.Entities.VisitaTecnica.Estados
+                        @foreach (var e in Model.EstadosPosibles
                             .Where(s => s != Model.Estado))
                         {
                             <li>
@@ -106,19 +106,19 @@
                         <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3">
                             <div>
                                 <div class="fw-semibold small">
-                                    @c.Repuesto.Nombre
-                                    @if (!string.IsNullOrEmpty(c.Repuesto.Codigo))
-                                    {<span class="badge bg-light text-dark border ms-1">@c.Repuesto.Codigo</span>}
+                                    @c.RepuestoNombre
+                                    @if (!string.IsNullOrEmpty(c.RepuestoCodigo))
+                                    {<span class="badge bg-light text-dark border ms-1">@c.RepuestoCodigo</span>}
                                 </div>
                                 <div class="text-muted small">
                                     @c.FechaConsumo.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
-                                    · Por: @c.Tecnico.NombreCompleto
+                                    · Por: @c.TecnicoNombreCompleto
                                 </div>
                                 @if (!string.IsNullOrEmpty(c.Observaciones))
                                 {<div class="text-muted small">@c.Observaciones</div>}
                             </div>
                             <div class="text-end">
-                                <span class="badge bg-primary fs-6">@c.Cantidad @c.Repuesto.UnidadMedida</span>
+                                <span class="badge bg-primary fs-6">@c.Cantidad @c.RepuestoUnidadMedida</span>
                             </div>
                         </div>
                     }
@@ -135,7 +135,7 @@
             <ul class="list-group list-group-flush">
                 <li class="list-group-item d-flex justify-content-between px-4 py-2">
                     <span class="text-muted small">Técnico</span>
-                    <span class="small fw-semibold">@Model.Tecnico.NombreCompleto</span>
+                    <span class="small fw-semibold">@Model.TecnicoNombreCompleto</span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between px-4 py-2">
                     <span class="text-muted small">Fecha visita</span>
