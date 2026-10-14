@@ -226,9 +226,8 @@ namespace SistemaTickets.Controllers
             if (repuesto is null) return NotFound();
 
             var stocks = await _campoService.GetStockByRepuestoAsync(id);
-            ViewBag.Stocks = stocks;
-            ViewBag.Sedes  = await _inventarioService.GetSedesAsync();
-            return View(repuesto);
+            var sedes  = await _inventarioService.GetSedesAsync();
+            return View(BuildRepuestoDetails(repuesto, stocks, sedes));
         }
 
         [HttpGet]
@@ -327,6 +326,39 @@ namespace SistemaTickets.Controllers
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────
+
+        private static RepuestoDetailsViewModel BuildRepuestoDetails(
+            Repuesto repuesto, IList<StockRepuesto> stocks, IList<Sede> sedes) => new()
+        {
+            Id             = repuesto.Id,
+            Nombre         = repuesto.Nombre,
+            Codigo         = repuesto.Codigo,
+            Categoria      = repuesto.Categoria,
+            UnidadMedida   = repuesto.UnidadMedida,
+            Descripcion    = repuesto.Descripcion,
+            PrecioUnitario = repuesto.PrecioUnitario,
+            Stocks         = stocks.Select(s => new RepuestoStockItem
+            {
+                SedeNombre     = s.Sede.Nombre,
+                CantidadMinima = s.CantidadMinima,
+                CantidadActual = s.CantidadActual,
+                BajoMinimo     = s.BajoMinimo
+            }).ToList(),
+            Sedes          = sedes.Select(s => new RepuestoSedeItem
+            {
+                Id     = s.Id,
+                Nombre = s.Nombre
+            }).ToList(),
+            Consumos       = repuesto.Consumos.Select(c => new RepuestoConsumoItem
+            {
+                TecnicoNombreCompleto = c.Tecnico.NombreCompleto,
+                FechaConsumo          = c.FechaConsumo,
+                Cantidad              = c.Cantidad,
+                Observaciones         = c.Observaciones,
+                VisitaId              = c.Visita?.Id,
+                TicketId              = c.Ticket?.Id
+            }).ToList()
+        };
 
         private async Task<VisitaFormViewModel> BuildVisitaForm(VisitaTecnica? v)
         {

@@ -15,8 +15,8 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
 
 ## Decisiones (y por qué)
 - Specs en `/specs` (raíz, no en `docs/`); la spec manda sobre el código. 001-deudaTecnica (spec, plan, tasks aprobados): fase 0 hecha (datos QA en BD Docker, ids en
-  tasks.md); Activo commiteado y Herramienta migrada (sin commit), ambas verificadas por HTML; falta
-  DevTools (375/768 px, consola) en las dos; sigue Repuesto→Visita.
+  tasks.md); Activo y Herramienta commiteados, Repuesto migrada (sin commit), las tres verificadas por
+  HTML; falta DevTools (375/768 px, consola) en las tres; sigue Visita.
 - Tests: sin instalar dependencias; se verifica con `dotnet build` + Chrome DevTools.
 - Un solo proyecto web en capas, DI toda en `Program.cs`: simple de desplegar y de seguir.
 - NHibernate + FluentNHibernate sobre SQL Server; `NHibernate:UpdateSchema=true` solo en el

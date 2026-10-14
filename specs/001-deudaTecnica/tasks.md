@@ -1,6 +1,6 @@
 # Tareas 001 — Pantallas de detalle desacopladas de los registros internos
 
-**Estado:** Aprobado (2026-10-14) · Deriva de `spec.md` (rev. 3) y `plan.md` (aprobado) · Fase 0 completada (2026-10-14) · Activo: commit `4def1f1`, pendientes A-3 y A-8 (navegador) · Herramienta: implementada y verificada por HTML; pendientes H-3, H-8 (navegador) y H-12 (commit)
+**Estado:** Aprobado (2026-10-14) · Deriva de `spec.md` (rev. 3) y `plan.md` (aprobado) · Fase 0 completada (2026-10-14) · Activo: commit `4def1f1`, pendientes A-3 y A-8 (navegador) · Herramienta: commit `44c149c`, pendientes H-3 y H-8 (navegador) · Repuesto: implementada y verificada por HTML; pendientes R-3, R-8 (navegador) y R-12 (commit)
 
 ## Convenciones
 - Cada tarea dura como máximo 20–30 min. Se cumplen en el orden en que aparecen; dentro de cada pantalla el orden es estricto.
@@ -105,30 +105,40 @@
 - **Checklist para el commit (H-12):** Pantalla Herramienta · 2026-10-14 · Docker local · Inventario hecho · Línea base HTML 42 casos × 2 · Resultado igual (byte a byte), build 0 errores · S2, S3, S4 y S5 sí (S1 no aplica) · RF-8 igual (500) · Búsqueda 3→2, D10 sí · Defectos: los 3 anteriores · Falta: 375/768 px y consola.
 
 ## Pantalla 3 — Detalle de Repuesto
-- [ ] **R-1 Inventario previo (≈20 min).** RF-7, RF-9, RF-10, RF-11, RF-14.
+- [x] **R-1 Inventario previo (≈20 min).** RF-7, RF-9, RF-10, RF-11, RF-14.
   Hecho cuando: la checklist confirma que stock y sedes llegan por `ViewBag`, lista cualquier otro uso de esos datos en el proyecto, anota los campos opcionales y las acciones (ajustar stock), y dice si ya cumple algo.
-- [ ] **R-2 Línea base en escritorio (≈25 min).** RF-1, RF-5, RF-8.
+- [x] **R-2 Línea base en escritorio (≈25 min).** RF-1, RF-5, RF-8.
   Hecho cuando: Administrador, Supervisor y Soporte ven el repuesto completo y el vacío a 1280 px registrados; Usuario y sesión caducada anotados.
 - [ ] **R-3 Línea base móvil, consola y volumen (≈20 min).** RF-1, RF-7.
   Hecho cuando: 375 px y 768 px registrados, errores de consola previos listados, y anotado cómo se ve el repuesto con más de 20 consumos (límite de la lista).
-- [ ] **R-4 Crear `RepuestoDetailsViewModel` (≈25 min).** RF-9, RF-10.
+- [x] **R-4 Crear `RepuestoDetailsViewModel` (≈25 min).** RF-9, RF-10.
   Hecho cuando: existe con valores simples y clases de elemento propias para consumos, stock por sede y sedes disponibles, y `grep -n "Domain" Models/Campo/RepuestoDetailsViewModel.cs` no devuelve nada.
-- [ ] **R-5 Escribir el mapeo en `CampoController` (≈25 min).** RF-1, RF-2, RF-8, RF-9.
+- [x] **R-5 Escribir el mapeo en `CampoController` (≈25 min).** RF-1, RF-2, RF-8, RF-9.
   Hecho cuando: el método privado incluye stock y sedes obtenidos por los servicios que la acción ya usa, propaga los nulos de ticket y visita en los consumos, y `dotnet build` pasa con el método sin conectar.
-- [ ] **R-6 Conectar la acción y migrar la vista (≈30 min).** RF-1, RF-9, RF-10, RF-11.
+- [x] **R-6 Conectar la acción y migrar la vista (≈30 min).** RF-1, RF-9, RF-10, RF-11.
   Hecho cuando: `RepuestoDetails` devuelve el ViewModel conservando el orden existe → mapeo, ya no usa `ViewBag.Stocks` ni `ViewBag.Sedes`, la vista usa el ViewModel sin `SistemaTickets.Domain` y `dotnet build` pasa.
-- [ ] **R-7 Verificación funcional (≈25 min).** RF-1, RF-5, RF-7, RF-8, RF-11, RF-12.
+- [x] **R-7 Verificación funcional (≈25 min).** RF-1, RF-5, RF-7, RF-8, RF-11, RF-12.
   Hecho cuando: repuesto completo y vacío coinciden con la línea base; ajustar stock, el selector de sedes y los enlaces a ticket y visita funcionan igual; los identificadores inválidos dan la misma respuesta.
 - [ ] **R-8 Verificación móvil, consola y volumen (≈20 min).** RF-1, RF-7.
   Hecho cuando: 375 px y 768 px coinciden, consola sin errores nuevos y el repuesto con más consumos carga sin empeorar de forma perceptible, mostrando los mismos 20.
-- [ ] **R-9 Comprobaciones de seguridad (≈15 min).** RF-5, RF-6.
+- [x] **R-9 Comprobaciones de seguridad (≈15 min).** RF-5, RF-6.
   Hecho cuando: S3, S4 y S5 están ejecutadas y anotadas.
-- [ ] **R-10 Búsqueda de verificación y revisión contra D10 (≈15 min).** RF-9, RF-10.
+- [x] **R-10 Búsqueda de verificación y revisión contra D10 (≈15 min).** RF-9, RF-10.
   Hecho cuando: la búsqueda ya no lista `RepuestoDetails`, el ViewModel cumple D10 y la pantalla no recibe ningún dato suelto.
-- [ ] **R-11 Registrar defectos preexistentes (≈10 min).** RF-13.
+- [x] **R-11 Registrar defectos preexistentes (≈10 min).** RF-13.
   Hecho cuando: defectos anotados sin corregir y listados al responsable (o "ninguno").
 - [ ] **R-12 Entregar la pantalla (≈15 min).** RF-13, criterios de finalización.
   Hecho cuando: commit independiente en español con la checklist en el mensaje y casilla de Repuesto marcada en la spec.
+
+### Resultado de la pantalla de Repuesto (2026-10-14)
+- **Inventario (R-1):** único dato suelto confirmado: stock por sede y lista de sedes por `ViewBag` (no se usaban en ningún otro sitio); acceso por clase (Administrador, Supervisor y Soporte) y sin atributo propio en la acción; opcionales: Código, Descripción, Observaciones, Visita y Ticket de cada consumo, y el precio (se oculta si es 0); acciones: Editar y Ajustar stock (Administrador y Supervisor; el botón solo si hay sedes), enlaces a Visita y Ticket; Soporte la ve sin acciones; no cumplía RF-9/RF-10 de forma parcial.
+- **Datos de prueba añadidos:** un consumo reciente sin visita ni ticket, hecho por un técnico desactivado, para que RF-8 (relaciones nulas, usuario desactivado) quede dentro de los 20 consumos visibles.
+- **Línea base y comparación (R-2, R-7, R-9):** 42 casos (6 perfiles × ids 9, 10, 1, 999, 0, -1 y abc), capturada dos veces antes (idéntica) y una después: **idéntico byte a byte**, mismos estados y redirecciones. Cubre RF-1 a RF-3, RF-5 a RF-8 y S3 a S5.
+- **RF-11 (Ajustar stock):** entrada de 1 y salida de 1 sobre la sede 1 del repuesto 9: la pantalla pasó de 20 a 21 y volvió a 20, igual que la base de datos; quedó como estaba.
+- **Pendiente R-3 y R-8:** 375 px, 768 px y consola, por falta del MCP de Chrome DevTools en la sesión.
+- **Búsqueda de verificación (R-10):** de 2 a 1 resultado; el ViewModel y la vista no contienen `Domain` ni `ViewBag`.
+- **Defectos preexistentes (R-11), sin corregir:** (1) "Últimos consumos (N)" muestra el total aunque la lista enseña solo 20; (2) se cargan todos los consumos para mostrar 20; (3) el precio usa el formato de moneda de la configuración regional del servidor; (4) reglas por rol dentro de la vista.
+- **Checklist para el commit (R-12):** Pantalla Repuesto · 2026-10-14 · Docker local · Inventario hecho · Línea base HTML 42 casos × 2 · Resultado igual (byte a byte), build 0 errores · S3, S4 y S5 sí (S1 y S2 no aplican) · RF-11 ajuste de stock igual · Búsqueda 2→1, D10 sí · Defectos: los 4 anteriores · Falta: 375/768 px y consola.
 
 ## Pantalla 4 — Detalle de Visita técnica
 - [ ] **V-1 Inventario previo (≈20 min).** RF-3, RF-7, RF-9, RF-10, RF-11, RF-14.

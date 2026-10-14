@@ -1,12 +1,12 @@
-@model SistemaTickets.Domain.Entities.Repuesto
+@model SistemaTickets.Models.Campo.RepuestoDetailsViewModel
 @using System.Security.Claims
 
 @{
     ViewData["Title"] = $"Repuesto: {Model.Nombre}";
     var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
     var esAdminOSupervisor = role is "Administrador" or "Supervisor";
-    var stocks  = ViewBag.Stocks  as IEnumerable<SistemaTickets.Domain.Entities.StockRepuesto> ?? Enumerable.Empty<SistemaTickets.Domain.Entities.StockRepuesto>();
-    var sedes   = ViewBag.Sedes   as IEnumerable<SistemaTickets.Domain.Entities.Sede>          ?? Enumerable.Empty<SistemaTickets.Domain.Entities.Sede>();
+    var stocks  = Model.Stocks;
+    var sedes   = Model.Sedes;
 }
 
 @Html.AntiForgeryToken()
@@ -60,7 +60,7 @@
                         var bajoBadge = s.BajoMinimo ? "bg-danger" : "bg-success";
                         <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3">
                             <div>
-                                <div class="fw-semibold small">@s.Sede.Nombre</div>
+                                <div class="fw-semibold small">@s.SedeNombre</div>
                                 <div class="text-muted small">Mínimo: @s.CantidadMinima @Model.UnidadMedida</div>
                             </div>
                             <span class="badge @bajoBadge fs-6">
@@ -89,16 +89,16 @@
                     {
                         <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3">
                             <div>
-                                <div class="fw-semibold small">@c.Tecnico.NombreCompleto</div>
+                                <div class="fw-semibold small">@c.TecnicoNombreCompleto</div>
                                 <div class="text-muted small">
                                     @c.FechaConsumo.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
-                                    @if (c.Visita is not null)
+                                    @if (c.VisitaId is not null)
                                     {
-                                        <span>· <a asp-controller="Campo" asp-action="VisitaDetails" asp-route-id="@c.Visita.Id">Visita #@c.Visita.Id</a></span>
+                                        <span>· <a asp-controller="Campo" asp-action="VisitaDetails" asp-route-id="@c.VisitaId">Visita #@c.VisitaId</a></span>
                                     }
-                                    @if (c.Ticket is not null)
+                                    @if (c.TicketId is not null)
                                     {
-                                        <span>· <a asp-controller="Tickets" asp-action="Details" asp-route-id="@c.Ticket.Id">Ticket #@c.Ticket.Id</a></span>
+                                        <span>· <a asp-controller="Tickets" asp-action="Details" asp-route-id="@c.TicketId">Ticket #@c.TicketId</a></span>
                                     }
                                 </div>
                                 @if (!string.IsNullOrEmpty(c.Observaciones))
