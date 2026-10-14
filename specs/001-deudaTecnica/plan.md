@@ -1,6 +1,6 @@
 # Plan 001 — Pantallas de detalle desacopladas de los registros internos
 
-**Estado:** Aprobado (2026-10-14) · Implementa `spec.md` (rev. 3) · Sin código escrito
+**Estado:** Implementada (2026-10-14) · Implementa `spec.md` (rev. 3)
 
 ## 1. Enfoque
 Para cada una de las cuatro pantallas se crea un modelo propio (ViewModel) en `Models/`, la acción

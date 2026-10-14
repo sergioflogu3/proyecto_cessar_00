@@ -1,6 +1,6 @@
 # Spec 001 — Deuda técnica: pantallas de detalle desacopladas de los registros internos
 
-**Estado:** Aprobada (rev. 1) · Rev. 2 con las correcciones de la revisión QA (2026-10-13) · Rev. 3 con las aclaraciones y supuestos confirmados por el responsable (2026-10-13) · Rev. 4 con la corrección del acceso a la herramienta (RF-4, S2 y actores; 2026-10-14) · En implementación
+**Estado:** Aprobada (rev. 1) · Rev. 2 con las correcciones de la revisión QA (2026-10-13) · Rev. 3 con las aclaraciones y supuestos confirmados por el responsable (2026-10-13) · Rev. 4 con la corrección del acceso a la herramienta (RF-4, S2 y actores; 2026-10-14) · Implementada (2026-10-14)
 
 ## Contexto y objetivo
 Cuatro pantallas de detalle (repuesto, activo, visita técnica y herramienta) se alimentan hoy
@@ -103,10 +103,10 @@ Se entrega **pantalla a pantalla**: cada una en un commit independiente que refe
 - Se marca su casilla en el registro de avance de esta spec.
 
 ### Registro de avance
-- [ ] Detalle de repuesto
-- [ ] Detalle de activo
-- [ ] Detalle de visita técnica
-- [ ] Detalle de herramienta
+- [x] Detalle de repuesto
+- [x] Detalle de activo
+- [x] Detalle de visita técnica
+- [x] Detalle de herramienta
 
 La spec se cierra cuando las cuatro casillas están marcadas, la búsqueda de verificación da 0 resultados, se retira la deuda de la constitución y se actualiza la memoria del proyecto.
 

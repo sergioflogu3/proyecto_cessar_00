@@ -111,7 +111,7 @@ Todo el cableado de DI (repositorios, servicios, JWT, autenticación) ocurre en 
 
 - Sin tests automatizados, sin pipeline de CI conectado (`planes/ci.yml` es un borrador, no instalado), sin 2FA. `planes/01-problemas-de-seguridad.md`, `planes/02-ci-cd-plan.md` y `planes/03-plan-arquitectura.md` catalogan los problemas de seguridad conocidos y las mejoras propuestas de arquitectura/CI: consúltalos antes de proponer cambios de seguridad o CI/CD para no duplicar ni contradecir el análisis existente.
 - **B2 (CVE de dependencias)**: resuelto parcialmente. Las versiones de los paquetes directos se subieron a su último minor/patch (ver `cambios/B2-dependencias-vulnerables.md`) y `dotnet list package --vulnerable --include-transitive` reporta cero vulnerabilidades conocidas a la fecha de escribir esto. La mitad de CI de la remediación (instalar `planes/ci.yml` → `.github/workflows/ci.yml`, o GitHub Dependabot) sigue **sin** instalarse a propósito: el repo tiene un remoto real en GitHub, así que activarla empezaría a ejecutar Actions en cada push/PR; es una decisión que corresponde al usuario, no algo que hacer sin que se pida.
-- Specs en `/specs`: solo existe `001-deudaTecnica` (aprobada, pendiente de implementar); el resto del comportamiento aún no está especificado (principio 2 de `docs/constitution.md`).
+- Specs en `/specs`: solo existe `001-deudaTecnica` (implementada: las 4 vistas de detalle usan ViewModel propio); el resto del comportamiento aún no está especificado (principio 2 de `docs/constitution.md`).
 
 ## Verificación
 

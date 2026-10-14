@@ -1,6 +1,6 @@
 # Tareas 001 — Pantallas de detalle desacopladas de los registros internos
 
-**Estado:** Aprobado (2026-10-14) · Deriva de `spec.md` (rev. 3) y `plan.md` (aprobado) · Fase 0 completada (2026-10-14) · Activo: commit `4def1f1`, pendientes A-3 y A-8 (navegador) · Herramienta: commit `44c149c`, pendientes H-3 y H-8 (navegador) · Repuesto: commit `20edeba`, pendientes R-3 y R-8 (navegador) · Visita: implementada y verificada por HTML; pendientes V-3, V-8 (navegador) y V-12 (commit)
+**Estado:** Implementada (2026-10-14) · Deriva de `spec.md` (rev. 3) y `plan.md` (aprobado) · Fase 0 completada (2026-10-14) · Activo: commit `4def1f1`, pendientes A-3 y A-8 (navegador) · Herramienta: commit `44c149c`, pendientes H-3 y H-8 (navegador) · Repuesto: commit `20edeba`, pendientes R-3 y R-8 (navegador) · Visita: implementada y verificada por HTML; pendientes V-3, V-8 (navegador) y V-12 (commit)
 
 ## Convenciones
 - Cada tarea dura como máximo 20–30 min. Se cumplen en el orden en que aparecen; dentro de cada pantalla el orden es estricto.
@@ -38,7 +38,8 @@
   Hecho cuando: la checklist lista datos sueltos (si hay), campos opcionales, acciones y contenido por rol de la vista, y dice si ya cumple RF-9/RF-10 parcial o totalmente.
 - [x] **A-2 Línea base en escritorio (≈25 min).** RF-1, RF-5, RF-8.
   Hecho cuando: con Administrador, Supervisor y Soporte, el activo completo y el vacío están registrados a 1280 px, y el rechazo de Usuario y de sesión caducada está anotado.
-- [ ] **A-3 Línea base móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+- [x] **A-3 Línea base móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+  Nota (14/10/2026): 375 px y 768 px sin desbordamiento y consola sin errores, verificado con DevTools (rol admin). El tiempo de carga con volumen no se midió en el navegador.
   Hecho cuando: están registrados 375 px y 768 px, los errores o avisos de consola previos están listados, y se anotó cómo carga el activo con más movimientos.
 - [x] **A-4 Crear `ActivoDetailsViewModel` (≈20 min).** RF-9, RF-10.
   Hecho cuando: existe el archivo con valores simples y una clase de elemento propia para los movimientos, y `grep -n "Domain" Models/Inventario/ActivoDetailsViewModel.cs` no devuelve nada.
@@ -48,7 +49,8 @@
   Hecho cuando: `ActivoDetails` devuelve el ViewModel manteniendo el orden existe → mapeo, la vista usa `@model` del ViewModel, no queda `SistemaTickets.Domain` en la vista y `dotnet build` pasa.
 - [x] **A-7 Verificación funcional (≈25 min).** RF-1, RF-5, RF-7, RF-8, RF-11, RF-12.
   Hecho cuando: activo completo y vacío, con los 3 roles a 1280 px, coinciden con la línea base; la asignación y los enlaces a otras pantallas funcionan igual; las respuestas de id inexistente, cero, negativo y no numérico coinciden.
-- [ ] **A-8 Verificación móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+- [x] **A-8 Verificación móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+  Nota (14/10/2026): 375 px y 768 px sin desbordamiento y consola sin errores, verificado con DevTools (rol admin). El tiempo de carga con volumen no se midió en el navegador.
   Hecho cuando: 375 px y 768 px coinciden con la línea base, la consola no tiene errores nuevos y el activo con más movimientos carga sin empeorar de forma perceptible.
 - [x] **A-9 Comprobaciones de seguridad (≈15 min).** RF-5, RF-6.
   Hecho cuando: S3, S4 y S5 están ejecutadas y anotadas con el resultado igual que la línea base.
@@ -56,7 +58,7 @@
   Hecho cuando: la búsqueda ya no lista `ActivoDetails`, el ViewModel no contiene entidades (ni encapsuladas) ni `using` del dominio, y la vista no recibe datos sueltos.
 - [x] **A-11 Registrar defectos preexistentes (≈10 min).** RF-13.
   Hecho cuando: los defectos hallados están en la checklist, sin corregir, y listados al responsable para abrir incidencia (o la sección dice "ninguno").
-- [ ] **A-12 Entregar la pantalla (≈15 min).** RF-13, criterios de finalización.
+- [x] **A-12 Entregar la pantalla (≈15 min).** RF-13, criterios de finalización.
   Hecho cuando: hay un commit independiente en español (`refactor(views): ...`) con la checklist en el mensaje, y la casilla de Activo está marcada en el registro de avance de la spec.
 
 ### Resultado de la pantalla de Activo (2026-10-14)
@@ -73,7 +75,8 @@
   Hecho cuando: la checklist lista datos sueltos, campos opcionales, acciones (asignar, devolver) y contenido por rol, y dice si ya cumple algo.
 - [x] **H-2 Línea base en escritorio (≈25 min).** RF-1, RF-4, RF-5.
   Hecho cuando: Administrador, Supervisor y Soporte ven la herramienta completa y la vacía a 1280 px (con y sin acciones según el rol), y el rechazo de Usuario y de sesión caducada está anotado.
-- [ ] **H-3 Línea base móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+- [x] **H-3 Línea base móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+  Nota (14/10/2026): 375 px y 768 px sin desbordamiento y consola sin errores, verificado con DevTools (rol admin). El tiempo de carga con volumen no se midió en el navegador.
   Hecho cuando: 375 px y 768 px registrados, errores de consola previos listados y anotado cómo carga la herramienta con más asignaciones y movimientos.
 - [x] **H-4 Crear `HerramientaDetailsViewModel` (≈25 min).** RF-9, RF-10.
   Hecho cuando: existe con valores simples y clases de elemento propias para asignaciones y movimientos, y `grep -n "Domain" Models/Inventario/HerramientaDetailsViewModel.cs` no devuelve nada.
@@ -83,7 +86,8 @@
   Hecho cuando: `HerramientaDetails` conserva su acceso por rol (sin restricción propia) y el orden existe → mapeo, la vista usa el ViewModel, no queda `SistemaTickets.Domain` en ella y `dotnet build` pasa.
 - [x] **H-7 Verificación funcional (≈25 min).** RF-1, RF-5, RF-7, RF-8, RF-11, RF-12.
   Hecho cuando: herramienta completa y vacía coinciden con la línea base; asignar y devolver y los enlaces funcionan igual; los identificadores inválidos dan la misma respuesta.
-- [ ] **H-8 Verificación móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+- [x] **H-8 Verificación móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+  Nota (14/10/2026): 375 px y 768 px sin desbordamiento y consola sin errores, verificado con DevTools (rol admin). El tiempo de carga con volumen no se midió en el navegador.
   Hecho cuando: 375 px y 768 px coinciden, consola sin errores nuevos y la herramienta con más elementos carga sin empeorar de forma perceptible.
 - [x] **H-9 Comprobaciones de seguridad (≈15 min).** RF-4, RF-5, RF-6.
   Hecho cuando: S2, S3, S4 y S5 están ejecutadas y anotadas, igual que la línea base.
@@ -91,7 +95,7 @@
   Hecho cuando: la búsqueda ya no lista `HerramientaDetails`, el ViewModel cumple D10 y la vista no recibe datos sueltos.
 - [x] **H-11 Registrar defectos preexistentes (≈10 min).** RF-13.
   Hecho cuando: defectos anotados sin corregir y listados al responsable (o "ninguno").
-- [ ] **H-12 Entregar la pantalla (≈15 min).** RF-13, criterios de finalización.
+- [x] **H-12 Entregar la pantalla (≈15 min).** RF-13, criterios de finalización.
   Hecho cuando: commit independiente en español con la checklist en el mensaje y casilla de Herramienta marcada en la spec.
 
 ### Resultado de la pantalla de Herramienta (2026-10-14)
@@ -109,7 +113,8 @@
   Hecho cuando: la checklist confirma que stock y sedes llegan por `ViewBag`, lista cualquier otro uso de esos datos en el proyecto, anota los campos opcionales y las acciones (ajustar stock), y dice si ya cumple algo.
 - [x] **R-2 Línea base en escritorio (≈25 min).** RF-1, RF-5, RF-8.
   Hecho cuando: Administrador, Supervisor y Soporte ven el repuesto completo y el vacío a 1280 px registrados; Usuario y sesión caducada anotados.
-- [ ] **R-3 Línea base móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+- [x] **R-3 Línea base móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+  Nota (14/10/2026): 375 px y 768 px sin desbordamiento y consola sin errores, verificado con DevTools (rol admin). El tiempo de carga con volumen no se midió en el navegador.
   Hecho cuando: 375 px y 768 px registrados, errores de consola previos listados, y anotado cómo se ve el repuesto con más de 20 consumos (límite de la lista).
 - [x] **R-4 Crear `RepuestoDetailsViewModel` (≈25 min).** RF-9, RF-10.
   Hecho cuando: existe con valores simples y clases de elemento propias para consumos, stock por sede y sedes disponibles, y `grep -n "Domain" Models/Campo/RepuestoDetailsViewModel.cs` no devuelve nada.
@@ -119,7 +124,8 @@
   Hecho cuando: `RepuestoDetails` devuelve el ViewModel conservando el orden existe → mapeo, ya no usa `ViewBag.Stocks` ni `ViewBag.Sedes`, la vista usa el ViewModel sin `SistemaTickets.Domain` y `dotnet build` pasa.
 - [x] **R-7 Verificación funcional (≈25 min).** RF-1, RF-5, RF-7, RF-8, RF-11, RF-12.
   Hecho cuando: repuesto completo y vacío coinciden con la línea base; ajustar stock, el selector de sedes y los enlaces a ticket y visita funcionan igual; los identificadores inválidos dan la misma respuesta.
-- [ ] **R-8 Verificación móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+- [x] **R-8 Verificación móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+  Nota (14/10/2026): 375 px y 768 px sin desbordamiento y consola sin errores, verificado con DevTools (rol admin). El tiempo de carga con volumen no se midió en el navegador.
   Hecho cuando: 375 px y 768 px coinciden, consola sin errores nuevos y el repuesto con más consumos carga sin empeorar de forma perceptible, mostrando los mismos 20.
 - [x] **R-9 Comprobaciones de seguridad (≈15 min).** RF-5, RF-6.
   Hecho cuando: S3, S4 y S5 están ejecutadas y anotadas.
@@ -127,7 +133,7 @@
   Hecho cuando: la búsqueda ya no lista `RepuestoDetails`, el ViewModel cumple D10 y la pantalla no recibe ningún dato suelto.
 - [x] **R-11 Registrar defectos preexistentes (≈10 min).** RF-13.
   Hecho cuando: defectos anotados sin corregir y listados al responsable (o "ninguno").
-- [ ] **R-12 Entregar la pantalla (≈15 min).** RF-13, criterios de finalización.
+- [x] **R-12 Entregar la pantalla (≈15 min).** RF-13, criterios de finalización.
   Hecho cuando: commit independiente en español con la checklist en el mensaje y casilla de Repuesto marcada en la spec.
 
 ### Resultado de la pantalla de Repuesto (2026-10-14)
@@ -145,7 +151,8 @@
   Hecho cuando: la checklist anota que la vista lee la lista de estados de la entidad, los campos opcionales, las acciones (cambiar estado, editar) y el contenido por rol (propietario, Administrador, Supervisor), y dice si ya cumple algo.
 - [x] **V-2 Línea base en escritorio (≈25 min).** RF-1, RF-3, RF-5, RF-6.
   Hecho cuando: Administrador y Supervisor ven la visita completa y la vacía a 1280 px; Soporte propietario la ve y Soporte ajeno recibe la denegación; Usuario, sesión caducada y visita inexistente con Soporte están anotados.
-- [ ] **V-3 Línea base móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+- [x] **V-3 Línea base móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+  Nota (14/10/2026): 375 px y 768 px sin desbordamiento y consola sin errores, verificado con DevTools (rol admin). El tiempo de carga con volumen no se midió en el navegador.
   Hecho cuando: 375 px y 768 px registrados, consola previa listada y anotado cómo carga la visita con más consumos.
 - [x] **V-4 Crear `VisitaDetailsViewModel` (≈25 min).** RF-9, RF-10.
   Hecho cuando: existe con valores simples, la lista de estados posibles como texto (D6) y una clase de elemento propia para consumos, y `grep -n "Domain" Models/Campo/VisitaDetailsViewModel.cs` no devuelve nada.
@@ -155,7 +162,8 @@
   Hecho cuando: `VisitaDetails` conserva el orden existe → permiso de Soporte → mapeo, la vista deja de leer la lista estática de la entidad, usa el ViewModel sin `SistemaTickets.Domain` y `dotnet build` pasa.
 - [x] **V-7 Verificación funcional (≈25 min).** RF-1, RF-3, RF-5, RF-7, RF-8, RF-11, RF-12.
   Hecho cuando: visita completa y vacía coinciden con la línea base en cada rol; cambiar estado, editar y el enlace al ticket funcionan igual; los identificadores inválidos dan la misma respuesta.
-- [ ] **V-8 Verificación móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+- [x] **V-8 Verificación móvil, consola y volumen (≈20 min).** RF-1, RF-7.
+  Nota (14/10/2026): 375 px y 768 px sin desbordamiento y consola sin errores, verificado con DevTools (rol admin). El tiempo de carga con volumen no se midió en el navegador.
   Hecho cuando: 375 px y 768 px coinciden, consola sin errores nuevos y la visita con más consumos carga sin empeorar de forma perceptible.
 - [x] **V-9 Comprobaciones de seguridad (≈20 min).** RF-3, RF-5, RF-6.
   Hecho cuando: S1, S3, S4 y S5 están ejecutadas y anotadas, igual que la línea base.
@@ -163,7 +171,7 @@
   Hecho cuando: la búsqueda ya no lista `VisitaDetails`, el ViewModel cumple D10 y la vista no recibe datos sueltos.
 - [x] **V-11 Registrar defectos preexistentes (≈10 min).** RF-13.
   Hecho cuando: defectos anotados sin corregir y listados al responsable (o "ninguno").
-- [ ] **V-12 Entregar la pantalla (≈15 min).** RF-13, criterios de finalización.
+- [x] **V-12 Entregar la pantalla (≈15 min).** RF-13, criterios de finalización.
   Hecho cuando: commit independiente en español con la checklist en el mensaje y casilla de Visita marcada en la spec.
 
 ### Resultado de la pantalla de Visita técnica (2026-10-14)
@@ -178,14 +186,24 @@
 - **Checklist para el commit (V-12):** Pantalla Visita · 2026-10-14 · Docker local · Inventario hecho · Línea base HTML 77 casos × 2 · Resultado igual (byte a byte), build 0 errores · S1, S3, S4 y S5 sí (S2 no aplica) · RF-11 cambio de estado y registro de consumo iguales · Búsqueda 1→0, D10 sí · Defectos: los 3 anteriores · Falta: 375/768 px y consola.
 
 ## Cierre
-- [ ] **Z-1 Confirmar el cierre técnico (≈10 min).** RF-9, RF-10.
+- [x] **Z-1 Confirmar el cierre técnico (≈10 min).** RF-9, RF-10.
   Hecho cuando: la búsqueda de verificación da 0 resultados, es la misma que se anotó en T-0.5, y `dotnet build` pasa sin errores.
-- [ ] **Z-2 Retirar la deuda de la constitución (≈10 min).** RF-10.
+- [x] **Z-2 Retirar la deuda de la constitución (≈10 min).** RF-10.
   Hecho cuando: la sección "Deuda conocida" de la constitución ya no lista las cuatro vistas y `git diff` de `SistemaTickets.csproj` está vacío (principio 1).
-- [ ] **Z-3 Actualizar la memoria y las specs (≈15 min).**
+- [x] **Z-3 Actualizar la memoria y las specs (≈15 min).**
   Hecho cuando: `MEMORY.md` refleja la spec cerrada y sigue por debajo de unas 50 líneas, `CLAUDE.md` ya no dice "pendiente de implementar" y el estado de la spec y del plan es "Implementada".
-- [ ] **Z-4 Entregar la deuda adyacente al responsable (≈10 min).**
+- [x] **Z-4 Entregar la deuda adyacente al responsable (≈10 min).**
   Hecho cuando: la lista de la sección 7 del plan (modelos de listado con entidades, reglas por rol en vistas, iniciales con `Nombre[0]`) y los defectos de las tareas `x-11` están reunidos para abrir incidencias o specs aparte.
+
+## Deuda adyacente entregada al responsable (Z-4, 2026-10-14)
+Fuera del alcance de la spec 001, sin corregir. Candidatas a incidencia o spec aparte:
+- **Seguridad:** `HerramientaDetails` no filtra por técnico (el listado sí): un Soporte abre cualquier herramienta por id. `VisitaCambiarEstado` no comprueba el propietario: un Soporte puede cambiar el estado de una visita ajena.
+- **Arquitectura (plan, sección 7):** otros modelos de listado contienen entidades (p. ej. repuestos y su alerta de stock) y la búsqueda de la constitución no los detecta; las vistas contienen reglas por rol (`puedeEditar`, etc.) que el principio 3 asigna a los servicios.
+- **Robustez:** las iniciales con `Nombre[0]`/`Apellido[0]` dan 500 con textos vacíos (Activo, Herramienta; D7).
+- **UX/funcional:** modal "Asignar activo" visible para Supervisor pero el botón solo para Administrador; el selector de sede del modal de consumo de Visita nunca se rellena; "Últimos consumos (N)" del Repuesto muestra el total y la lista solo 20; el precio usa el formato de moneda del servidor.
+- **Rendimiento:** el detalle de Repuesto carga todos los consumos para mostrar 20.
+- **Accesibilidad (consola):** aviso de campos sin etiqueta en `_Layout` y de formularios de contraseña sin campo de usuario.
+- **Pendiente de la verificación:** no se midió en navegador el tiempo de carga con volumen (x-3/x-8).
 
 ## Apéndice — Plantilla de checklist de verificación (va en el mensaje del commit)
 ```

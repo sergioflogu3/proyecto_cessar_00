@@ -14,10 +14,8 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
   sin ellos, el contenido se verifica comparando HTML capturado con curl).
 
 ## Decisiones (y por qué)
-- Specs en `/specs` (raíz, no en `docs/`); la spec manda sobre el código. 001-deudaTecnica (spec, plan, tasks aprobados): fase 0 hecha (datos QA en BD Docker, ids en
-  tasks.md); Activo, Herramienta y Repuesto commiteados; Visita migrada (sin commit). Las 4 verificadas
-  por HTML; falta DevTools (375/768 px, consola) en las 4, y cerrar la spec (casillas, deuda).
-- Tests: sin instalar dependencias; se verifica con `dotnet build` + Chrome DevTools.
+- Specs en `/specs` (raíz, no en `docs/`); la spec manda sobre el código. 001-deudaTecnica IMPLEMENTADA y cerrada (14/10/2026): las 4 vistas de detalle usan ViewModel propio, búsqueda de verificación en 0, deuda retirada de la constitución, deuda adyacente listada al final de `tasks.md`. Commits 4def1f1, 44c149c, 20edeba, 29dea95; cierre documental sin commit. Volumen no medido en navegador.
+- DevTools: `resize_page` no baja de ~500 px; usar `emulate` con viewport `375x800x2,mobile,touch`.
 - Un solo proyecto web en capas, DI toda en `Program.cs`: simple de desplegar y de seguir.
 - NHibernate + FluentNHibernate sobre SQL Server; `NHibernate:UpdateSchema=true` solo en el
   primer despliegue, luego `false` para evitar deriva de esquema.
@@ -37,14 +35,12 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
   (identity map de NHibernate devuelve la misma instancia).
 - `UseStatusCodePages` debe registrarse antes de `UseAuthentication`/`UseAuthorization`.
 - Tras desplegar con dominio real, actualizar `AllowedHosts` o todo da 400.
-- Incidencias de seguridad previas: el detalle de herramienta no filtra por técnico (el listado
-  sí) y VisitaCambiarEstado no comprueba propietario. Leer el atributo de cada acción, no el vecino.
+- Fallos de permisos conocidos (herramienta sin filtro por técnico, VisitaCambiarEstado sin propietario): leer el atributo de cada acción, no el vecino.
 - Login limitado a 10 intentos/min por IP: al capturar HTML por rol, espaciar las ejecuciones
   (~60 s) o los logins fallan en silencio.
-- Línea base por curl (HTML sin token antiforgery) permite diff byte a byte.
 
 ## Próximos pasos
-- Implementar `specs/001-deudaTecnica` (pantalla a pantalla): 4 vistas ligadas a entidades (principio 3).
+- Abrir incidencias/specs para la deuda adyacente de `specs/001-deudaTecnica/tasks.md` (2 fallos de permisos en herramienta y visita primero).
 - Especificar el resto del comportamiento en `/specs` (principio 2).
 - Decidir si instalar CI (`planes/ci.yml` → `.github/workflows/`) o Dependabot (B2).
 - Añadir proyecto de tests (hoy `dotnet build` + prueba manual son la única validación).

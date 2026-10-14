@@ -26,4 +26,3 @@ Seis principios innegociables. Si un cambio los rompe, se cambia el cambio, no e
 
 ## Deuda conocida
 - `/specs` solo tiene `001-deudaTecnica`; el resto del comportamiento no está especificado (principio 2).
-- 4 vistas se enlazan a entidades (principio 3): detalle de repuesto (`RepuestoDetails`), de activo (`ActivoDetails`), de visita técnica (`VisitaDetails`) y de herramienta (`HerramientaDetails`). Ver `specs/001-deudaTecnica`.
