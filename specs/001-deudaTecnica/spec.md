@@ -1,6 +1,6 @@
 # Spec 001 — Deuda técnica: pantallas de detalle desacopladas de los registros internos
 
-**Estado:** Aprobada (rev. 1) · Rev. 2 con las correcciones de la revisión QA (2026-10-13) · Rev. 3 con las aclaraciones y supuestos confirmados por el responsable (2026-10-13) · Pendiente de implementar
+**Estado:** Aprobada (rev. 1) · Rev. 2 con las correcciones de la revisión QA (2026-10-13) · Rev. 3 con las aclaraciones y supuestos confirmados por el responsable (2026-10-13) · Rev. 4 con la corrección del acceso a la herramienta (RF-4, S2 y actores; 2026-10-14) · En implementación
 
 ## Contexto y objetivo
 Cuatro pantallas de detalle (repuesto, activo, visita técnica y herramienta) se alimentan hoy
@@ -24,8 +24,8 @@ constitución y sin saldarla el principio 3 no es verificable.
 
 ## Usuarios / actores
 - **Administrador**: accede a las cuatro pantallas.
-- **Supervisor**: accede a repuesto, activo y visita (no a herramienta).
-- **Soporte**: accede a repuesto y activo, y solo a las visitas que tiene asignadas.
+- **Supervisor**: accede a las cuatro pantallas.
+- **Soporte**: accede a repuesto, activo y herramienta, y solo a las visitas que tiene asignadas.
 - **Usuario (rol sin acceso) y visitante sin sesión válida**: no acceden a ninguna.
 - **Equipo de desarrollo**: mantiene el sistema y necesita poder verificar el principio 3.
 
@@ -38,7 +38,7 @@ constitución y sin saldarla el principio 3 no es verificable.
 - RF-1: CUANDO un usuario con permiso abre el detalle de un registro existente, EL SISTEMA lo mostrará sin diferencia visible respecto de la línea base, incluido el contenido y las acciones disponibles para su rol.
 - RF-2: CUANDO un usuario abre el detalle de un registro que no existe (identificador inexistente, cero, negativo o no numérico), EL SISTEMA dará la misma respuesta que la línea base.
 - RF-3: SI un técnico de Soporte abre una visita que no tiene asignada, ENTONCES EL SISTEMA denegará el acceso con la misma respuesta que la línea base.
-- RF-4: SI un usuario sin rol de Administrador abre el detalle de una herramienta, ENTONCES EL SISTEMA denegará el acceso con la misma respuesta que la línea base.
+- RF-4: CUANDO un Administrador, un Supervisor o un técnico de Soporte abre el detalle de una herramienta, EL SISTEMA permitirá el acceso igual que la línea base, sin añadir ni quitar restricciones por rol: Administrador y Supervisor ven además las acciones de editar y de asignar o devolver; Soporte no.
 - RF-5: SI el usuario no tiene sesión válida (inexistente, caducada o revocada), está desactivado o su rol no tiene permiso sobre la pantalla, ENTONCES EL SISTEMA dará la misma respuesta que la línea base (p. ej. redirección al inicio de sesión).
 - RF-6: CUANDO coinciden varias condiciones de rechazo (p. ej. un técnico de Soporte pide una visita que no existe), EL SISTEMA aplicará el mismo orden de comprobación que la línea base.
 - RF-7: CUANDO un dato opcional del registro está vacío, EL SISTEMA mostrará la pantalla sin errores nuevos y sin diferencia visible respecto de la línea base para ese caso. Los campos opcionales de cada pantalla son los que la línea base ya trata como opcionales y se anotan en el inventario previo.
@@ -55,7 +55,7 @@ constitución y sin saldarla el principio 3 no es verificable.
 - **Seguridad y datos del usuario** (principio 5): cada pantalla recibe únicamente los datos que muestra o necesita; no se añaden datos personales nuevos a ninguna respuesta. Las pruebas usan datos ficticios, y ni los registros de actividad, ni la checklist, ni las capturas contienen datos personales. En cada entrega se revisan los registros de actividad nuevos o modificados.
 - **Comprobaciones manuales de seguridad** (principio 4), para cada pantalla a la que aplique:
   - S1: con Soporte, una visita asignada se muestra, una ajena se deniega y una inexistente da "no encontrado".
-  - S2: con Supervisor y con Soporte, la herramienta se deniega; con Administrador se muestra.
+  - S2: con Administrador y con Supervisor, la herramienta se muestra con las acciones de editar y asignar o devolver; con Soporte se muestra sin acciones; con Usuario y sin sesión se rechaza.
   - S3: sin sesión, las cuatro pantallas redirigen igual que la línea base.
   - S4: con sesión revocada o usuario desactivado, el rechazo ocurre en la siguiente petición, igual que la línea base.
   - S5: la respuesta no contiene datos que la línea base no mostraba.

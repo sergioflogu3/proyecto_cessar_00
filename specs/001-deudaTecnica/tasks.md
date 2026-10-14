@@ -1,6 +1,6 @@
 # Tareas 001 — Pantallas de detalle desacopladas de los registros internos
 
-**Estado:** Aprobado (2026-10-14) · Deriva de `spec.md` (rev. 3) y `plan.md` (aprobado) · Fase 0 completada (2026-10-14) · Activo: implementado y verificado por HTML; pendientes A-3, A-8 (navegador) y A-12 (commit)
+**Estado:** Aprobado (2026-10-14) · Deriva de `spec.md` (rev. 3) y `plan.md` (aprobado) · Fase 0 completada (2026-10-14) · Activo: commit `4def1f1`, pendientes A-3 y A-8 (navegador) · Herramienta: implementada y verificada por HTML; pendientes H-3, H-8 (navegador) y H-12 (commit)
 
 ## Convenciones
 - Cada tarea dura como máximo 20–30 min. Se cumplen en el orden en que aparecen; dentro de cada pantalla el orden es estricto.
@@ -69,30 +69,40 @@
 - **Checklist para el commit (A-12):** Pantalla Activo · 2026-10-14 · Docker local · Inventario hecho · Línea base HTML 42 casos × 2 · Resultado igual (byte a byte), build 0 errores · S3, S4, S5 sí (S1, S2 no aplican) · Búsqueda 4→3, D10 sí · Defectos: los 3 anteriores · Falta: 375/768 px y consola.
 
 ## Pantalla 2 — Detalle de Herramienta
-- [ ] **H-1 Inventario previo (≈20 min).** RF-4, RF-7, RF-9, RF-10, RF-11, RF-14.
+- [x] **H-1 Inventario previo (≈20 min).** RF-4, RF-7, RF-9, RF-10, RF-11, RF-14.
   Hecho cuando: la checklist lista datos sueltos, campos opcionales, acciones (asignar, devolver) y contenido por rol, y dice si ya cumple algo.
-- [ ] **H-2 Línea base en escritorio (≈25 min).** RF-1, RF-4, RF-5.
-  Hecho cuando: Administrador ve la herramienta completa y la vacía a 1280 px; Supervisor y Soporte reciben la denegación, y Usuario y sesión caducada están anotados.
+- [x] **H-2 Línea base en escritorio (≈25 min).** RF-1, RF-4, RF-5.
+  Hecho cuando: Administrador, Supervisor y Soporte ven la herramienta completa y la vacía a 1280 px (con y sin acciones según el rol), y el rechazo de Usuario y de sesión caducada está anotado.
 - [ ] **H-3 Línea base móvil, consola y volumen (≈20 min).** RF-1, RF-7.
   Hecho cuando: 375 px y 768 px registrados, errores de consola previos listados y anotado cómo carga la herramienta con más asignaciones y movimientos.
-- [ ] **H-4 Crear `HerramientaDetailsViewModel` (≈25 min).** RF-9, RF-10.
+- [x] **H-4 Crear `HerramientaDetailsViewModel` (≈25 min).** RF-9, RF-10.
   Hecho cuando: existe con valores simples y clases de elemento propias para asignaciones y movimientos, y `grep -n "Domain" Models/Inventario/HerramientaDetailsViewModel.cs` no devuelve nada.
-- [ ] **H-5 Escribir el mapeo en `InventarioController` (≈25 min).** RF-1, RF-2, RF-8.
+- [x] **H-5 Escribir el mapeo en `InventarioController` (≈25 min).** RF-1, RF-2, RF-8.
   Hecho cuando: el método privado propaga nulos (fecha de devolución, observaciones), conserva `Nombre` y `Apellido` (D7), y `dotnet build` pasa con el método sin conectar.
-- [ ] **H-6 Conectar la acción y migrar la vista (≈25 min).** RF-1, RF-4, RF-9, RF-10, RF-11.
-  Hecho cuando: `HerramientaDetails` conserva su restricción de rol y el orden existe → mapeo, la vista usa el ViewModel, no queda `SistemaTickets.Domain` en ella y `dotnet build` pasa.
-- [ ] **H-7 Verificación funcional (≈25 min).** RF-1, RF-5, RF-7, RF-8, RF-11, RF-12.
+- [x] **H-6 Conectar la acción y migrar la vista (≈25 min).** RF-1, RF-4, RF-9, RF-10, RF-11.
+  Hecho cuando: `HerramientaDetails` conserva su acceso por rol (sin restricción propia) y el orden existe → mapeo, la vista usa el ViewModel, no queda `SistemaTickets.Domain` en ella y `dotnet build` pasa.
+- [x] **H-7 Verificación funcional (≈25 min).** RF-1, RF-5, RF-7, RF-8, RF-11, RF-12.
   Hecho cuando: herramienta completa y vacía coinciden con la línea base; asignar y devolver y los enlaces funcionan igual; los identificadores inválidos dan la misma respuesta.
 - [ ] **H-8 Verificación móvil, consola y volumen (≈20 min).** RF-1, RF-7.
   Hecho cuando: 375 px y 768 px coinciden, consola sin errores nuevos y la herramienta con más elementos carga sin empeorar de forma perceptible.
-- [ ] **H-9 Comprobaciones de seguridad (≈15 min).** RF-4, RF-5, RF-6.
+- [x] **H-9 Comprobaciones de seguridad (≈15 min).** RF-4, RF-5, RF-6.
   Hecho cuando: S2, S3, S4 y S5 están ejecutadas y anotadas, igual que la línea base.
-- [ ] **H-10 Búsqueda de verificación y revisión contra D10 (≈15 min).** RF-9, RF-10.
+- [x] **H-10 Búsqueda de verificación y revisión contra D10 (≈15 min).** RF-9, RF-10.
   Hecho cuando: la búsqueda ya no lista `HerramientaDetails`, el ViewModel cumple D10 y la vista no recibe datos sueltos.
-- [ ] **H-11 Registrar defectos preexistentes (≈10 min).** RF-13.
+- [x] **H-11 Registrar defectos preexistentes (≈10 min).** RF-13.
   Hecho cuando: defectos anotados sin corregir y listados al responsable (o "ninguno").
 - [ ] **H-12 Entregar la pantalla (≈15 min).** RF-13, criterios de finalización.
   Hecho cuando: commit independiente en español con la checklist en el mensaje y casilla de Herramienta marcada en la spec.
+
+### Resultado de la pantalla de Herramienta (2026-10-14)
+- **Corrección de la spec (rev. 4):** la acción `HerramientaDetails` no tiene restricción propia de rol; la que se creyó suya era de la acción anterior. Administrador, Supervisor y Soporte la abren; RF-4, S2 y los actores se reescribieron para describir la línea base real.
+- **Inventario (H-1):** sin datos sueltos; opcionales: Código, Descripción y, en cada asignación, Fecha de devolución y Observaciones, y en cada movimiento, Descripción, Valor anterior y Valor nuevo; acciones: Editar (Administrador y Supervisor), Asignar (si está Disponible) y Devolver (si está Asignada), ambas solo para Administrador y Supervisor; Soporte la ve sin acciones; no cumplía RF-9/RF-10 de forma parcial.
+- **Línea base y comparación (H-2, H-7, H-9):** 42 casos (6 perfiles × ids 6, 7, 1, 999, 0, -1 y abc), capturada dos veces antes (idéntica) y una después: **idéntico byte a byte**, mismos estados y redirecciones. Cubre RF-1 a RF-6 y S2 a S5.
+- **RF-8:** con un movimiento cuyo usuario tiene el apellido vacío (herramienta 8), antes y después dan 500 con `IndexOutOfRangeException` (27 726 bytes en ambos).
+- **Pendiente H-3 y H-8:** 375 px, 768 px y consola, por falta del MCP de Chrome DevTools en la sesión.
+- **Búsqueda de verificación (H-10):** de 3 a 2 resultados; el ViewModel y la vista no contienen `Domain` ni `ViewBag`.
+- **Defectos preexistentes (H-11), sin corregir:** (1) **seguridad:** el listado de herramientas filtra para Soporte ("solo ve sus herramientas asignadas") pero el detalle no, así que un técnico de Soporte abre cualquier herramienta por su identificador; (2) las iniciales con `Nombre[0]`/`Apellido[0]` fallan con textos vacíos; (3) reglas por rol dentro de la vista.
+- **Checklist para el commit (H-12):** Pantalla Herramienta · 2026-10-14 · Docker local · Inventario hecho · Línea base HTML 42 casos × 2 · Resultado igual (byte a byte), build 0 errores · S2, S3, S4 y S5 sí (S1 no aplica) · RF-8 igual (500) · Búsqueda 3→2, D10 sí · Defectos: los 3 anteriores · Falta: 375/768 px y consola.
 
 ## Pantalla 3 — Detalle de Repuesto
 - [ ] **R-1 Inventario previo (≈20 min).** RF-7, RF-9, RF-10, RF-11, RF-14.

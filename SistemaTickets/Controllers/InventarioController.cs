@@ -236,7 +236,7 @@ namespace SistemaTickets.Controllers
         {
             var h = await _inventarioService.GetHerramientaByIdAsync(id);
             if (h is null) return NotFound();
-            return View(h);
+            return View(BuildHerramientaDetails(h));
         }
 
         [HttpGet]
@@ -356,6 +356,37 @@ namespace SistemaTickets.Controllers
             FechaGarantia           = activo.FechaGarantia,
             CreadoEn                = activo.CreadoEn,
             Movimientos             = activo.Movimientos.Select(m => new ActivoMovimientoItem
+            {
+                TipoMovimiento        = m.TipoMovimiento,
+                Descripcion           = m.Descripcion,
+                ValorAnterior         = m.ValorAnterior,
+                ValorNuevo            = m.ValorNuevo,
+                FechaMovimiento       = m.FechaMovimiento,
+                UsuarioNombre         = m.Usuario.Nombre,
+                UsuarioApellido       = m.Usuario.Apellido,
+                UsuarioNombreCompleto = m.Usuario.NombreCompleto
+            }).ToList()
+        };
+
+        private static HerramientaDetailsViewModel BuildHerramientaDetails(Herramienta h) => new()
+        {
+            Id           = h.Id,
+            Nombre       = h.Nombre,
+            Descripcion  = h.Descripcion,
+            Codigo       = h.Codigo,
+            Tipo         = h.Tipo,
+            Estado       = h.Estado,
+            CreadoEn     = h.CreadoEn,
+            Asignaciones = h.Asignaciones.Select(a => new HerramientaAsignacionItem
+            {
+                Activa                    = a.Activa,
+                FechaAsignacion           = a.FechaAsignacion,
+                FechaDevolucion           = a.FechaDevolucion,
+                Observaciones             = a.Observaciones,
+                TecnicoNombreCompleto     = a.Tecnico.NombreCompleto,
+                AsignadoPorNombreCompleto = a.AsignadoPor.NombreCompleto
+            }).ToList(),
+            Movimientos  = h.Movimientos.Select(m => new HerramientaMovimientoItem
             {
                 TipoMovimiento        = m.TipoMovimiento,
                 Descripcion           = m.Descripcion,
