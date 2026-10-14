@@ -16,7 +16,7 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
 - MCP de Chrome DevTools y Context7 en `.mcp.json`.
 
 ## Decisiones (y por qué)
-- Specs en `/specs` (raíz, no en `docs/`); la spec manda sobre el código. 001-deudaTecnica aprobada, rev. 2 tras QA (sin implementar).
+- Specs en `/specs` (raíz, no en `docs/`); la spec manda sobre el código. 001-deudaTecnica y su plan aprobados; orden Activo→Herramienta→Repuesto→Visita; sin implementar.
 - Tests: sin instalar dependencias; se verifica con `dotnet build` + Chrome DevTools.
 - Un solo proyecto web en capas (Controllers → Domain → Infrastructure), DI toda en
   `Program.cs`: simple de desplegar y de seguir.
