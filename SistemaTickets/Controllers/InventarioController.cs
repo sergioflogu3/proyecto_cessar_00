@@ -105,7 +105,7 @@ namespace SistemaTickets.Controllers
         {
             var activo = await _inventarioService.GetActivoByIdAsync(id);
             if (activo is null) return NotFound();
-            return View(activo);
+            return View(BuildActivoDetails(activo));
         }
 
         [HttpGet]
@@ -338,6 +338,35 @@ namespace SistemaTickets.Controllers
         }
 
         // ── Helpers ───────────────────────────────────────────────────────────
+
+        private static ActivoDetailsViewModel BuildActivoDetails(Activo activo) => new()
+        {
+            Id                      = activo.Id,
+            Nombre                  = activo.Nombre,
+            Descripcion             = activo.Descripcion,
+            Tipo                    = activo.Tipo,
+            Estado                  = activo.Estado,
+            NumeroSerie             = activo.NumeroSerie,
+            Marca                   = activo.Marca,
+            Modelo                  = activo.Modelo,
+            SedeNombre              = activo.Sede?.Nombre,
+            AreaNombre              = activo.Area?.Nombre,
+            AsignadoANombreCompleto = activo.AsignadoA?.NombreCompleto,
+            FechaAdquisicion        = activo.FechaAdquisicion,
+            FechaGarantia           = activo.FechaGarantia,
+            CreadoEn                = activo.CreadoEn,
+            Movimientos             = activo.Movimientos.Select(m => new ActivoMovimientoItem
+            {
+                TipoMovimiento        = m.TipoMovimiento,
+                Descripcion           = m.Descripcion,
+                ValorAnterior         = m.ValorAnterior,
+                ValorNuevo            = m.ValorNuevo,
+                FechaMovimiento       = m.FechaMovimiento,
+                UsuarioNombre         = m.Usuario.Nombre,
+                UsuarioApellido       = m.Usuario.Apellido,
+                UsuarioNombreCompleto = m.Usuario.NombreCompleto
+            }).ToList()
+        };
 
         private async Task<ActivoFormViewModel> BuildActivoForm(Activo? activo)
         {

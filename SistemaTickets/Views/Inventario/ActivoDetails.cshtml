@@ -1,4 +1,4 @@
-@model SistemaTickets.Domain.Entities.Activo
+@model SistemaTickets.Models.Inventario.ActivoDetailsViewModel
 @using System.Security.Claims
 
 @{
@@ -67,11 +67,11 @@
                             <div class="rounded-circle bg-primary text-white d-flex align-items-center
                                         justify-content-center flex-shrink-0"
                                  style="width:32px;height:32px;font-size:.7rem">
-                                @m.Usuario.Nombre[0]@m.Usuario.Apellido[0]
+                                @m.UsuarioNombre[0]@m.UsuarioApellido[0]
                             </div>
                             <div>
                                 <div class="small fw-semibold">
-                                    @m.Usuario.NombreCompleto
+                                    @m.UsuarioNombreCompleto
                                     <span class="text-muted fw-normal">— @m.TipoMovimiento</span>
                                 </div>
                                 @if (!string.IsNullOrEmpty(m.Descripcion))
@@ -119,15 +119,15 @@
                 </li>
                 <li class="list-group-item d-flex justify-content-between px-4 py-2">
                     <span class="text-muted small">Sede</span>
-                    <span class="small">@(Model.Sede?.Nombre ?? "—")</span>
+                    <span class="small">@(Model.SedeNombre ?? "—")</span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between px-4 py-2">
                     <span class="text-muted small">Área</span>
-                    <span class="small">@(Model.Area?.Nombre ?? "—")</span>
+                    <span class="small">@(Model.AreaNombre ?? "—")</span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between px-4 py-2">
                     <span class="text-muted small">Asignado a</span>
-                    <span class="small">@(Model.AsignadoA?.NombreCompleto ?? "—")</span>
+                    <span class="small">@(Model.AsignadoANombreCompleto ?? "—")</span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between px-4 py-2">
                     <span class="text-muted small">Adquisición</span>

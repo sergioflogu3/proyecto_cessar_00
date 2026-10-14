@@ -8,18 +8,17 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
 - Rama de trabajo: `developer` (principal: `main`).
 - Hardening de seguridad aplicado: hallazgos A1–A5, B1–B4, C1–C3, M1–M6
   (writeups en `cambios/`, catálogo en `planes/01-problemas-de-seguridad.md`).
-- Migración de íconos Bootstrap → FontAwesome completada (dashboard, Usuarios, Configuración).
-- README actualizado para otros ambientes de desarrollo.
-- Sin tests automatizados, sin CI instalado, sin 2FA.
-- Constitución con 6 principios en `docs/constitution.md` (stack, specs, lógica/UI, tests,
-  datos, idioma). `AGENTS.md` y `CLAUDE.md` ahora están en español.
-- MCP de Chrome DevTools y Context7 en `.mcp.json`.
+- Íconos migrados a FontAwesome; README actualizado. Sin tests, sin CI instalado, sin 2FA.
+- Constitución con 6 principios en `docs/constitution.md`; `AGENTS.md` y `CLAUDE.md` en español.
+- MCP de Chrome DevTools y Context7 en `.mcp.json` (requieren reiniciar Claude Code y aprobarlos;
+  sin ellos, el contenido se verifica comparando HTML capturado con curl).
 
 ## Decisiones (y por qué)
-- Specs en `/specs` (raíz, no en `docs/`); la spec manda sobre el código. 001-deudaTecnica y su plan aprobados; orden Activo→Herramienta→Repuesto→Visita; sin implementar.
+- Specs en `/specs` (raíz, no en `docs/`); la spec manda sobre el código. 001-deudaTecnica (spec, plan, tasks aprobados): fase 0 hecha (datos QA en BD Docker, ids en
+  tasks.md); Activo migrado y verificado por HTML, falta DevTools (375/768 px, consola) y commit;
+  sigue Herramienta→Repuesto→Visita.
 - Tests: sin instalar dependencias; se verifica con `dotnet build` + Chrome DevTools.
-- Un solo proyecto web en capas (Controllers → Domain → Infrastructure), DI toda en
-  `Program.cs`: simple de desplegar y de seguir.
+- Un solo proyecto web en capas, DI toda en `Program.cs`: simple de desplegar y de seguir.
 - NHibernate + FluentNHibernate sobre SQL Server; `NHibernate:UpdateSchema=true` solo en el
   primer despliegue, luego `false` para evitar deriva de esquema.
 - JWT dual (Bearer o cookie `jwt`) con revocación en memoria: logout/desactivación surten
@@ -38,14 +37,14 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
   (identity map de NHibernate devuelve la misma instancia).
 - `UseStatusCodePages` debe registrarse antes de `UseAuthentication`/`UseAuthorization`.
 - Tras desplegar con dominio real, actualizar `AllowedHosts` o todo da 400.
-- Queries LINQ de NHibernate: `.Fetch(...)` en pasos separados (evita producto cartesiano).
-- En `catch` de acciones AJAX usar `JsonError(ex, accion)`, nunca devolver `ex.Message`.
-- Cambiar el `.txt` de contraseñas comunes exige actualizar también su `LogicalName`.
+- Login limitado a 10 intentos/min por IP: al capturar HTML por rol, espaciar las ejecuciones
+  (~60 s) o los logins fallan en silencio.
+- Línea base por curl (HTML normalizado sin token antiforgery) permite diff byte a byte; si hace
+  falta, se regenera desde `git stash` de los archivos tocados.
 
 ## Próximos pasos
 - Implementar `specs/001-deudaTecnica` (pantalla a pantalla): 4 vistas ligadas a entidades (principio 3).
 - Especificar el resto del comportamiento en `/specs` (principio 2).
 - Decidir si instalar CI (`planes/ci.yml` → `.github/workflows/`) o Dependabot (B2).
 - Añadir proyecto de tests (hoy `dotnet build` + prueba manual son la única validación).
-- Persistir revocación de tokens e intentos de login si se escala a varias instancias.
-- Evaluar 2FA y revisar `planes/03-plan-arquitectura.md` para mejoras de arquitectura.
+- Persistir revocación de tokens e intentos de login si se escala; evaluar 2FA.
