@@ -42,7 +42,9 @@
         @if (puedeEditar)
         {
             <a asp-action="VisitaEdit" asp-route-id="@Model.Id"
-               class="btn btn-outline-secondary btn-sm">Editar</a>
+               class="btn btn-outline-primary btn-sm" title="Editar" aria-label="Editar">
+               <i class="fa-solid fa-pen" aria-hidden="true"></i>
+            </a>
         }
         @if (Model.Estado != "Completada" && Model.Estado != "Cancelada")
         {

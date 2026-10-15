@@ -31,10 +31,14 @@
     {
         <div class="d-flex gap-2">
             <a asp-action="RepuestoEdit" asp-route-id="@Model.Id"
-               class="btn btn-outline-secondary btn-sm">Editar</a>
+               class="btn btn-outline-primary btn-sm" title="Editar" aria-label="Editar">
+               <i class="fa-solid fa-pen" aria-hidden="true"></i>
+            </a>
             @if (sedes.Any())
             {
-                <button class="btn btn-success btn-sm" id="btnAjustarStock">Ajustar Stock</button>
+                <button class="btn btn-outline-success btn-sm" id="btnAjustarStock" title="Ajustar stock" aria-label="Ajustar stock">
+                    <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                </button>
             }
         </div>
     }

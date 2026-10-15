@@ -37,11 +37,15 @@
         @if (Model.PuedeEditar && t.EstaAbierto)
         {
             <a asp-action="Edit" asp-route-id="@t.Id"
-               class="btn btn-outline-primary btn-sm">Editar</a>
+               class="btn btn-outline-primary btn-sm" title="Editar" aria-label="Editar">
+               <i class="fa-solid fa-pen" aria-hidden="true"></i>
+            </a>
         }
         @if (Model.PuedeCerrar && t.EstaAbierto)
         {
-            <button class="btn btn-outline-danger btn-sm" id="btnCerrar">Cerrar ticket</button>
+            <button class="btn btn-outline-danger btn-sm" id="btnCerrar" title="Cerrar ticket" aria-label="Cerrar ticket">
+                <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            </button>
         }
     </div>
 </div>

@@ -29,6 +29,8 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
 - En Docker, `app` corre en `Development` para que `http://localhost:8080` sostenga el login;
   Caddy da HTTPS local en `https://localhost:8443`.
 
+- Spec 002-iconosAcciones IMPLEMENTADA (15/10/2026): 21 botones de acción (Ver/Editar/Asignar/Devolver/Tomar/Cerrar/Ajustar stock/Dar de baja) en 11 vistas pasan a solo icono FontAwesome con `title`+`aria-label`; Editar unificado a outline-primary. Pendiente de probar: Tomar ticket y roles Supervisor/Soporte. Sin commit aún.
+
 ## Aprendizajes y errores a evitar
 - Mapas FluentNHibernate usan namespace `MiNuevoProyecto.*` (herencia): no "corregirlo".
 - Auditoría de usuarios: capturar el valor "antes" en una variable antes de `UpdateAsync`
@@ -45,3 +47,4 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
 - Decidir si instalar CI (`planes/ci.yml` → `.github/workflows/`) o Dependabot (B2).
 - Añadir proyecto de tests (hoy `dotnet build` + prueba manual son la única validación).
 - Persistir revocación de tokens e intentos de login si se escala; evaluar 2FA.
+- Las vistas en Docker van precompiladas: tras cambiar un .cshtml hay que `docker-compose up -d --build app` para verlas.

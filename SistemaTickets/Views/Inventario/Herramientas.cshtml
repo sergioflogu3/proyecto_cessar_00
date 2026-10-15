@@ -136,23 +136,29 @@
                                 }
                                 <td class="text-end pe-4">
                                     <a asp-action="HerramientaDetails" asp-route-id="@h.Id"
-                                       class="btn btn-outline-primary btn-sm">Ver</a>
+                                       class="btn btn-outline-primary btn-sm" title="Ver" aria-label="Ver">
+               <i class="fa-solid fa-eye" aria-hidden="true"></i>
+            </a>
                                     @if (esAdminOSupervisor)
                                     {
                                         <a asp-action="HerramientaEdit" asp-route-id="@h.Id"
-                                           class="btn btn-outline-secondary btn-sm ms-1">Editar</a>
+                                           class="btn btn-outline-primary btn-sm ms-1" title="Editar" aria-label="Editar">
+               <i class="fa-solid fa-pen" aria-hidden="true"></i>
+            </a>
                                         @if (h.Estado == "Disponible")
                                         {
                                             <button class="btn btn-outline-success btn-sm ms-1"
-                                                    onclick="abrirAsignar(@h.Id)">
-                                                Asignar
+                                                    onclick="abrirAsignar(@h.Id)"
+                                                    title="Asignar" aria-label="Asignar">
+                                                <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
                                             </button>
                                         }
                                         else if (h.Estado == "Asignada")
                                         {
                                             <button class="btn btn-outline-warning btn-sm ms-1"
-                                                    onclick="confirmarDevolver(@h.Id, '@h.Nombre')">
-                                                Devolver
+                                                    onclick="confirmarDevolver(@h.Id, '@h.Nombre')"
+                                                    title="Devolver" aria-label="Devolver">
+                                                <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
                                             </button>
                                         }
                                     }

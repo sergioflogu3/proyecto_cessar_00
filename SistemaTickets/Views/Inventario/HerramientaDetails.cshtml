@@ -40,14 +40,20 @@
     {
         <div class="d-flex gap-2 flex-wrap">
             <a asp-action="HerramientaEdit" asp-route-id="@Model.Id"
-               class="btn btn-outline-secondary btn-sm">Editar</a>
+               class="btn btn-outline-primary btn-sm" title="Editar" aria-label="Editar">
+               <i class="fa-solid fa-pen" aria-hidden="true"></i>
+            </a>
             @if (Model.Estado == "Disponible")
             {
-                <button class="btn btn-success btn-sm" id="btnAsignarH">Asignar</button>
+                <button class="btn btn-outline-success btn-sm" id="btnAsignarH" title="Asignar" aria-label="Asignar">
+                    <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                </button>
             }
             else if (Model.Estado == "Asignada")
             {
-                <button class="btn btn-warning btn-sm" id="btnDevolver">Devolver</button>
+                <button class="btn btn-outline-warning btn-sm" id="btnDevolver" title="Devolver" aria-label="Devolver">
+                    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                </button>
             }
         </div>
     }
