@@ -108,6 +108,13 @@ Se entrega **pantalla a pantalla**: cada una en un commit independiente que refe
 - [x] Detalle de visita técnica
 - [x] Detalle de herramienta
 
+### Defectos preexistentes derivados
+Durante la implementación se identificaron dos defectos de control de acceso preexistentes, fuera del alcance de esta spec conforme a RF-13 (no se corrigieron ni se bloquea el cierre por ellos). Se derivan a incidencias independientes, con estos títulos:
+- `HerramientaDetails` no filtra por técnico: un usuario de Soporte abre el detalle de cualquier herramienta por su identificador, aunque el listado solo le muestra las asignadas.
+- `VisitaCambiarEstado` no comprueba el propietario: un técnico de Soporte puede cambiar el estado de una visita asignada a otro.
+
+Estado: pendiente de registrar en GitHub (requiere `gh auth login`); el detalle está en `tasks.md`, sección "Deuda adyacente entregada al responsable".
+
 La spec se cierra cuando las cuatro casillas están marcadas, la búsqueda de verificación da 0 resultados, se retira la deuda de la constitución y se actualiza la memoria del proyecto.
 
 ## Dudas abiertas
