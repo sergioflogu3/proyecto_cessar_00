@@ -1,0 +1,40 @@
+@model (string Texto, string? Color)
+@* Badge para estados/prioridades con color de BD (RF-15, RF-23).
+   Texto blanco u oscuro según cuál dé más contraste. Si el color falta o no es #RRGGBB, cae a bg-secondary. *@
+@functions {
+    // Luminancia relativa WCAG 2.x de "#RRGGBB"
+    static double Luminancia(string hex)
+    {
+        double Canal(int desde)
+        {
+            var c = Convert.ToInt32(hex.Substring(desde, 2), 16) / 255.0;
+            return c <= 0.04045 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4);
+        }
+        return 0.2126 * Canal(1) + 0.7152 * Canal(3) + 0.0722 * Canal(5);
+    }
+
+    static bool EsHexValido(string? c) =>
+        c is { Length: 7 } && c[0] == '#' && c.Skip(1).All(Uri.IsHexDigit);
+
+    // Función pura: "#RRGGBB" -> "#fff" | "#212529" | "#000" (entrada inválida -> "#fff").
+    // Se prefiere el gris oscuro de Bootstrap; si no llega a 4,5:1 (colores de luminancia media,
+    // p. ej. #ff0000) se usa negro puro, con el que siempre hay >= 4,58:1 con blanco o negro.
+    public static string TextoSobre(string? colorHex)
+    {
+        if (!EsHexValido(colorHex)) return "#fff";
+        var l = Luminancia(colorHex!);
+        var cBlanco = 1.05 / (l + 0.05);
+        var cOscuro = (l + 0.05) / (Luminancia("#212529") + 0.05);
+        var cNegro = (l + 0.05) / 0.05;
+        if (cBlanco >= 4.5) return "#fff";
+        return cOscuro >= 4.5 ? "#212529" : "#000";
+    }
+}
+@if (EsHexValido(Model.Color))
+{
+    <span class="badge" style="background-color:@Model.Color;color:@TextoSobre(Model.Color)">@Model.Texto</span>
+}
+else
+{
+    <span class="badge bg-secondary">@Model.Texto</span>
+}

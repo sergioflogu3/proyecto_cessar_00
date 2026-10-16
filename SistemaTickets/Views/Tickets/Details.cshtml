@@ -10,22 +10,22 @@
 @Html.AntiForgeryToken()
 
 @* Cabecera *@
-<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
-    <div>
+<div class="page-header align-items-start">
+    <div class="min-w-0">
         <div class="d-flex align-items-center gap-2 mb-1">
             <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Volver</a>
             <span class="text-muted small">Ticket #@t.Id</span>
         </div>
-        <h4 class="mb-1 fw-bold">@t.Titulo</h4>
+        <h1 class="page-title mb-2">@t.Titulo</h1>
         <div class="d-flex flex-wrap gap-2 align-items-center">
-            <span class="badge" style="background-color:@t.Estado.Color; font-size:.85rem">@t.Estado.Nombre</span>
+            <partial name="_BadgeEstado" model="(t.Estado.Nombre, t.Estado.Color)" />
             @if (t.Prioridad != null)
             {
-                <span class="badge" style="background-color:@t.Prioridad.Color; font-size:.85rem">@t.Prioridad.Nombre</span>
+                <partial name="_BadgeEstado" model="(t.Prioridad.Nombre, t.Prioridad.Color)" />
             }
             else
             {
-                <span class="badge bg-secondary" style="font-size:.85rem">Sin prioridad</span>
+                <span class="badge bg-secondary">Sin prioridad</span>
             }
             @if (t.Categoria is not null)
             {
@@ -33,7 +33,7 @@
             }
         </div>
     </div>
-    <div class="d-flex gap-2 flex-wrap">
+    <div class="page-actions acciones-icono">
         @if (Model.PuedeEditar && t.EstaAbierto)
         {
             <a asp-action="Edit" asp-route-id="@t.Id"
@@ -85,7 +85,7 @@
                     @foreach (var c in comentariosVisibles)
                     {
                         <div class="border-bottom px-4 py-3 @(c.EsInterno ? "bg-warning bg-opacity-10" : "")">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                                 <span class="fw-semibold small">
                                     @c.Usuario.Nombre @c.Usuario.Apellido
                                     @if (c.EsInterno)
@@ -106,7 +106,7 @@
             {
                 <div class="card-footer bg-white border-top">
                     <div id="formComentario">
-                        <textarea id="txtComentario" class="form-control form-control-sm mb-2" rows="3"
+                        <textarea id="txtComentario" class="form-control form-control-sm mb-2" rows="3" aria-label="Comentario"
                                   placeholder="Escribe un comentario..."></textarea>
                         @if (role != "Usuario")
                         {
@@ -115,7 +115,7 @@
                                 <label class="form-check-label small" for="chkInterno">Nota interna (solo agentes)</label>
                             </div>
                         }
-                        <div id="errorComentario" class="alert alert-danger py-2 small d-none"></div>
+                        <div id="errorComentario" role="alert" class="alert alert-danger py-2 small d-none"></div>
                         <button class="btn btn-primary btn-sm px-4" id="btnEnviarComentario">
                             Enviar comentario
                         </button>
@@ -143,10 +143,10 @@
                         <div class="d-flex align-items-start gap-3 border-bottom px-4 py-3">
                             <div class="rounded-circle bg-primary text-white d-flex align-items-center
                                         justify-content-center flex-shrink-0"
-                                 style="width:32px;height:32px;font-size:.7rem">
+                                 style="width:32px;height:32px;font-size:.75rem" aria-hidden="true">
                                 @h.Usuario.Nombre[0]@h.Usuario.Apellido[0]
                             </div>
-                            <div>
+                            <div class="min-w-0">
                                 <div class="small fw-semibold">
                                     @h.Usuario.Nombre @h.Usuario.Apellido
                                     <span class="text-muted fw-normal">— @h.Accion</span>
@@ -186,27 +186,27 @@
                 <span class="fw-semibold">Información</span>
             </div>
             <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                <li class="list-group-item d-flex justify-content-between gap-3 px-4 py-2">
                     <span class="text-muted small">Creado por</span>
-                    <span class="small fw-semibold">@t.CreadoPor.Nombre @t.CreadoPor.Apellido</span>
+                    <span class="small fw-semibold text-end">@t.CreadoPor.Nombre @t.CreadoPor.Apellido</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                <li class="list-group-item d-flex justify-content-between gap-3 px-4 py-2">
                     <span class="text-muted small">Asignado a</span>
-                    <span class="small fw-semibold" id="lblAsignadoA">
+                    <span class="small fw-semibold text-end" id="lblAsignadoA">
                         @(t.AsignadoA is null ? "—" : $"{t.AsignadoA.Nombre} {t.AsignadoA.Apellido}")
                     </span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                <li class="list-group-item d-flex justify-content-between gap-3 px-4 py-2">
                     <span class="text-muted small">Creado</span>
                     <span class="small">@t.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                <li class="list-group-item d-flex justify-content-between gap-3 px-4 py-2">
                     <span class="text-muted small">Actualizado</span>
                     <span class="small">@t.FechaActualizacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                 </li>
 @if (t.FechaCierre.HasValue)
                 {
-                    <li class="list-group-item d-flex justify-content-between px-4 py-2">
+                    <li class="list-group-item d-flex justify-content-between gap-3 px-4 py-2">
                         <span class="text-muted small">Cerrado</span>
                         <span class="small">@t.FechaCierre.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                     </li>
@@ -222,7 +222,7 @@
                     <span class="fw-semibold">Cambiar estado</span>
                 </div>
                 <div class="card-body">
-                    <select id="selectEstado" class="form-select form-select-sm mb-2">
+                    <select id="selectEstado" class="form-select form-select-sm mb-2" aria-label="Cambiar estado">
                         @foreach (var e in Model.Estados)
                         {
                             <option value="@e.Id" selected="@(t.Estado.Id == e.Id)">@e.Nombre</option>
@@ -231,7 +231,7 @@
                     <button class="btn btn-primary btn-sm w-100" id="btnCambiarEstado">
                         Aplicar estado
                     </button>
-                    <div id="errorEstado" class="alert alert-danger py-2 small d-none mt-2"></div>
+                    <div id="errorEstado" role="alert" class="alert alert-danger py-2 small d-none mt-2"></div>
                 </div>
             </div>
         }
@@ -244,7 +244,7 @@
                     <span class="fw-semibold">Asignar a</span>
                 </div>
                 <div class="card-body">
-                    <select id="selectAgente" class="form-select form-select-sm mb-2">
+                    <select id="selectAgente" class="form-select form-select-sm mb-2" aria-label="Asignar a">
                         <option value="">Sin asignar</option>
                         @foreach (var a in Model.Agentes)
                         {
@@ -256,7 +256,7 @@
                     <button class="btn btn-primary btn-sm w-100" id="btnAsignar">
                         Asignar
                     </button>
-                    <div id="errorAsignar" class="alert alert-danger py-2 small d-none mt-2"></div>
+                    <div id="errorAsignar" role="alert" class="alert alert-danger py-2 small d-none mt-2"></div>
                 </div>
             </div>
         }
@@ -271,7 +271,7 @@
                     </span>
                 </div>
                 <div class="card-body">
-                    <select id="selectPrioridad" class="form-select form-select-sm mb-2">
+                    <select id="selectPrioridad" class="form-select form-select-sm mb-2" aria-label="Prioridad">
                         <option value="">Selecciona...</option>
                         @foreach (var p in Model.Prioridades)
                         {
@@ -282,7 +282,7 @@
                     <button class="btn btn-primary btn-sm w-100" id="btnAsignarPrioridad">
                         Aplicar prioridad
                     </button>
-                    <div id="errorPrioridad" class="alert alert-danger py-2 small d-none mt-2"></div>
+                    <div id="errorPrioridad" role="alert" class="alert alert-danger py-2 small d-none mt-2"></div>
                 </div>
             </div>
         }
@@ -316,22 +316,22 @@
                             _                         => "fa-file text-muted"
                         };
                         <div class="d-flex align-items-center gap-2 px-3 py-2 border-bottom">
-                            <i class="fa-solid @icon fs-5 flex-shrink-0"></i>
-                            <div class="overflow-hidden flex-grow-1">
+                            <i class="fa-solid @icon fs-5 flex-shrink-0" aria-hidden="true"></i>
+                            <div class="min-w-0 flex-grow-1">
                                 <a asp-action="DescargarAdjunto" asp-route-id="@a.Id"
-                                   class="small fw-semibold text-decoration-none text-truncate d-block"
+                                   class="small fw-semibold text-decoration-none text-truncate d-block enlace-tap"
                                    title="@a.NombreArchivo" target="_blank">
                                     @a.NombreArchivo
                                 </a>
-                                <div class="text-muted" style="font-size:.7rem">
+                                <div class="text-muted" style="font-size:.75rem">
                                     @((a.TamanioBytes / 1024.0).ToString("N1")) KB
                                     · @a.FechaSubida.ToLocalTime().ToString("dd/MM/yy")
                                     · @a.SubidoPor.NombreCompleto
                                 </div>
                             </div>
                             <a asp-action="DescargarAdjunto" asp-route-id="@a.Id"
-                               class="btn btn-link btn-sm p-0 text-muted" title="Descargar" target="_blank">
-                                <i class="fa-solid fa-download"></i>
+                               class="btn btn-link btn-sm p-0 text-muted" title="Descargar" aria-label="Descargar @a.NombreArchivo" target="_blank">
+                                <i class="fa-solid fa-download" aria-hidden="true"></i>
                             </a>
                         </div>
                     }
@@ -343,12 +343,12 @@
 </div>
 
 @* Modal confirmación cerrar *@
-<div class="modal fade" id="confirmCerrarModal" tabindex="-1">
+<div class="modal fade" id="confirmCerrarModal" tabindex="-1" aria-labelledby="confirmCerrarTitulo">
     <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-danger">Cerrar ticket</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title fw-bold text-danger" id="confirmCerrarTitulo">Cerrar ticket</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body pt-2">
                 <p class="mb-0">¿Está seguro de cerrar el ticket <strong>#@t.Id — @t.Titulo</strong>?</p>

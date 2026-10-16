@@ -48,3 +48,4 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
 - Añadir proyecto de tests (hoy `dotnet build` + prueba manual son la única validación).
 - Persistir revocación de tokens e intentos de login si se escala; evaluar 2FA.
 - Las vistas en Docker van precompiladas: tras cambiar un .cshtml hay que `docker-compose up -d --build app` para verlas.
+- Spec 003-vistaResponsive: T1–T6 hechas (T7 es la siguiente, una tarea cada vez). Si el disco se llena, `docker builder prune` libera caché sin tocar la BD; `resize_page` no cambia `innerWidth`, usar `emulate`.

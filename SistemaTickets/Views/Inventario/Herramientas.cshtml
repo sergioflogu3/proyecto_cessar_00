@@ -10,17 +10,17 @@
 
 @Html.AntiForgeryToken()
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h4 class="mb-0 fw-bold">@(esSoporte ? "Mis Herramientas Asignadas" : "Herramientas")</h4>
-        <small class="text-muted">
+        <h1 class="page-title">@(esSoporte ? "Mis Herramientas Asignadas" : "Herramientas")</h1>
+        <small class="page-subtitle">
             @if (!esSoporte)
             {
                 <span>Mostrando @Model.DesdeRegistro–@Model.HastaRegistro de @Model.TotalRegistros herramientas</span>
             }
         </small>
     </div>
-    <div class="d-flex gap-2">
+    <div class="page-actions">
         @if (esAdminOSupervisor)
         {
             <a asp-action="Activos" class="btn btn-outline-primary btn-sm">Ver Activos</a>
@@ -31,9 +31,9 @@
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
         @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
 }
 
@@ -42,14 +42,14 @@
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body py-3">
             <form method="get" asp-action="Herramientas" class="row g-2 align-items-end">
-                <div class="col-md-5">
-                    <label class="form-label small text-muted mb-1">Buscar</label>
-                    <input type="text" name="search" value="@Model.Search"
+                <div class="col-12 col-md-6 col-lg-5">
+                    <label for="filtroSearch" class="form-label small text-muted mb-1">Buscar</label>
+                    <input type="text" id="filtroSearch" name="search" value="@Model.Search"
                            class="form-control form-control-sm" placeholder="Nombre o código..." />
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label small text-muted mb-1">Tipo</label>
-                    <select name="tipo" class="form-select form-select-sm">
+                <div class="col-12 col-md-6 col-lg-2">
+                    <label for="filtroTipo" class="form-label small text-muted mb-1">Tipo</label>
+                    <select id="filtroTipo" name="tipo" class="form-select form-select-sm">
                         <option value="">Todos</option>
                         @foreach (var t in SistemaTickets.Models.Inventario.HerramientaIndexViewModel.Tipos)
                         {
@@ -57,9 +57,9 @@
                         }
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label small text-muted mb-1">Estado</label>
-                    <select name="estado" class="form-select form-select-sm">
+                <div class="col-12 col-md-6 col-lg-2">
+                    <label for="filtroEstado" class="form-label small text-muted mb-1">Estado</label>
+                    <select id="filtroEstado" name="estado" class="form-select form-select-sm">
                         <option value="">Todos</option>
                         @foreach (var e in SistemaTickets.Models.Inventario.HerramientaIndexViewModel.Estados)
                         {
@@ -67,11 +67,9 @@
                         }
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary btn-sm w-100">Buscar</button>
-                </div>
-                <div class="col-md-1">
-                    <a asp-action="Herramientas" class="btn btn-outline-secondary btn-sm w-100">✕</a>
+                <div class="col-12 col-md-6 col-lg-3 acciones-form d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm flex-grow-1">Buscar</button>
+                    <a asp-action="Herramientas" class="btn btn-outline-secondary btn-sm" title="Limpiar filtros" aria-label="Limpiar filtros">✕</a>
                 </div>
             </form>
         </div>
@@ -81,7 +79,7 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 tabla-apilable">
                 <thead class="table-light">
                     <tr>
                         <th class="ps-4" style="width:50px">#</th>
@@ -100,8 +98,8 @@
                     @if (!Model.Herramientas.Any())
                     {
                         <tr>
-                            <td colspan="7" class="text-center py-5 text-muted">
-                                @(esSoporte ? "No tienes herramientas asignadas." : "No se encontraron herramientas.")
+                            <td colspan="7" class="fila-vacia p-0">
+                                <partial name="_EstadoVacio" model='("fa-solid fa-screwdriver-wrench", esSoporte ? "No tienes herramientas asignadas." : "No se encontraron herramientas.", (string?)null, (string?)null)' />
                             </td>
                         </tr>
                     }
@@ -114,27 +112,27 @@
                             {
                                 "Disponible"   => "success",
                                 "Asignada"     => "primary",
-                                "En Reparación"=> "warning",
+                                "En Reparación"=> "warning text-dark",
                                 "Baja"         => "danger",
                                 _              => "secondary"
                             };
                             var asignacionActual = h.Asignaciones.FirstOrDefault(a => a.Activa);
                             <tr>
-                                <td class="ps-4 text-muted small">@num</td>
-                                <td>
+                                <td data-label="#" class="ps-4 text-muted small">@num</td>
+                                <td data-label="Nombre">
                                     <a asp-action="HerramientaDetails" asp-route-id="@h.Id"
                                        class="fw-semibold text-decoration-none text-dark">@h.Nombre</a>
                                 </td>
-                                <td class="text-muted small">@(h.Codigo ?? "—")</td>
-                                <td><span class="badge bg-secondary">@h.Tipo</span></td>
-                                <td><span class="badge bg-@estadoColor">@h.Estado</span></td>
+                                <td data-label="Código" class="text-muted small">@(h.Codigo ?? "—")</td>
+                                <td data-label="Tipo"><span class="badge bg-secondary">@h.Tipo</span></td>
+                                <td data-label="Estado"><span class="badge bg-@estadoColor">@h.Estado</span></td>
                                 @if (esAdminOSupervisor)
                                 {
-                                    <td class="small text-muted">
+                                    <td data-label="Asignada a" class="small text-muted">
                                         @(asignacionActual?.Tecnico.NombreCompleto ?? "—")
                                     </td>
                                 }
-                                <td class="text-end pe-4">
+                                <td class="text-end pe-4 celda-acciones">
                                     <a asp-action="HerramientaDetails" asp-route-id="@h.Id"
                                        class="btn btn-outline-primary btn-sm" title="Ver" aria-label="Ver">
                <i class="fa-solid fa-eye" aria-hidden="true"></i>
@@ -173,49 +171,35 @@
     </div>
 </div>
 
-@if (Model.TotalPaginas > 1)
-{
-    <nav class="mt-4 d-flex justify-content-center">
-        <ul class="pagination pagination-sm mb-0">
-            <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
-                <a class="page-link" href="?page=@(Model.PaginaActual-1)&search=@Model.Search">‹</a>
-            </li>
-            @for (int i = 1; i <= Model.TotalPaginas; i++)
-            {
-                <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
-                    <a class="page-link" href="?page=@i&search=@Model.Search">@i</a>
-                </li>
-            }
-            <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
-                <a class="page-link" href="?page=@(Model.PaginaActual+1)&search=@Model.Search">›</a>
-            </li>
-        </ul>
-    </nav>
+@* Paginación *@
+@{
+    Func<int, string> urlPagina = n => "?page=" + n + "&search=" + Uri.EscapeDataString(Model.Search ?? "");
 }
+<partial name="_Paginacion" model="(Model.PaginaActual, Model.TotalPaginas, urlPagina)" />
 
 @* Modal asignar herramienta *@
 @if (esAdminOSupervisor)
 {
-    <div class="modal fade" id="asignarModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+    <div class="modal fade" id="asignarModal" tabindex="-1" aria-labelledby="asignarModalTitulo">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold">Asignar herramienta</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title fw-bold" id="asignarModalTitulo">Asignar herramienta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="asignarHId" />
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Técnico</label>
+                        <label for="selectTecnico" class="form-label fw-semibold">Técnico</label>
                         <select id="selectTecnico" class="form-select">
                             <option value="">Cargando...</option>
                         </select>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label fw-semibold">Observaciones</label>
+                        <label for="txtAsignarObs" class="form-label fw-semibold">Observaciones</label>
                         <textarea id="txtAsignarObs" class="form-control" rows="2"></textarea>
                     </div>
-                    <div id="errorAsignar" class="alert alert-danger py-2 small d-none"></div>
+                    <div id="errorAsignar" class="alert alert-danger py-2 small d-none" role="alert"></div>
                 </div>
                 <div class="modal-footer border-0 pt-0 gap-2">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -225,17 +209,17 @@
         </div>
     </div>
 
-    <div class="modal fade" id="devolverModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+    <div class="modal fade" id="devolverModal" tabindex="-1" aria-labelledby="devolverModalTitulo">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width:420px">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold">Registrar devolución</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title fw-bold" id="devolverModalTitulo">Registrar devolución</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="devolverHId" />
                     <p>Herramienta: <strong id="devolverNombre"></strong></p>
-                    <label class="form-label fw-semibold">Observaciones</label>
+                    <label for="txtDevolverObs" class="form-label fw-semibold">Observaciones</label>
                     <textarea id="txtDevolverObs" class="form-control" rows="2"></textarea>
                 </div>
                 <div class="modal-footer border-0 pt-0 gap-2">

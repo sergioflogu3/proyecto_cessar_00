@@ -157,8 +157,8 @@
 
         <header class="app-topbar">
             <div class="d-flex align-items-center gap-2">
-                <button class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Toggle sidebar">
-                    <i class="fa-solid fa-bars"></i>
+                <button type="button" class="sidebar-toggle-btn" id="sidebarToggle" aria-label="Abrir menú" aria-controls="appSidebar" aria-expanded="false">
+                    <i class="fa-solid fa-bars" aria-hidden="true"></i>
                 </button>
                 <span class="topbar-title">@ViewData["Title"]</span>
             </div>
@@ -177,31 +177,31 @@
 
     @* ── Modal: Cambiar contraseña ──────────────────────────────────────── *@
     <div class="modal fade" id="modalCambiarPassword" tabindex="-1" aria-labelledby="lblCambiarPassword" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width:420px">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header border-bottom py-3">
                     <h6 class="modal-title fw-semibold mb-0" id="lblCambiarPassword">
                         <i class="fa-solid fa-key me-2 text-primary"></i>Cambiar contraseña
                     </h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body px-4 py-4">
                     <div id="alertCambiarPwd" class="alert d-none mb-3" role="alert"></div>
                     <form id="formCambiarPassword">
                         @Html.AntiForgeryToken()
                         <div class="mb-3">
-                            <label class="form-label fw-semibold small mb-1">Contraseña actual</label>
+                            <label for="cpwdActual" class="form-label fw-semibold small mb-1">Contraseña actual</label>
                             <input type="password" class="form-control" id="cpwdActual"
                                    name="PasswordActual" placeholder="Tu contraseña actual" autocomplete="current-password" />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label fw-semibold small mb-1">Nueva contraseña</label>
+                            <label for="cpwdNuevo" class="form-label fw-semibold small mb-1">Nueva contraseña</label>
                             <input type="password" class="form-control" id="cpwdNuevo"
                                    name="NuevoPassword" placeholder="Mínimo 12 caracteres" autocomplete="new-password" />
                             <div class="form-text">Mínimo 12 caracteres, con mayúscula, minúscula, número y carácter especial. Evitá contraseñas comunes.</div>
                         </div>
                         <div class="mb-0">
-                            <label class="form-label fw-semibold small mb-1">Confirmar nueva contraseña</label>
+                            <label for="cpwdConfirmar" class="form-label fw-semibold small mb-1">Confirmar nueva contraseña</label>
                             <input type="password" class="form-control" id="cpwdConfirmar"
                                    name="ConfirmarPassword" placeholder="Repetir nueva contraseña" autocomplete="new-password" />
                         </div>
@@ -234,19 +234,46 @@ else
 
         if (!toggleBtn) return;
 
+        const esAbierto = () => sidebar.classList.contains('sidebar-open');
+
         function openSidebar() {
             sidebar.classList.add('sidebar-open');
             backdrop.classList.add('show');
+            toggleBtn.setAttribute('aria-expanded', 'true');
         }
-        function closeSidebar() {
+        // devolverFoco: true al cerrar por Escape, clic fuera u opción (RF-11)
+        function closeSidebar(devolverFoco) {
+            const estabaAbierto = esAbierto();
             sidebar.classList.remove('sidebar-open');
             backdrop.classList.remove('show');
+            toggleBtn.setAttribute('aria-expanded', 'false');
+            if (devolverFoco === true && estabaAbierto) toggleBtn.focus();
         }
 
         toggleBtn.addEventListener('click', function () {
-            sidebar.classList.contains('sidebar-open') ? closeSidebar() : openSidebar();
+            esAbierto() ? closeSidebar(true) : openSidebar();
         });
-        backdrop.addEventListener('click', closeSidebar);
+        backdrop.addEventListener('click', function () { closeSidebar(true); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && esAbierto()) closeSidebar(true);
+        });
+        // Elegir una opción de navegación (enlaces) cierra el menú
+        sidebar.querySelectorAll('a.sidebar-link').forEach(function (a) {
+            a.addEventListener('click', function () { closeSidebar(true); });
+        });
+        // Al pasar a >=992 px (rotación/redimensión) se cierra y se limpia el backdrop
+        const mq = window.matchMedia('(min-width:992px)');
+        const alCambiar = function (e) { if (e.matches) closeSidebar(false); };
+        mq.addEventListener ? mq.addEventListener('change', alCambiar) : mq.addListener(alCambiar);
+
+        // "Cambiar contraseña" abre un modal: se cierra el menú móvil y, al cerrar el modal, el foco vuelve al botón del menú
+        const modalPwd = document.getElementById('modalCambiarPassword');
+        document.querySelectorAll('[data-bs-target="#modalCambiarPassword"]').forEach(function (b) {
+            b.addEventListener('click', function () { closeSidebar(false); });
+        });
+        if (modalPwd) modalPwd.addEventListener('hidden.bs.modal', function () {
+            if (!mq.matches) toggleBtn.focus();
+        });
     })();
 </script>
 <script>

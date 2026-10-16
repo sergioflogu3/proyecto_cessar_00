@@ -10,15 +10,39 @@
     --topbar-height:       54px;
     --color-bg:            #f4f6f9;
     --color-text:          #2d3748;
-    --color-muted:         #718096;
+    --color-muted:         #5a6b82;   /* AA: antes #718096 (4,0:1) */
+    --color-muted-fuerte:  #5a6b82;
     --color-white:         #FFFFFF;
+
+    /* Colores de texto/aviso ajustados a AA (RF-23); mismo matiz que los de Bootstrap */
+    --color-aviso:         #8a6100;
+    --color-info:          #087990;
+    --color-danger-texto:  #b02a37;
+
+    /* Tamaños de texto, uno por rol (RF-14) */
+    --fs-titulo:           1.5rem;
+    --fs-subtitulo:        .875rem;
+    --fs-ayuda:            .8125rem;
+    --fs-badge:            .75rem;
+
+    /* Espaciado y forma comunes (RF-13, RF-18) */
+    --card-pad:            1rem;
+    --gap-acciones:        max(.5rem, 8px);   /* .5rem son 7 px con html a 14 px; RF-24 pide >=8 px */
+    --sombra-card:         0 .125rem .25rem rgba(0,0,0,.075);
+
+    /* Objetivos táctiles (RF-24; se aplican en <=991px, T2) */
+    --tap-min:             44px;
+
+    /* Foco visible (RF-21): 7,7:1 sobre blanco; el menú usa blanco */
+    --focus-ring:          #1A5399;
 }
 
 /* =============================================
    BASE
    ============================================= */
-html { font-size: 14px; }
-@media (min-width: 768px) { html { font-size: 15px; } }
+/* 14px / 15px con el tamaño de texto por defecto, pero escalables (RF-27) */
+html { font-size: 87.5%; }
+@media (min-width: 768px) { html { font-size: 93.75%; } }
 
 html, body { height: 100%; margin: 0; }
 
@@ -72,11 +96,11 @@ body {
 }
 
 .sidebar-section {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: rgba(255,255,255,0.4);
+    color: rgba(255,255,255,0.78);
     padding: 1rem 1.25rem 0.3rem;
 }
 
@@ -92,7 +116,7 @@ body {
     align-items: center;
     gap: 0.8rem;
     padding: 0.65rem 1.25rem;
-    color: rgba(255,255,255,0.78);
+    color: rgba(255,255,255,0.9);
     text-decoration: none;
     font-size: 0.875rem;
     border-left: 3px solid transparent;
@@ -131,7 +155,7 @@ body {
     align-items: center;
     gap: 0.65rem;
     padding: 0.4rem 1.25rem 0.6rem;
-    color: rgba(255,255,255,0.7);
+    color: rgba(255,255,255,0.85);
     font-size: 0.8rem;
     overflow: hidden;
 }
@@ -146,8 +170,8 @@ body {
 }
 
 .sidebar-role {
-    font-size: 0.7rem;
-    color: rgba(255,255,255,0.5);
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.8);
     margin-top: 1px;
 }
 
@@ -156,7 +180,7 @@ body {
     align-items: center;
     gap: 0.8rem;
     padding: 0.55rem 1.25rem;
-    color: rgba(255,180,180,0.85);
+    color: #ffcdcd;
     text-decoration: none;
     font-size: 0.85rem;
     border-left: 3px solid transparent;
@@ -205,7 +229,7 @@ button.sidebar-logout {
 .app-topbar {
     position: sticky;
     top: 0;
-    height: var(--topbar-height);
+    min-height: var(--topbar-height);
     background: var(--color-white);
     border-bottom: 1px solid #e9ecef;
     display: flex;
@@ -265,12 +289,18 @@ button.sidebar-logout {
    RESPONSIVE — MÓVIL
    ============================================= */
 @media (max-width: 991.98px) {
+    /* Menú cerrado: fuera de pantalla y NO tabulable (visibility retardada hasta acabar la transición, RF-11) */
     .app-sidebar {
-        transform: translateX(calc(-1 * var(--sidebar-width)));
+        width: min(var(--sidebar-width), 85vw);
+        transform: translateX(-100%);
+        visibility: hidden;
+        transition: transform 0.25s ease, visibility 0s linear 0.25s;
     }
 
     .app-sidebar.sidebar-open {
         transform: translateX(0);
+        visibility: visible;
+        transition: transform 0.25s ease, visibility 0s linear 0s;
         box-shadow: 4px 0 20px rgba(0,0,0,0.2);
     }
 
@@ -284,11 +314,29 @@ button.sidebar-logout {
 }
 
 /* =============================================
-   FOCUS RING
+   FOCO VISIBLE (RF-21, RF-22)
+   Aro de 2px con 2px de separación: nunca se quita el contorno sin sustituto.
    ============================================= */
-.btn:focus, .form-control:focus {
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
+textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible,
+.btn:focus-visible, .btn-check:focus-visible + .btn, .form-control:focus,
+.form-select:focus, .form-check-input:focus, .btn-close:focus, .page-link:focus,
+.nav-link:focus-visible, .dropdown-item:focus-visible, .accordion-button:focus {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 0.2rem rgba(26,83,153,0.25);
-    outline: none;
+}
+
+/* Menú lateral: fondo azul de marca -> aro blanco (7,7:1), hacia dentro para no recortarse */
+.sidebar-link:focus-visible, .sidebar-logout:focus-visible,
+.sidebar-brand a:focus-visible, button.sidebar-link:focus-visible,
+button.sidebar-logout:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: -2px;
 }
 
 /* =============================================
@@ -327,7 +375,7 @@ button.sidebar-logout {
 .login-left-content { position: relative; z-index: 2; text-align: center; color: var(--color-white); }
 .login-logo { height: 48px; object-fit: contain; filter: brightness(0) invert(1); }
 .login-welcome { font-size: 2rem; font-weight: 700; letter-spacing: 0.03em; margin-bottom: 0.5rem; color: var(--color-white); }
-.login-subtitle { font-size: 0.92rem; color: rgba(255,255,255,0.75); line-height: 1.6; }
+.login-subtitle { font-size: 0.92rem; color: rgba(255,255,255,0.92); line-height: 1.6; }
 
 .login-circle { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.08); z-index: 1; }
 .login-circle-1 { width: 200px; height: 200px; bottom: -60px; left: -60px; }
@@ -361,12 +409,15 @@ button.sidebar-logout {
     border-color: var(--color-primary);
     background: var(--color-white);
     box-shadow: 0 0 0 3px rgba(26,83,153,0.12);
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
 }
 
 .login-input-icon { font-size: 1rem; margin-right: 0.5rem; flex-shrink: 0; }
 .login-input { border: none; background: transparent; flex: 1; padding: 0.7rem 0; font-size: 0.92rem; color: var(--color-text); }
-.login-input:focus { outline: none; box-shadow: none; }
-.login-input::placeholder { color: #a0aec0; }
+/* El aro de foco lo dibuja el grupo (:focus-within); el propio input no repite el suyo */
+.login-input:focus-visible { outline-color: transparent; }
+.login-input::placeholder { color: var(--color-muted-fuerte); opacity: 1; }
 
 .login-show-btn {
     background: none; border: none; color: var(--color-primary);
@@ -374,6 +425,7 @@ button.sidebar-logout {
     padding: 0.25rem; flex-shrink: 0;
 }
 .login-show-btn:hover { color: var(--color-secondary); }
+.login-show-btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 4px; }
 
 .btn-login {
     background: var(--color-primary); color: var(--color-white);
@@ -389,4 +441,300 @@ button.sidebar-logout {
     .login-left   { padding: 2rem 1.5rem; }
     .login-right  { padding: 2rem 1.5rem; }
     .login-circle-1, .login-circle-2, .login-circle-3 { display: none; }
+}
+
+
+/* =============================================
+   COMPONENTES COMUNES (spec 003, T1)
+   ============================================= */
+
+/* Cabecera de página (RF-13): sustituirá a d-flex + h4 + small en cada vista */
+.page-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem 1rem;
+    margin-bottom: 1.5rem;
+}
+.page-title {
+    font-size: var(--fs-titulo);
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+.page-subtitle { font-size: var(--fs-subtitulo); color: var(--color-muted-fuerte); }
+.page-actions { display: flex; flex-wrap: wrap; gap: var(--gap-acciones); }
+
+/* Enlaces con el azul de marca: el azul de Bootstrap da 4,16:1 sobre #f4f6f9 */
+a { color: var(--color-primary); }
+a:hover { color: var(--color-primary-dark); }
+
+/* Tarjetas (RF-18) */
+.card { border: 0; box-shadow: var(--sombra-card); }
+.card-header { background: #fff; padding: .75rem var(--card-pad); }
+
+/* Badges uniformes (RF-15); el borde sutil va como sombra interior para no cambiar el tamaño */
+.badge {
+    font-size: var(--fs-badge);
+    font-weight: 600;
+    padding: .35em .65em;
+    border-radius: .375rem;
+}
+.badge[style*="background"] { box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+.badge.bg-warning, .badge.bg-info { color: #212529; }
+
+/* Texto de ayuda y avisos con contraste AA (RF-23) */
+.text-muted { color: var(--color-muted-fuerte) !important; }
+.text-warning { color: var(--color-aviso) !important; }
+.text-info { color: var(--color-info) !important; }
+.text-danger { color: var(--color-danger-texto) !important; }
+.text-primary { color: var(--color-primary) !important; }
+.text-success { color: #146c43 !important; }   /* #198754 da 4,18:1 sobre #f4f6f9 */
+.text-secondary { color: var(--color-muted-fuerte) !important; }   /* #6c757d da 4,33:1 sobre #f4f6f9 */
+.field-validation-error { color: var(--color-danger-texto); font-size: var(--fs-ayuda); }
+.field-validation-error::before { content: "\26A0\FE0E  "; }
+
+/* Botón de contorno amarillo (Devolver): #ffc107 sobre blanco = 1,6:1.
+   Bootstrap 5.1 no usa variables de botón, se redefine cada estado. */
+.btn-outline-warning { color: var(--color-aviso); border-color: var(--color-aviso); }
+.btn-outline-warning:hover,
+.btn-check:checked + .btn-outline-warning, .btn-check:active + .btn-outline-warning,
+.btn-outline-warning:active, .btn-outline-warning.active, .btn-outline-warning.dropdown-toggle.show {
+    color: #fff;
+    background-color: var(--color-aviso);
+    border-color: var(--color-aviso);
+}
+.btn-outline-warning:disabled, .btn-outline-warning.disabled { color: var(--color-aviso); background-color: transparent; }
+
+/* Fila inactiva: color gris AA en lugar de opacity-50 (la opacidad rebaja el contraste) */
+.table > tbody > tr.fila-inactiva > * { color: var(--color-muted-fuerte); }
+
+/* Estado vacío uniforme (RF-16) */
+.estado-vacio {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--color-muted-fuerte);
+}
+.estado-vacio i { display: block; font-size: 2rem; margin-bottom: .5rem; color: #5a6b82; }
+.estado-vacio p { margin: 0 0 .75rem; }
+
+
+/* Utilidades de T5 */
+.min-w-0 { min-width: 0; }
+.adjunto-nombre { flex: 1 1 8rem; min-width: 0; }
+.celda-valor { display: inline-flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: .5rem; }
+
+
+/* =============================================
+   RESPONSIVE COMUN (spec 003, T2)
+   Todo lo que cambia tamaños va dentro de max-width: >=992px queda como estaba.
+   ============================================= */
+
+/* Texto largo (RF-2) */
+.app-content { overflow-wrap: break-word; }
+
+/* Contenedor de gráfico con altura controlada (RF-10); sin media: la clase aún no la usa nadie */
+.chart-box { position: relative; height: 300px; width: 100%; }
+
+/* El botón de plegado solo existe en móvil (se muestra en <=575px) */
+.btn-plegar, .btn.btn-plegar { display: none; }
+
+/* ---------- Tableta y móvil: <=991px ---------- */
+/* Acciones de fila en una sola línea (se pliegan solo en la tarjeta apilada, <=575 px) */
+td.celda-acciones { white-space: nowrap; }
+
+@media (max-width: 991.98px) {
+    /* Objetivos táctiles de 44 px (RF-24) */
+    .btn, .btn-sm, .page-link, .nav-link, .dropdown-item,
+    .form-control, .form-select {
+        min-height: var(--tap-min);
+    }
+    .btn, .btn-sm, .page-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .btn-sm, .page-link { min-width: var(--tap-min); }   /* botones solo icono (spec 002) */
+    .btn-close {
+        box-sizing: border-box;
+        width: var(--tap-min);
+        height: var(--tap-min);
+        padding: 0;
+    }
+    .sidebar-toggle-btn { min-width: var(--tap-min); min-height: var(--tap-min); justify-content: center; }
+    .login-show-btn { min-width: var(--tap-min); min-height: var(--tap-min); }
+    .sidebar-link, .sidebar-logout { min-height: var(--tap-min); white-space: normal; overflow-wrap: anywhere; }
+    .sidebar-username { max-width: 100%; overflow-wrap: anywhere; }
+
+    /* Separación de 8 px entre acciones de fila (en lugar de los ms-1 de 4 px) */
+    .celda-acciones > .btn, .celda-acciones > form, .celda-acciones > a {
+        margin: 0 var(--gap-acciones) var(--gap-acciones) 0 !important;
+    }
+    .celda-acciones > :last-child { margin-right: 0 !important; }
+    td.celda-acciones > .btn, td.celda-acciones > a, td.celda-acciones > form { margin-bottom: 0 !important; }
+
+    /* Casillas e interruptores: el <label> es el objetivo de 44 px (D5) */
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        min-height: var(--tap-min);
+        padding-left: 0;
+    }
+    .form-check { flex-wrap: wrap; }
+    .form-check > :not(.form-check-input):not(.form-check-label) { flex: 0 0 100%; }
+    .form-check .form-check-input, .form-switch .form-check-input {
+        float: none;
+        margin: 0;
+        flex-shrink: 0;
+    }
+    .form-check-label {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        min-height: var(--tap-min);
+        min-width: var(--tap-min);
+    }
+
+    /* Paginación: botones de 44 px separados 8 px */
+    .pagination { flex-wrap: wrap; gap: var(--gap-acciones); }
+    .pagination .page-item:not(:first-child) .page-link { margin-left: 0; }
+    .pagination .page-link { border-radius: .375rem; }
+
+    /* Texto largo: se anula el truncado (RF-2) */
+    .text-truncate { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+
+    /* Etiquetas de formulario */
+    .form-label { overflow-wrap: anywhere; }
+
+    /* Select2 (buscador de solicitante): mismo objetivo de 44 px que un select */
+    .select2-container--bootstrap-5 .select2-selection.select2-selection--single { min-height: var(--tap-min); display: flex; align-items: center; }
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered { padding: 0; }
+    .select2-container--bootstrap-5 .select2-results__option { min-height: var(--tap-min); display: flex; align-items: center; }
+    .select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field { min-height: var(--tap-min); }
+
+    /* Enlaces de lista (adjuntos del detalle): objetivo de 44 px */
+    .enlace-tap { display: flex !important; align-items: center; min-height: var(--tap-min); }
+
+    /* Palabras sin espacios muy largas: se parten en varias líneas en vez de ensanchar la tabla (RF-2) */
+    .tabla-apilable td { overflow-wrap: anywhere; }
+
+    /* Enlaces de texto en celdas de tabla: objetivo de 44 px (RF-24); los de párrafo corrido quedan exentos */
+    .tabla-apilable td > a:not(.btn), .tabla-apilable td > div > a:not(.btn) {
+        display: inline-flex;
+        align-items: center;
+        min-height: var(--tap-min);
+    }
+}
+
+/* ---------- Móvil: <=575px ---------- */
+@media (max-width: 575.98px) {
+    /* Cabecera de página: título y acciones en columna (RF-8) */
+    .page-header { flex-direction: column; align-items: stretch; }
+    .page-actions { width: 100%; }
+    .page-actions > .btn { flex: 1 1 100%; }
+    .page-actions.acciones-icono > .btn { flex: 0 0 auto; }
+
+    /* Tabla apilada (RF-3, RF-25): el DOM no cambia, solo la presentación */
+    .tabla-apilable { --bs-table-accent-bg: transparent; display: block; width: 100%; }
+    /* Cabecera fuera de la vista pero presente para lectores de pantalla */
+    .tabla-apilable thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+    .tabla-apilable tbody, .tabla-apilable tfoot { display: block; }
+    .tabla-apilable tbody > tr, .tabla-apilable tfoot > tr {
+        display: block;
+        margin-bottom: 1rem;
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: .5rem;
+        box-shadow: var(--sombra-card);
+        overflow: hidden;
+    }
+    .tabla-apilable tbody > tr > td, .tabla-apilable tfoot > tr > td {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 1rem;
+        padding: .5rem .75rem;
+        border: 0;
+        border-bottom: 1px solid #f0f2f5;
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+    .tabla-apilable tbody > tr > td:last-child, .tabla-apilable tfoot > tr > td:last-child { border-bottom: 0; }
+    /* Bootstrap 5.1 pinta currentColor el borde de la última fila de un tbody que va seguido de tfoot */
+    .tabla-apilable.table.table > tbody > tr > td, .tabla-apilable.table.table > tfoot > tr > td { border-bottom-color: #f0f2f5; }
+    .tabla-apilable td.fila-total-etiqueta { justify-content: flex-start; text-align: left; }
+    /* ps-4/pe-4 (importantes) descentran las celdas dentro de la tarjeta */
+    .tabla-apilable tbody > tr > td, .tabla-apilable tfoot > tr > td { padding-left: .75rem !important; padding-right: .75rem !important; }
+    .tabla-apilable td[data-label]::before {
+        content: attr(data-label);
+        flex: 0 0 38%;
+        max-width: 38%;
+        font-weight: 600;
+        text-align: left;
+        color: var(--color-muted-fuerte);
+        font-size: .875rem;   /* misma talla en todas las etiquetas, aunque la celda lleve .small */
+    }
+    /* Acciones: ocupan toda la fila, sin etiqueta */
+    .tabla-apilable td.celda-acciones {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: var(--gap-acciones);
+        text-align: left;
+    }
+    .tabla-apilable td.celda-acciones > .btn,
+    .tabla-apilable td.celda-acciones > form,
+    .tabla-apilable td.celda-acciones > a { margin: 0 !important; }
+    /* Fila vacía: una sola celda centrada */
+    .tabla-apilable td.fila-vacia { display: block; text-align: center; }
+
+    /* Plegado de campos > 8 (RF-5) */
+    .tabla-apilable td.td-secundario { display: none; }
+    .tabla-apilable tr.fila-expandida td.td-secundario { display: flex; }
+    .btn-plegar, .btn.btn-plegar { display: inline-flex; }
+
+    /* Botones de formulario: columna, ancho completo, acción principal primero (RF-7, D6) */
+    .acciones-form { flex-direction: column; align-items: stretch; gap: var(--gap-acciones); }
+    .acciones-form > .btn, .acciones-form > button, .acciones-form > a.btn { width: 100%; }
+    .acciones-form > .btn-primary, .acciones-form > .btn-success, .acciones-form > .btn-danger,
+    .acciones-form > .btn-warning, .acciones-form > .btn-info, .acciones-form > [type="submit"] { order: -1; }
+    .acciones-form > .btn-secondary, .acciones-form > .btn-light,
+    .acciones-form > [class*="btn-outline-"] { order: 1; }
+
+    /* Paginación: Anterior · n de total · Siguiente (RF-28) */
+    .pagination { justify-content: center; }
+    .pagination .page-item:not(.active):not(.page-anterior):not(.page-siguiente) { display: none; }
+    .pagination .page-item.active .page-link[data-total]::after { content: " de " attr(data-total); white-space: pre; }
+
+    /* Modales: alto máximo, cuerpo con scroll y pie siempre visible (RF-9) */
+    .modal-dialog { margin: .5rem; }
+    .modal-dialog-centered { min-height: calc(100% - 1rem); }
+    .modal-content {
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 1rem);
+        max-height: calc(100dvh - 1rem);
+    }
+    .modal-header, .modal-footer { flex-shrink: 0; }
+    .modal-body { overflow-y: auto; min-height: 0; }
+    .modal-footer { flex-wrap: wrap; }
+    .modal-footer > .btn { flex: 1 1 100%; }
+    .modal-footer > .btn-primary, .modal-footer > .btn-success, .modal-footer > .btn-danger,
+    .modal-footer > .btn-warning, .modal-footer > .btn-info { order: -1; }
+    .modal-footer > .btn-secondary, .modal-footer > .btn-light,
+    .modal-footer > [class*="btn-outline-"] { order: 1; }
+
+    .chart-box { height: 260px; }
 }

@@ -9,21 +9,19 @@
 
 @Html.AntiForgeryToken()
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h4 class="mb-0 fw-bold">Tickets Nuevos</h4>
-        <small class="text-muted">Incidencias sin asignar — disponibles para tomar</small>
+        <h1 class="page-title">Tickets Nuevos</h1>
+        <small class="page-subtitle">Incidencias sin asignar — disponibles para tomar</small>
     </div>
-    <span class="badge bg-primary fs-6">@Model.Count sin asignar</span>
+    <span class="badge bg-primary fs-6 align-self-start align-self-sm-center">@Model.Count sin asignar</span>
 </div>
 
 @if (!Model.Any())
 {
     <div class="card border-0 shadow-sm">
-        <div class="card-body text-center py-5">
-            <div class="display-6 mb-3 text-success">✅</div>
-            <h5 class="fw-semibold">Todo al día</h5>
-            <p class="text-muted small mb-0">No hay tickets pendientes de asignación.</p>
+        <div class="card-body">
+            <partial name="_EstadoVacio" model='("fa-solid fa-circle-check", "Todo al día. No hay tickets pendientes de asignación.", (string?)null, (string?)null)' />
         </div>
     </div>
 }
@@ -32,7 +30,7 @@ else
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0 tabla-apilable">
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4" style="width:50px">#</th>
@@ -57,42 +55,42 @@ else
                             var urgente = hace.TotalDays >= 1;
 
                             <tr id="row-@t.Id">
-                                <td class="ps-4 text-muted small">@t.Id</td>
-                                <td>
-                                    <a asp-action="Details" asp-route-id="@t.Id"
-                                       class="fw-semibold text-decoration-none text-dark">
-                                        @t.Titulo
-                                    </a>
-                                    @if (t.Descripcion?.Length > 0)
-                                    {
-                                        <div class="text-muted small text-truncate" style="max-width:320px">
-                                            @t.Descripcion
-                                        </div>
-                                    }
+                                <td data-label="#" class="ps-4 text-muted small">@t.Id</td>
+                                <td data-label="Título">
+                                    <div>
+                                        <a asp-action="Details" asp-route-id="@t.Id"
+                                           class="fw-semibold text-decoration-none text-dark">
+                                            @t.Titulo
+                                        </a>
+                                        @if (t.Descripcion?.Length > 0)
+                                        {
+                                            <div class="text-muted small text-truncate" style="max-width:320px">
+                                                @t.Descripcion
+                                            </div>
+                                        }
+                                    </div>
                                 </td>
-                                <td>
+                                <td data-label="Prioridad">
                                     @if (t.Prioridad != null)
                                     {
-                                        <span class="badge" style="background-color:@t.Prioridad.Color">
-                                            @t.Prioridad.Nombre
-                                        </span>
+                                        <partial name="_BadgeEstado" model="(t.Prioridad.Nombre, t.Prioridad.Color)" />
                                     }
                                     else
                                     {
                                         <span class="text-muted small fst-italic">Sin definir</span>
                                     }
                                 </td>
-                                <td class="small text-muted">
+                                <td data-label="Categoría" class="small text-muted">
                                     @(t.Categoria?.Nombre ?? "—")
                                 </td>
-                                <td class="small text-muted">@t.CreadoPor.NombreCompleto</td>
-                                <td>
+                                <td data-label="Creado por" class="small text-muted">@t.CreadoPor.NombreCompleto</td>
+                                <td data-label="Hace">
                                     <span class="small @(urgente ? "text-danger fw-semibold" : "text-muted")">
                                         @haceLabel
                                         @if (urgente) {<span title="Lleva más de 1 día sin asignar"> ⚠</span>}
                                     </span>
                                 </td>
-                                <td class="text-end pe-4">
+                                <td class="text-end pe-4 celda-acciones">
                                     <button class="btn btn-outline-success btn-sm btn-tomar" title="Tomar ticket" aria-label="Tomar ticket"
                                             data-ticket-id="@t.Id"
                                             data-titulo="@t.Titulo">
@@ -114,7 +112,7 @@ else
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
                 <h6 class="modal-title fw-bold">¿Tomar este ticket?</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body pt-1 pb-2">
                 <p class="small text-muted mb-0">

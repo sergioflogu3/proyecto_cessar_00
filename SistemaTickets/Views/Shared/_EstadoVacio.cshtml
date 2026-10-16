@@ -1,0 +1,10 @@
+@model (string Icono, string Mensaje, string? UrlCrear, string? TextoCrear)
+@* Estado vacío uniforme (RF-16). Se puede usar dentro de <td colspan> o fuera de tablas. *@
+<div class="estado-vacio">
+    <i class="@Model.Icono" aria-hidden="true"></i>
+    <p>@Model.Mensaje</p>
+    @if (!string.IsNullOrEmpty(Model.UrlCrear) && !string.IsNullOrEmpty(Model.TextoCrear))
+    {
+        <a href="@Model.UrlCrear" class="btn btn-primary btn-sm">@Model.TextoCrear</a>
+    }
+</div>

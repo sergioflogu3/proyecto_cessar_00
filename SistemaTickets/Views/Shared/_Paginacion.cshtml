@@ -1,0 +1,79 @@
+@model (int Actual, int Total, Func<int, string> Url)
+@* Paginación con ventana y elipsis (RF-28). Máximo 7 elementos numéricos/elipsis.
+   En móvil el CSS muestra solo Anterior · "n de total" · Siguiente. *@
+@functions {
+    // Función pura. Devuelve páginas (1..total) y 0 para la elipsis. Como máximo 7 elementos.
+    public static List<int> VentanaPaginas(int actual, int total)
+    {
+        var r = new List<int>();
+        if (total < 1) return r;
+        if (total <= 7)
+        {
+            for (var i = 1; i <= total; i++) r.Add(i);
+            return r;
+        }
+        actual = Math.Clamp(actual, 1, total);
+        if (actual <= 4)
+        {
+            for (var i = 1; i <= 5; i++) r.Add(i);
+            r.Add(0); r.Add(total);
+        }
+        else if (actual >= total - 3)
+        {
+            r.Add(1); r.Add(0);
+            for (var i = total - 4; i <= total; i++) r.Add(i);
+        }
+        else
+        {
+            r.Add(1); r.Add(0); r.Add(actual - 1); r.Add(actual); r.Add(actual + 1); r.Add(0); r.Add(total);
+        }
+        return r;
+    }
+}
+@if (Model.Total > 1)
+{
+    var actual = Math.Clamp(Model.Actual, 1, Model.Total);
+    <nav class="mt-4 d-flex justify-content-center" aria-label="Paginación">
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item page-anterior @(actual == 1 ? "disabled" : "")">
+                @if (actual == 1)
+                {
+                    <span class="page-link" aria-label="Página anterior">‹ Anterior</span>
+                }
+                else
+                {
+                    <a class="page-link" href="@Model.Url(actual - 1)" aria-label="Página anterior">‹ Anterior</a>
+                }
+            </li>
+
+            @foreach (var p in VentanaPaginas(actual, Model.Total))
+            {
+                if (p == 0)
+                {
+                    <li class="page-item disabled"><span class="page-link" aria-hidden="true">…</span></li>
+                }
+                else if (p == actual)
+                {
+                    <li class="page-item active">
+                        <a class="page-link" href="@Model.Url(p)" aria-current="page" data-total="@Model.Total">@p</a>
+                    </li>
+                }
+                else
+                {
+                    <li class="page-item"><a class="page-link" href="@Model.Url(p)">@p</a></li>
+                }
+            }
+
+            <li class="page-item page-siguiente @(actual == Model.Total ? "disabled" : "")">
+                @if (actual == Model.Total)
+                {
+                    <span class="page-link" aria-label="Página siguiente">Siguiente ›</span>
+                }
+                else
+                {
+                    <a class="page-link" href="@Model.Url(actual + 1)" aria-label="Página siguiente">Siguiente ›</a>
+                }
+            </li>
+        </ul>
+    </nav>
+}

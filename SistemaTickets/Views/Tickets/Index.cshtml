@@ -8,14 +8,16 @@
 
 @Html.AntiForgeryToken()
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h4 class="mb-0 fw-bold">Tickets de Soporte</h4>
-        <small class="text-muted">
+        <h1 class="page-title">Tickets de Soporte</h1>
+        <small class="page-subtitle">
             Mostrando @Model.DesdeRegistro–@Model.HastaRegistro de @Model.TotalRegistros tickets
         </small>
     </div>
-    <a asp-action="Create" class="btn btn-primary btn-sm px-3">+ Nuevo Ticket</a>
+    <div class="page-actions">
+        <a asp-action="Create" class="btn btn-primary btn-sm px-3">+ Nuevo Ticket</a>
+    </div>
 </div>
 
 @if (TempData["Success"] != null)
@@ -30,15 +32,15 @@
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body py-3">
         <form method="get" asp-action="Index" class="row g-2 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label small text-muted mb-1">Buscar</label>
-                <input type="text" name="search" value="@Model.Search"
+            <div class="col-12 col-md-6 col-lg-4">
+                <label for="filtroSearch" class="form-label small text-muted mb-1">Buscar</label>
+                <input type="text" id="filtroSearch" name="search" value="@Model.Search"
                        class="form-control form-control-sm"
                        placeholder="Título o descripción..." />
             </div>
-            <div class="col-md-3">
-                <label class="form-label small text-muted mb-1">Estado</label>
-                <select name="estadoId" class="form-select form-select-sm">
+            <div class="col-12 col-md-6 col-lg-3">
+                <label for="filtroEstado" class="form-label small text-muted mb-1">Estado</label>
+                <select id="filtroEstado" name="estadoId" class="form-select form-select-sm">
                     <option value="">Todos los estados</option>
                     @foreach (var e in Model.Estados)
                     {
@@ -46,9 +48,9 @@
                     }
                 </select>
             </div>
-            <div class="col-md-2">
-                <label class="form-label small text-muted mb-1">Prioridad</label>
-                <select name="prioridadId" class="form-select form-select-sm">
+            <div class="col-12 col-md-6 col-lg-2">
+                <label for="filtroPrioridad" class="form-label small text-muted mb-1">Prioridad</label>
+                <select id="filtroPrioridad" name="prioridadId" class="form-select form-select-sm">
                     <option value="">Todas</option>
                     @foreach (var p in Model.Prioridades)
                     {
@@ -56,11 +58,9 @@
                     }
                 </select>
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary btn-sm w-100">Buscar</button>
-            </div>
-            <div class="col-md-1">
-                <a asp-action="Index" class="btn btn-outline-secondary btn-sm w-100">✕</a>
+            <div class="col-12 col-md-6 col-lg-3 acciones-form d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm flex-grow-1">Buscar</button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm" title="Limpiar filtros" aria-label="Limpiar filtros">✕</a>
             </div>
         </form>
     </div>
@@ -70,7 +70,7 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 tabla-apilable">
                 <thead class="table-light">
                     <tr>
                         <th class="ps-4" style="width:60px">#</th>
@@ -91,8 +91,8 @@
                     @if (!Model.Tickets.Any())
                     {
                         <tr>
-                            <td colspan="9" class="text-center py-5 text-muted">
-                                No se encontraron tickets.
+                            <td colspan="9" class="fila-vacia p-0">
+                                <partial name="_EstadoVacio" model='("fa-solid fa-inbox", "No se encontraron tickets.", (string?)null, (string?)null)' />
                             </td>
                         </tr>
                     }
@@ -101,44 +101,40 @@
                         @foreach (var t in Model.Tickets)
                         {
                             <tr>
-                                <td class="ps-4 text-muted small">@t.Id</td>
-                                <td>
+                                <td data-label="#" class="ps-4 text-muted small">@t.Id</td>
+                                <td data-label="Título">
                                     <a asp-action="Details" asp-route-id="@t.Id"
                                        class="fw-semibold text-decoration-none text-dark">
                                         @t.Titulo
                                     </a>
                                 </td>
-                                <td>
-                                    <span class="badge" style="background-color:@t.Estado.Color">
-                                        @t.Estado.Nombre
-                                    </span>
+                                <td data-label="Estado">
+                                    <partial name="_BadgeEstado" model="(t.Estado.Nombre, t.Estado.Color)" />
                                 </td>
-                                <td>
+                                <td data-label="Prioridad">
                                     @if (t.Prioridad != null)
                                     {
-                                        <span class="badge" style="background-color:@t.Prioridad.Color">
-                                            @t.Prioridad.Nombre
-                                        </span>
+                                        <partial name="_BadgeEstado" model="(t.Prioridad.Nombre, t.Prioridad.Color)" />
                                     }
                                     else
                                     {
                                         <span class="text-muted small fst-italic">Sin prioridad</span>
                                     }
                                 </td>
-                                <td class="text-muted small">@(t.Categoria?.Nombre ?? "—")</td>
+                                <td data-label="Categoría" class="text-muted small">@(t.Categoria?.Nombre ?? "—")</td>
                                 @if (role is "Administrador" or "Supervisor")
                                 {
-                                    <td class="text-muted small">
+                                    <td data-label="Creado por" class="text-muted small">
                                         @t.CreadoPor.Nombre @t.CreadoPor.Apellido
                                     </td>
-                                    <td class="text-muted small">
+                                    <td data-label="Asignado a" class="text-muted small">
                                         @(t.AsignadoA is null ? "—" : $"{t.AsignadoA.Nombre} {t.AsignadoA.Apellido}")
                                     </td>
                                 }
-                                <td class="text-muted small">
+                                <td data-label="Creado" class="text-muted small">
                                     @t.FechaCreacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
                                 </td>
-                                <td class="text-end pe-4">
+                                <td class="text-end pe-4 celda-acciones">
                                     <a asp-action="Details" asp-route-id="@t.Id"
                                        class="btn btn-outline-primary btn-sm" title="Ver" aria-label="Ver">
                                         <i class="fa-solid fa-eye" aria-hidden="true"></i>
@@ -154,31 +150,9 @@
 </div>
 
 @* Paginación *@
-@if (Model.TotalPaginas > 1)
-{
-    <nav class="mt-4 d-flex justify-content-center">
-        <ul class="pagination pagination-sm mb-0">
-            <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
-                <a class="page-link"
-                   href="?page=@(Model.PaginaActual - 1)&search=@Model.Search&estadoId=@Model.FiltroEstado&prioridadId=@Model.FiltroPrioridad">
-                    ‹ Anterior
-                </a>
-            </li>
-
-            @for (int i = 1; i <= Model.TotalPaginas; i++)
-            {
-                <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
-                    <a class="page-link"
-                       href="?page=@i&search=@Model.Search&estadoId=@Model.FiltroEstado&prioridadId=@Model.FiltroPrioridad">@i</a>
-                </li>
-            }
-
-            <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
-                <a class="page-link"
-                   href="?page=@(Model.PaginaActual + 1)&search=@Model.Search&estadoId=@Model.FiltroEstado&prioridadId=@Model.FiltroPrioridad">
-                    Siguiente ›
-                </a>
-            </li>
-        </ul>
-    </nav>
+@{
+    Func<int, string> urlPagina = n =>
+        "?page=" + n + "&search=" + Uri.EscapeDataString(Model.Search ?? "") +
+        "&estadoId=" + Model.FiltroEstado + "&prioridadId=" + Model.FiltroPrioridad;
 }
+<partial name="_Paginacion" model="(Model.PaginaActual, Model.TotalPaginas, urlPagina)" />

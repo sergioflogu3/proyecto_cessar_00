@@ -1,0 +1,199 @@
+uid=6_0 RootWebArea "Tickets - SistemaTickets" url="http://localhost:8080/Tickets/Index"
+  uid=6_1 ignored
+    uid=6_2 ignored
+      uid=6_3 ignored
+        uid=6_4 ignored
+      uid=6_5 ignored
+        uid=6_6 ignored
+      uid=6_7 ignored
+        uid=6_8 ignored
+      uid=6_9 ignored
+        uid=6_10 ignored
+      uid=6_11 ignored
+        uid=6_12 ignored
+      uid=6_13 ignored
+        uid=6_14 ignored
+      uid=6_15 ignored
+        uid=6_16 ignored
+      uid=6_17 ignored
+        uid=6_18 ignored
+      uid=6_19 ignored
+        uid=6_20 ignored
+      uid=6_21 ignored
+        uid=6_22 ignored
+      uid=6_23 ignored
+        uid=6_24 ignored
+      uid=6_25 ignored
+        uid=6_26 ignored
+      uid=6_27 ignored
+        uid=6_28 ignored
+      uid=6_29 generic
+        uid=6_30 banner
+          uid=6_31 ignored
+            uid=6_32 button "Abrir menú" expandable
+              uid=6_33 ignored
+                uid=6_34 ignored
+            uid=6_35 ignored
+              uid=6_36 StaticText "Tickets"
+                uid=6_37 InlineTextBox "Tickets"
+        uid=6_38 main
+          uid=6_39 ignored
+            uid=6_40 ignored
+              uid=6_41 heading "Tickets de Soporte" level="1"
+                uid=6_42 StaticText "Tickets de Soporte"
+                  uid=6_37 InlineTextBox "Tickets de Soporte"
+              uid=6_43 StaticText "Mostrando 1–1 de 1 tickets"
+                uid=6_37 InlineTextBox "Mostrando 1–1 de 1 tickets"
+            uid=6_44 ignored
+              uid=6_45 link "+ Nuevo Ticket" url="http://localhost:8080/Tickets/Create"
+                uid=6_46 StaticText "+ Nuevo Ticket"
+                  uid=6_37 InlineTextBox "+ Nuevo Ticket"
+          uid=6_47 generic
+            uid=6_48 ignored
+              uid=6_49 form
+                uid=6_50 ignored
+                  uid=6_51 LabelText
+                    uid=6_52 StaticText "Buscar"
+                      uid=6_37 InlineTextBox "Buscar"
+                  uid=6_53 textbox "Buscar"
+                    uid=6_54 ignored
+                    uid=6_55 generic
+                uid=6_56 ignored
+                  uid=6_57 LabelText
+                    uid=6_58 StaticText "Estado"
+                      uid=6_37 InlineTextBox "Estado"
+                  uid=6_59 combobox "Estado" expandable haspopup="menu" value="Todos los estados"
+                    uid=6_60 MenuListPopup
+                      uid=6_61 option "Todos los estados" selectable selected value="Todos los estados"
+                      uid=6_62 option "Abierto" selectable value="Abierto"
+                      uid=6_63 option "En Progreso" selectable value="En Progreso"
+                      uid=6_64 option "Pendiente" selectable value="Pendiente"
+                      uid=6_65 option "Resuelto" selectable value="Resuelto"
+                      uid=6_66 option "Cerrado" selectable value="Cerrado"
+                      uid=6_67 option "Cancelado" selectable value="Cancelado"
+                uid=6_68 ignored
+                  uid=6_69 LabelText
+                    uid=6_70 StaticText "Prioridad"
+                      uid=6_37 InlineTextBox "Prioridad"
+                  uid=6_71 combobox "Prioridad" expandable haspopup="menu" value="Todas"
+                    uid=6_72 MenuListPopup
+                      uid=6_73 option "Todas" selectable selected value="Todas"
+                      uid=6_74 option "Baja" selectable value="Baja"
+                      uid=6_75 option "Media" selectable value="Media"
+                      uid=6_76 option "Alta" selectable value="Alta"
+                      uid=6_77 option "Crítica" selectable value="Crítica"
+                uid=6_78 ignored
+                  uid=6_79 button "Buscar"
+                    uid=6_80 StaticText "Buscar"
+                      uid=6_37 InlineTextBox "Buscar"
+                  uid=6_81 link "Limpiar filtros" description="Limpiar filtros" url="http://localhost:8080/Tickets/Index"
+                    uid=6_82 StaticText "✕"
+                      uid=6_37 InlineTextBox "✕"
+          uid=6_83 generic
+            uid=6_84 ignored
+              uid=6_85 ignored
+                uid=6_86 table
+                  uid=6_87 rowgroup
+                    uid=6_88 row
+                      uid=6_89 columnheader "#"
+                        uid=6_90 StaticText "#"
+                          uid=6_37 InlineTextBox "#"
+                      uid=6_91 columnheader "Título"
+                        uid=6_92 StaticText "Título"
+                          uid=6_37 InlineTextBox "Título"
+                      uid=6_93 columnheader "Estado"
+                        uid=6_94 StaticText "Estado"
+                          uid=6_37 InlineTextBox "Estado"
+                      uid=6_95 columnheader "Prioridad"
+                        uid=6_96 StaticText "Prioridad"
+                          uid=6_37 InlineTextBox "Prioridad"
+                      uid=6_97 columnheader "Categoría"
+                        uid=6_98 StaticText "Categoría"
+                          uid=6_37 InlineTextBox "Categoría"
+                      uid=6_99 columnheader "Creado por"
+                        uid=6_100 StaticText "Creado por"
+                          uid=6_37 InlineTextBox "Creado por"
+                      uid=6_101 columnheader "Asignado a"
+                        uid=6_102 StaticText "Asignado a"
+                          uid=6_37 InlineTextBox "Asignado a"
+                      uid=6_103 columnheader "Creado"
+                        uid=6_104 StaticText "Creado"
+                          uid=6_37 InlineTextBox "Creado"
+                      uid=6_105 columnheader "Acciones"
+                        uid=6_106 StaticText "Acciones"
+                          uid=6_37 InlineTextBox "Acciones"
+                  uid=6_107 ignored
+                    uid=6_108 row
+                      uid=6_109 cell "# 1"
+                        uid=6_110 generic
+                          uid=6_37 StaticText "#"
+                            uid=6_37 InlineTextBox "#"
+                        uid=6_111 StaticText "1"
+                          uid=6_37 InlineTextBox "1"
+                      uid=6_112 cell "Título QA Ticket de prueba"
+                        uid=6_113 generic
+                          uid=6_37 StaticText "Título"
+                            uid=6_37 InlineTextBox "Título"
+                        uid=6_114 link "QA Ticket de prueba" url="http://localhost:8080/Tickets/Details/1"
+                          uid=6_115 StaticText "QA Ticket de prueba"
+                            uid=6_37 InlineTextBox "QA Ticket de prueba"
+                      uid=6_116 cell "Estado Abierto"
+                        uid=6_117 generic
+                          uid=6_37 StaticText "Estado"
+                            uid=6_37 InlineTextBox "Estado"
+                        uid=6_118 ignored
+                          uid=6_119 StaticText "Abierto"
+                            uid=6_37 InlineTextBox "Abierto"
+                      uid=6_120 cell "Prioridad Media"
+                        uid=6_121 generic
+                          uid=6_37 StaticText "Prioridad"
+                            uid=6_37 InlineTextBox "Prioridad"
+                        uid=6_122 ignored
+                          uid=6_123 StaticText "Media"
+                            uid=6_37 InlineTextBox "Media"
+                      uid=6_124 cell "Categoría Hardware"
+                        uid=6_125 generic
+                          uid=6_37 StaticText "Categoría"
+                            uid=6_37 InlineTextBox "Categoría"
+                        uid=6_126 StaticText "Hardware"
+                          uid=6_37 InlineTextBox "Hardware"
+                      uid=6_127 cell "Creado por QA Administrador"
+                        uid=6_128 generic
+                          uid=6_37 StaticText "Creado por"
+                            uid=6_37 InlineTextBox "Creado por"
+                        uid=6_129 StaticText "QA Administrador"
+                          uid=6_37 InlineTextBox "QA Administrador"
+                      uid=6_130 cell "Asignado a QA Soporte Uno"
+                        uid=6_131 generic
+                          uid=6_37 StaticText "Asignado a"
+                            uid=6_37 InlineTextBox "Asignado a"
+                        uid=6_132 StaticText "QA Soporte Uno"
+                          uid=6_37 InlineTextBox "QA Soporte Uno"
+                      uid=6_133 cell "Creado 14/10/2026 08:48"
+                        uid=6_134 generic
+                          uid=6_37 StaticText "Creado"
+                            uid=6_37 InlineTextBox "Creado"
+                        uid=6_135 StaticText "14/10/2026 08:48"
+                          uid=6_37 InlineTextBox "14/10/2026 08:48"
+                      uid=6_136 cell "Ver"
+                        uid=6_137 link "Ver" description="Ver" url="http://localhost:8080/Tickets/Details/1"
+                          uid=6_138 ignored
+                            uid=6_139 ignored
+        uid=6_140 contentinfo
+          uid=6_141 StaticText "© 2026 TT Soluciones — SistemaTickets"
+            uid=6_37 InlineTextBox "© 2026 TT Soluciones — SistemaTickets"
+      uid=6_142 ignored
+        uid=6_143 ignored
+        uid=6_144 ignored
+      uid=6_145 ignored
+        uid=6_146 ignored
+      uid=6_147 ignored
+      uid=6_148 ignored
+      uid=6_149 ignored
+        uid=6_150 ignored
+      uid=6_151 ignored
+      uid=6_152 ignored
+      uid=6_153 ignored
+        uid=6_154 ignored
+      uid=6_155 ignored
+      uid=6_156 ignored

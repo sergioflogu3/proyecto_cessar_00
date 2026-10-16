@@ -2,12 +2,16 @@
 
 @{
     ViewData["Title"] = "Seguimiento de Tickets";
+    // RF-5: como máximo 8 campos visibles por tarjeta en móvil (Técnico + estados + Total).
+    // Los estados a partir del 7.º (índice 6) van al bloque plegable.
+    const int MaxEstadosVisibles = 6;
+    var hayPlegado = Model.Estados.Count > MaxEstadosVisibles;
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h4 class="mb-0 fw-bold">Seguimiento de Tickets</h4>
-        <small class="text-muted">Estado general de tickets activos por técnico y prioridad</small>
+        <h1 class="page-title">Seguimiento de Tickets</h1>
+        <small class="page-subtitle">Estado general de tickets activos por técnico y prioridad</small>
     </div>
 </div>
 
@@ -38,12 +42,12 @@
     <div class="card-body p-0">
         @if (!Model.PorTecnico.Any())
         {
-            <div class="text-center text-muted py-5">No hay tickets activos.</div>
+            <partial name="_EstadoVacio" model='("fa-solid fa-inbox", "No hay tickets activos.", (string?)null, (string?)null)' />
         }
         else
         {
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0 tabla-apilable">
                     <thead class="table-light">
                         <tr>
                             <th class="ps-4">Técnico</th>
@@ -58,17 +62,20 @@
                         @foreach (var fila in Model.PorTecnico)
                         {
                             <tr>
-                                <td class="ps-4 fw-semibold @(fila.Nombre == "(Sin asignar)" ? "text-muted fst-italic" : "")">
-                                    @if (fila.Nombre != "(Sin asignar)")
-                                    {
-                                        <i class="fa-solid fa-user text-secondary me-1"></i>
-                                    }
-                                    @fila.Nombre
+                                <td data-label="Técnico" class="ps-4 fw-semibold @(fila.Nombre == "(Sin asignar)" ? "text-muted fst-italic" : "")">
+                                    <span class="celda-valor">
+                                        @if (fila.Nombre != "(Sin asignar)")
+                                        {
+                                            <i class="fa-solid fa-user text-secondary" aria-hidden="true"></i>
+                                        }
+                                        <span>@fila.Nombre</span>
+                                    </span>
                                 </td>
-                                @foreach (var estado in Model.Estados)
+                                @for (var i = 0; i < Model.Estados.Count; i++)
                                 {
+                                    var estado = Model.Estados[i];
                                     var count = fila.PorEstado.GetValueOrDefault(estado, 0);
-                                    <td class="text-center">
+                                    <td data-label="@estado" class="text-center@(i >= MaxEstadosVisibles ? " td-secundario" : "")">
                                         @if (count > 0)
                                         {
                                             <span class="badge bg-secondary">@count</span>
@@ -79,21 +86,36 @@
                                         }
                                     </td>
                                 }
-                                <td class="text-center pe-4">
-                                    <span class="badge bg-primary rounded-pill">@fila.Total</span>
+                                <td data-label="Total" class="text-center pe-4">
+                                    <span class="celda-valor">
+                                        <span class="badge bg-primary rounded-pill">@fila.Total</span>
+                                        @if (hayPlegado)
+                                        {
+                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-plegar" aria-expanded="false">Ver más</button>
+                                        }
+                                    </span>
                                 </td>
                             </tr>
                         }
                     </tbody>
                     <tfoot class="table-light fw-semibold">
                         <tr>
-                            <td class="ps-4">Total</td>
-                            @foreach (var estado in Model.Estados)
+                            <td class="ps-4 fila-total-etiqueta">Total</td>
+                            @for (var i = 0; i < Model.Estados.Count; i++)
                             {
+                                var estado = Model.Estados[i];
                                 var total = Model.PorTecnico.Sum(f => f.PorEstado.GetValueOrDefault(estado, 0));
-                                <td class="text-center">@total</td>
+                                <td data-label="@estado" class="text-center@(i >= MaxEstadosVisibles ? " td-secundario" : "")">@total</td>
                             }
-                            <td class="text-center pe-4">@Model.TotalActivos</td>
+                            <td data-label="Total" class="text-center pe-4">
+                                <span class="celda-valor">
+                                    @Model.TotalActivos
+                                    @if (hayPlegado)
+                                    {
+                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-plegar" aria-expanded="false">Ver más</button>
+                                    }
+                                </span>
+                            </td>
                         </tr>
                     </tfoot>
                 </table>
@@ -111,7 +133,7 @@
     <div class="card-body">
         @if (!Model.PorPrioridad.Any())
         {
-            <div class="text-center text-muted py-3">Sin datos.</div>
+            <partial name="_EstadoVacio" model='("fa-solid fa-flag", "Sin datos.", (string?)null, (string?)null)' />
         }
         else
         {
@@ -121,14 +143,14 @@
                     ? (int)Math.Round((double)fila.Total / Model.TotalActivos * 100)
                     : 0;
                 <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge" style="background-color:@fila.Color">@fila.Nombre</span>
+                            <partial name="_BadgeEstado" model="(fila.Nombre, fila.Color)" />
                         </div>
                         <span class="small text-muted">@fila.Total ticket@(fila.Total != 1 ? "s" : "") — @pct%</span>
                     </div>
                     <div class="progress" style="height:10px; border-radius:6px">
-                        <div class="progress-bar" role="progressbar"
+                        <div class="progress-bar" role="progressbar" aria-label="@fila.Nombre"
                              style="width:@pct%; background-color:@fila.Color"
                              aria-valuenow="@pct" aria-valuemin="0" aria-valuemax="100">
                         </div>

@@ -7,28 +7,32 @@
     var puedeElegirCliente = role is "Administrador" or "Supervisor" or "Soporte";
 }
 
-<div class="d-flex align-items-center gap-3 mb-4">
-    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Volver</a>
-    <h4 class="mb-0 fw-bold">Nuevo Ticket</h4>
+<div class="page-header">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">← Volver</a>
+        <h1 class="page-title">Nuevo Ticket</h1>
+    </div>
 </div>
 
 <div class="card border-0 shadow-sm" style="max-width:760px">
-    <div class="card-body p-4">
+    <div class="card-body p-3 p-sm-4">
         <form asp-action="Create" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
 
             @if (puedeElegirCliente && Model.Clientes.Any())
             {
                 <div class="mb-3">
-                    <label asp-for="CreadoPorId" class="form-label fw-semibold">
+                    <label for="selectSolicitante" id="lblSolicitante" class="form-label fw-semibold">
                         Solicitante *
                         <span class="text-muted fw-normal small">(cliente que reporta el problema)</span>
                     </label>
                     <select asp-for="CreadoPorId" id="selectSolicitante" class="form-select"
+                            data-msg-required="Selecciona un solicitante."
                             asp-items="@(new SelectList(Model.Clientes, "Id", "NombreCompleto"))"
                             required>
                         <option value="">Buscar cliente...</option>
                     </select>
+                    <span asp-validation-for="CreadoPorId" class="text-danger small"></span>
                 </div>
             }
 
@@ -49,7 +53,7 @@
             @if (role is "Administrador" or "Supervisor" or "Soporte")
             {
                 <div class="row g-3 mb-3">
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <label asp-for="PrioridadId" class="form-label fw-semibold">Prioridad *</label>
                         <select asp-for="PrioridadId" class="form-select"
                                 asp-items="@(new SelectList(Model.Prioridades, "Id", "Nombre"))">
@@ -57,7 +61,7 @@
                         </select>
                         <span asp-validation-for="PrioridadId" class="text-danger small"></span>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-12 col-md-6">
                         <label asp-for="CategoriaId" class="form-label fw-semibold">Categoría</label>
                         <select asp-for="CategoriaId" class="form-select"
                                 asp-items="@(new SelectList(Model.Categorias, "Id", "Nombre"))">
@@ -91,8 +95,8 @@
 
             @* ── Adjuntos opcionales ──────────────────────────────────────────── *@
             <div class="mb-4">
-                <label class="form-label fw-semibold">Archivos adjuntos <span class="text-muted fw-normal small">(opcional · máx 10 MB c/u)</span></label>
-                <div id="dropZone" class="border border-2 border-dashed rounded-3 p-4 text-center"
+                <label for="inputArchivos" class="form-label fw-semibold">Archivos adjuntos <span class="text-muted fw-normal small">(opcional · máx 10 MB c/u)</span></label>
+                <div id="dropZone" class="border border-2 border-dashed rounded-3 p-4 text-center" role="button" tabindex="0"
                      style="border-color:#dee2e6!important;cursor:pointer;transition:border-color .2s,background .2s">
                     <i class="fa-solid fa-cloud-arrow-up fs-2 text-muted d-block mb-1"></i>
                     <div class="small text-muted">Arrastra archivos aquí o <span class="text-primary fw-semibold">haz clic para seleccionar</span></div>
@@ -100,7 +104,7 @@
                     <input type="file" name="Archivos" id="inputArchivos" multiple class="d-none" />
                 </div>
                 <span asp-validation-for="Archivos" class="text-danger small"></span>
-                <div id="listaArchivos" class="mt-2"></div>
+                <div id="listaArchivos" class="mt-2" aria-live="polite"></div>
             </div>
 
             @* ── Checkbox envío de copia ──────────────────────────────────────── *@
@@ -123,7 +127,7 @@
                 </div>
             </div>
 
-            <div class="d-flex gap-2">
+            <div class="acciones-form d-flex gap-2">
                 <button type="submit" class="btn btn-primary px-4">Crear Ticket</button>
                 <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
             </div>
@@ -142,6 +146,9 @@
 
     // Abrir selector al hacer clic en la zona
     dropZone.addEventListener('click', () => input.click());
+    dropZone.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); input.click(); }
+    });
 
     // Drag visual feedback
     dropZone.addEventListener('dragover', e => {
@@ -177,18 +184,42 @@
     function renderLista() {
         lista.innerHTML = '';
         [...dt.files].forEach((f, i) => {
-            const overLimit = f.Length > MAX_BYTES;
             const sizeKb    = (f.size / 1024).toFixed(1);
+            const demasiado = f.size > MAX_BYTES;
             const div       = document.createElement('div');
-            div.className   = `d-flex align-items-center gap-2 px-3 py-2 rounded-2 mb-1 ${f.size > MAX_BYTES ? 'bg-danger-subtle' : 'bg-light'}`;
-            div.innerHTML   = `
-                <i class="fa-solid fa-paperclip text-muted"></i>
-                <span class="small flex-grow-1 text-truncate" title="${f.name}">${f.name}</span>
-                <span class="small text-muted">${sizeKb} KB</span>
-                ${f.size > MAX_BYTES ? '<span class="badge bg-danger">Muy grande</span>' : ''}
-                <button type="button" class="btn btn-link btn-sm p-0 text-danger" onclick="quitarArchivo(${i})" title="Quitar">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>`;
+            div.className   = `d-flex flex-wrap align-items-center gap-2 px-3 py-2 rounded-2 mb-1 ${demasiado ? 'bg-danger-subtle' : 'bg-light'}`;
+
+            const icono = document.createElement('i');
+            icono.className = 'fa-solid fa-paperclip text-muted flex-shrink-0';
+            icono.setAttribute('aria-hidden', 'true');
+
+            const nombre = document.createElement('span');
+            nombre.className = 'small text-truncate adjunto-nombre';
+            nombre.title = f.name;
+            nombre.textContent = f.name;
+
+            const tam = document.createElement('span');
+            tam.className = 'small text-muted flex-shrink-0';
+            tam.textContent = `${sizeKb} KB`;
+
+            div.append(icono, nombre, tam);
+
+            if (demasiado) {
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-danger';
+                badge.textContent = 'Muy grande';
+                div.appendChild(badge);
+            }
+
+            const quitar = document.createElement('button');
+            quitar.type = 'button';
+            quitar.className = 'btn btn-link btn-sm p-0 text-danger flex-shrink-0';
+            quitar.title = 'Quitar';
+            quitar.setAttribute('aria-label', `Quitar ${f.name}`);
+            quitar.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+            quitar.addEventListener('click', () => quitarArchivo(i));
+            div.appendChild(quitar);
+
             lista.appendChild(div);
         });
     }
@@ -214,6 +245,9 @@
                 allowClear: true,
                 width: '100%'
             });
+            // Nombre accesible del combobox de Select2: etiqueta + valor mostrado
+            $('#selectSolicitante').next('.select2').find('.select2-selection')
+                .attr('aria-labelledby', 'lblSolicitante select2-selectSolicitante-container');
         </script>
     }
 }
