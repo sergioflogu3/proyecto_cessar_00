@@ -10,21 +10,21 @@
 
 @Html.AntiForgeryToken()
 
-<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
-    <div>
+<div class="page-header align-items-start">
+    <div class="min-w-0">
         <div class="d-flex align-items-center gap-2 mb-1">
             <a asp-action="Activos" class="btn btn-outline-secondary btn-sm">← Activos</a>
-            <span class="text-muted small">Activo #@Model.Id</span>
+            <span class="text-muted small flex-shrink-0">Activo #@Model.Id</span>
         </div>
-        <h4 class="mb-1 fw-bold">@Model.Nombre</h4>
-        <div class="d-flex gap-2 flex-wrap">
+        <h1 class="page-title mb-2">@Model.Nombre</h1>
+        <div class="d-flex gap-2 flex-wrap align-items-center">
             <span class="badge bg-secondary">@Model.Tipo</span>
             @{
                 var estadoColor = Model.Estado switch
                 {
                     "Disponible"       => "success",
                     "Asignado"         => "primary",
-                    "En Mantenimiento" => "warning",
+                    "En Mantenimiento" => "warning text-dark",
                     "Baja"             => "danger",
                     _                  => "secondary"
                 };
@@ -34,7 +34,7 @@
     </div>
     @if (esAdmin && Model.Estado != "Baja")
     {
-        <div class="d-flex gap-2">
+        <div class="page-actions acciones-icono">
             <a asp-action="ActivoEdit" asp-route-id="@Model.Id"
                class="btn btn-outline-primary btn-sm" title="Editar" aria-label="Editar">
                <i class="fa-solid fa-pen" aria-hidden="true"></i>
@@ -61,19 +61,19 @@
             <div class="card-body p-0">
                 @if (!Model.Movimientos.Any())
                 {
-                    <div class="text-center text-muted py-4">Sin movimientos registrados.</div>
+                    <partial name="_EstadoVacio" model='("fa-solid fa-clock-rotate-left", "Sin movimientos registrados.", (string?)null, (string?)null)' />
                 }
                 else
                 {
                     @foreach (var m in Model.Movimientos)
                     {
-                        <div class="d-flex align-items-start gap-3 border-bottom px-4 py-3">
+                        <div class="d-flex align-items-start gap-3 border-bottom px-3 px-sm-4 py-3">
                             <div class="rounded-circle bg-primary text-white d-flex align-items-center
                                         justify-content-center flex-shrink-0"
-                                 style="width:32px;height:32px;font-size:.7rem">
+                                 style="width:32px;height:32px;font-size:.75rem">
                                 @m.UsuarioNombre[0]@m.UsuarioApellido[0]
                             </div>
-                            <div>
+                            <div class="min-w-0 text-break">
                                 <div class="small fw-semibold">
                                     @m.UsuarioNombreCompleto
                                     <span class="text-muted fw-normal">— @m.TipoMovimiento</span>
@@ -109,49 +109,49 @@
                 <span class="fw-semibold">Información del activo</span>
             </div>
             <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Marca</span>
-                    <span class="small fw-semibold">@(Model.Marca ?? "—")</span>
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Marca</span>
+                    <span class="small text-end text-break min-w-0 fw-semibold">@(Model.Marca ?? "—")</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Modelo</span>
-                    <span class="small fw-semibold">@(Model.Modelo ?? "—")</span>
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Modelo</span>
+                    <span class="small text-end text-break min-w-0 fw-semibold">@(Model.Modelo ?? "—")</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">N° Serie</span>
-                    <span class="small">@(Model.NumeroSerie ?? "—")</span>
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">N° Serie</span>
+                    <span class="small text-end text-break min-w-0">@(Model.NumeroSerie ?? "—")</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Sede</span>
-                    <span class="small">@(Model.SedeNombre ?? "—")</span>
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Sede</span>
+                    <span class="small text-end text-break min-w-0">@(Model.SedeNombre ?? "—")</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Área</span>
-                    <span class="small">@(Model.AreaNombre ?? "—")</span>
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Área</span>
+                    <span class="small text-end text-break min-w-0">@(Model.AreaNombre ?? "—")</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Asignado a</span>
-                    <span class="small">@(Model.AsignadoANombreCompleto ?? "—")</span>
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Asignado a</span>
+                    <span class="small text-end text-break min-w-0">@(Model.AsignadoANombreCompleto ?? "—")</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Adquisición</span>
-                    <span class="small">
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Adquisición</span>
+                    <span class="small text-end text-break min-w-0">
                         @(Model.FechaAdquisicion.HasValue
                             ? Model.FechaAdquisicion.Value.ToString("dd/MM/yyyy")
                             : "—")
                     </span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Garantía</span>
-                    <span class="small @(Model.FechaGarantia < DateTime.UtcNow ? "text-danger" : "")">
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Garantía</span>
+                    <span class="small text-end text-break min-w-0 @(Model.FechaGarantia < DateTime.UtcNow ? "text-danger" : "")">
                         @(Model.FechaGarantia.HasValue
                             ? Model.FechaGarantia.Value.ToString("dd/MM/yyyy")
                             : "—")
                     </span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Registrado</span>
-                    <span class="small">@Model.CreadoEn.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Registrado</span>
+                    <span class="small text-end text-break min-w-0">@Model.CreadoEn.ToLocalTime().ToString("dd/MM/yyyy")</span>
                 </li>
             </ul>
         </div>
@@ -173,19 +173,19 @@
 @* Modal asignar activo *@
 @if (esAdminOSupervisor)
 {
-    <div class="modal fade" id="asignarActivoModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+    <div class="modal fade" id="asignarActivoModal" tabindex="-1" aria-labelledby="asignarActivoTitulo">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold">Asignar activo</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title fw-bold" id="asignarActivoTitulo">Asignar activo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
-                    <label class="form-label fw-semibold">Asignar a</label>
+                    <label for="selectUsuarioActivo" class="form-label fw-semibold">Asignar a</label>
                     <select id="selectUsuarioActivo" class="form-select mb-3">
                         <option value="">Cargando...</option>
                     </select>
-                    <div id="errorAsignarActivo" class="alert alert-danger py-2 small d-none"></div>
+                    <div id="errorAsignarActivo" class="alert alert-danger py-2 small d-none" role="alert"></div>
                 </div>
                 <div class="modal-footer border-0 pt-0 gap-2">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>

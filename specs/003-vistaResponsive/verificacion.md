@@ -319,3 +319,41 @@ Cambios en vistas: cabecera `.page-header`/`h1.page-title`/`.page-actions`; filt
 - Roles Supervisor y Soporte (no hay credenciales; Soporte ve Herramientas con solo «Ver»).
 - Acciones POST reales (baja, asignar, devolver): no se ejecutaron para no modificar datos.
 - Consola de Herramientas con los modales abiertos: no se listó por separado.
+
+
+## T7. Inventario: formularios y detalles
+
+Archivos: `Views/Inventario/{ActivoCreate,HerramientaCreate,ActivoDetails,HerramientaDetails}.cshtml` (`ActivoEdit` reutiliza `ActivoCreate`). Sin cambios de servidor, ViewModels ni `site.css`. `dotnet build`: 0 errores; imagen reconstruida con `docker-compose up -d --build app`. Rol Administrador (único con sesión). Capturas `capturas/t7-1280-activo-details.png` y `t7-1280-herramienta-details.png`.
+
+### Cambios
+- Cabecera `.page-header` + `h1.page-title` en las 5 pantallas (Details con `.page-actions.acciones-icono`, `min-w-0`).
+- Formularios: `card-body p-3 p-sm-4`; Activo pasa de `col-md-4/8` a `col-12 col-md-6 col-lg-4/8` (1 columna a 375, 2 a 768, disposición de siempre a 1280); Herramienta `col-12 col-md-6`; `.acciones-form` (principal primero a 375 px por CSS ya existente).
+- **Corrección de etiquetas**: en `ActivoCreate` los `<select>` Sede y Área tienen `id="sedeSelect"`/`id="areaSelect"` pero su `<label asp-for>` apuntaba a `SedeId`/`AreaId` (sin elemento), es decir, sin etiqueta asociada. Ahora `label for="sedeSelect"`/`"areaSelect"`.
+- Details: badges `warning` con `text-dark` (En Mantenimiento / En Reparación); listas de información con `gap-3`, `px-3 px-sm-4`, valores `text-end text-break min-w-0`; movimientos y asignaciones con `px-3 px-sm-4`, `min-w-0 text-break`; avatar `.7rem` → `.75rem` (escala única); estados vacíos de las secciones con `_EstadoVacio`.
+- Modales (3): `aria-labelledby` + `id` en el título, `aria-label="Cerrar"`, `modal-dialog-scrollable`, `label for` en `selectUsuarioActivo`, `selectTecnicoH`, `txtAsignarObs`, `txtDevolverObs`, `role="alert"` en los avisos de error. No se puso `aria-hidden` inicial (daba aviso en T5). Ids y JS sin cambios.
+
+### Medición (Chrome DevTools, `emulate`, `localhost:8080`)
+| Pantalla | 375 | 600 | 768 | 1280 |
+|---|---|---|---|---|
+| ActivoCreate | desborde 0, 1 col, 0 <44 px, 0 sin nombre, 0 `for` rotos, 0 ids dup. | 0 | 0, 2 col | 0, 3 col |
+| ActivoEdit/1 | igual, 1 col | 0 | 0, 2 col | 0 |
+| HerramientaCreate | igual, 1 col | n/a | 0, 2 col | 0 |
+| ActivoDetails/1 | 0, 0 <44 px, panel bajo el contenido | 0 | 0, 0 <44 px, panel bajo | 0 |
+| HerramientaDetails/6 (asignada) | 0, 0 <44 px, panel bajo | n/a | n/a | n/a |
+| HerramientaDetails/1 (disponible) | n/a | 0 | 0, 0 <44 px, panel bajo | 0 |
+
+- Botones Guardar/Cancelar a 375 px: 305 px de ancho (completo), 44 px de alto, principal primero (ActivoCreate y HerramientaCreate).
+- Errores de validación a 375 px (envío vacío, solo cliente, no se creó nada): «El nombre es obligatorio» y «El tipo es obligatorio» junto al campo, `aria-describedby="err-…"` y `aria-invalid="true"`; ActivoEdit con nombre vacío igual. Sin desborde.
+- Texto largo inyectado por DOM (título de 120 caracteres y valores de 80 sin espacios) en ActivoDetails y HerramientaDetails a 375 px: sin desborde.
+- Acciones de cabecera de Details: 44x44 con 8 px de separación a 375 px; icono «Devolver» `rgb(138,97,0)` (≈5,9:1).
+- Modales a 375x400 abiertos con su disparador real (`#btnAsignarActivo`, `#btnAsignarH`, `#btnDevolver`): caben (61..339, 20..380, 35..365 de 400), botones y selects de 44 px, cierre de 44x44 con `aria-label="Cerrar"`, etiquetas asociadas, validación vacía muestra el aviso con `role="alert"` («Selecciona un usuario.» / «Selecciona técnico.»), cierran bien. Selects cargados por script con 8 opciones.
+- Estados vacíos de HerramientaDetails/1: «Sin asignaciones registradas.» y «Sin movimientos.» con `_EstadoVacio`.
+- Consola (ActivoDetails y HerramientaDetails/1): sin errores ni avisos.
+
+### No verificado en T7
+- Roles Supervisor, Soporte y Usuario (solo hay sesión de Administrador). Supervisor ve los modales de asignar/devolver de herramienta y de asignar activo; los botones de cabecera de ActivoDetails/HerramientaDetails dependen del rol.
+- Casillas e interruptores con etiqueta de 44 px: estas 5 pantallas no tienen ninguna.
+- Envíos válidos y POST reales (crear/editar activo o herramienta, asignar, devolver): no se ejecutaron para no modificar datos; tampoco el envío de servidor con `ModelState` inválido (solo validación de cliente).
+- ActivoDetails en un activo con garantía vencida / en mantenimiento (badge `warning text-dark`): no hay datos; el cambio es solo de clase.
+- Herramientas con movimientos o asignaciones reales largas: el texto largo se probó inyectado por DOM.
+- HerramientaCreate a 600 px y HerramientaDetails/6 a 600/768/1280 (se midió la 1, mismo marcado).

@@ -10,21 +10,21 @@
 
 @Html.AntiForgeryToken()
 
-<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
-    <div>
+<div class="page-header align-items-start">
+    <div class="min-w-0">
         <div class="d-flex align-items-center gap-2 mb-1">
             <a asp-action="Herramientas" class="btn btn-outline-secondary btn-sm">← Herramientas</a>
-            <span class="text-muted small">Herramienta #@Model.Id</span>
+            <span class="text-muted small flex-shrink-0">Herramienta #@Model.Id</span>
         </div>
-        <h4 class="mb-1 fw-bold">@Model.Nombre</h4>
-        <div class="d-flex gap-2 flex-wrap">
+        <h1 class="page-title mb-2">@Model.Nombre</h1>
+        <div class="d-flex gap-2 flex-wrap align-items-center">
             <span class="badge bg-secondary">@Model.Tipo</span>
             @{
                 var estadoColor = Model.Estado switch
                 {
                     "Disponible"    => "success",
                     "Asignada"      => "primary",
-                    "En Reparación" => "warning",
+                    "En Reparación" => "warning text-dark",
                     "Baja"          => "danger",
                     _               => "secondary"
                 };
@@ -38,7 +38,7 @@
     </div>
     @if (esAdminOSupervisor)
     {
-        <div class="d-flex gap-2 flex-wrap">
+        <div class="page-actions acciones-icono">
             <a asp-action="HerramientaEdit" asp-route-id="@Model.Id"
                class="btn btn-outline-primary btn-sm" title="Editar" aria-label="Editar">
                <i class="fa-solid fa-pen" aria-hidden="true"></i>
@@ -70,22 +70,22 @@
             <div class="card-body p-0">
                 @if (!Model.Asignaciones.Any())
                 {
-                    <div class="text-center text-muted py-4">Sin asignaciones registradas.</div>
+                    <partial name="_EstadoVacio" model='("fa-solid fa-user-slash", "Sin asignaciones registradas.", (string?)null, (string?)null)' />
                 }
                 else
                 {
                     @foreach (var a in Model.Asignaciones.OrderByDescending(x => x.FechaAsignacion))
                     {
-                        <div class="border-bottom px-4 py-3 @(a.Activa ? "bg-primary bg-opacity-10" : "")">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="fw-semibold small">
+                        <div class="border-bottom px-3 px-sm-4 py-3 @(a.Activa ? "bg-primary bg-opacity-10" : "")">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 mb-1">
+                                <span class="fw-semibold small text-break">
                                     @a.TecnicoNombreCompleto
                                     @if (a.Activa)
                                     {
                                         <span class="badge bg-primary ms-1">Activa</span>
                                     }
                                 </span>
-                                <span class="text-muted small">
+                                <span class="text-muted small flex-shrink-0">
                                     @a.FechaAsignacion.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
                                 </span>
                             </div>
@@ -114,19 +114,19 @@
             <div class="card-body p-0">
                 @if (!Model.Movimientos.Any())
                 {
-                    <div class="text-center text-muted py-4">Sin movimientos.</div>
+                    <partial name="_EstadoVacio" model='("fa-solid fa-clock-rotate-left", "Sin movimientos.", (string?)null, (string?)null)' />
                 }
                 else
                 {
                     @foreach (var m in Model.Movimientos)
                     {
-                        <div class="d-flex align-items-start gap-3 border-bottom px-4 py-3">
+                        <div class="d-flex align-items-start gap-3 border-bottom px-3 px-sm-4 py-3">
                             <div class="rounded-circle bg-primary text-white d-flex align-items-center
                                         justify-content-center flex-shrink-0"
-                                 style="width:32px;height:32px;font-size:.7rem">
+                                 style="width:32px;height:32px;font-size:.75rem">
                                 @m.UsuarioNombre[0]@m.UsuarioApellido[0]
                             </div>
-                            <div>
+                            <div class="min-w-0 text-break">
                                 <div class="small fw-semibold">
                                     @m.UsuarioNombreCompleto
                                     <span class="text-muted fw-normal">— @m.TipoMovimiento</span>
@@ -159,21 +159,21 @@
                 <span class="fw-semibold">Información</span>
             </div>
             <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Código</span>
-                    <span class="small fw-semibold">@(Model.Codigo ?? "—")</span>
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Código</span>
+                    <span class="small text-end text-break min-w-0 fw-semibold">@(Model.Codigo ?? "—")</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Tipo</span>
-                    <span class="small">@Model.Tipo</span>
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Tipo</span>
+                    <span class="small text-end text-break min-w-0">@Model.Tipo</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Asignada a</span>
-                    <span class="small">@(asignacionActual?.TecnicoNombreCompleto ?? "—")</span>
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Asignada a</span>
+                    <span class="small text-end text-break min-w-0">@(asignacionActual?.TecnicoNombreCompleto ?? "—")</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Registrada</span>
-                    <span class="small">@Model.CreadoEn.ToLocalTime().ToString("dd/MM/yyyy")</span>
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Registrada</span>
+                    <span class="small text-end text-break min-w-0">@Model.CreadoEn.ToLocalTime().ToString("dd/MM/yyyy")</span>
                 </li>
             </ul>
             @if (!string.IsNullOrEmpty(Model.Descripcion))
@@ -188,21 +188,21 @@
 
 @if (esAdminOSupervisor)
 {
-    <div class="modal fade" id="asignarHModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+    <div class="modal fade" id="asignarHModal" tabindex="-1" aria-labelledby="asignarHTitulo">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold">Asignar herramienta</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title fw-bold" id="asignarHTitulo">Asignar herramienta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Técnico</label>
+                        <label for="selectTecnicoH" class="form-label fw-semibold">Técnico</label>
                         <select id="selectTecnicoH" class="form-select"></select>
                     </div>
-                    <label class="form-label fw-semibold">Observaciones</label>
+                    <label for="txtAsignarObs" class="form-label fw-semibold">Observaciones</label>
                     <textarea id="txtAsignarObs" class="form-control" rows="2"></textarea>
-                    <div id="errorAsignarH" class="alert alert-danger py-2 small d-none mt-2"></div>
+                    <div id="errorAsignarH" class="alert alert-danger py-2 small d-none mt-2" role="alert"></div>
                 </div>
                 <div class="modal-footer border-0 pt-0 gap-2">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -212,16 +212,16 @@
         </div>
     </div>
 
-    <div class="modal fade" id="devolverHModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+    <div class="modal fade" id="devolverHModal" tabindex="-1" aria-labelledby="devolverHTitulo">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width:420px">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold">Registrar devolución</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title fw-bold" id="devolverHTitulo">Registrar devolución</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <p>¿Confirma la devolución de <strong>@Model.Nombre</strong>?</p>
-                    <label class="form-label fw-semibold">Observaciones</label>
+                    <label for="txtDevolverObs" class="form-label fw-semibold">Observaciones</label>
                     <textarea id="txtDevolverObs" class="form-control" rows="2"></textarea>
                 </div>
                 <div class="modal-footer border-0 pt-0 gap-2">
