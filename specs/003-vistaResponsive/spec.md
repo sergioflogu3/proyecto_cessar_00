@@ -1,9 +1,10 @@
 # Spec 003 — Vista y responsive de todo el proyecto
 
-Estado: aprobada
+Estado: implementada
 
 Historial:
 - Aprobada inicialmente.
+- Implementada 17/10/2026 con salvedades (T1-T13; ver `verificacion.md`): 27 de las 32 pantallas medidas con el rol Administrador; sin medir Inicio, Privacidad (vista huérfana, sin acción) y los inicios de Supervisor, Soporte y Usuario; paginaciones sin probar con ≥200 registros.
 - Ajustada 15/10/2026 tras revisar el plan: (a) excepción de objetivos de 44 px para casillas, interruptores y enlaces dentro de un párrafo (RF-24, CF-5); (b) validación mínima en cliente, con mensajes en español en la vista, para los formularios de Configuración sin ViewModel (RF-26, RNF-2); (c) guarda de carga de la librería de gráficos en el Dashboard (RF-10, RNF-1); (d) corrección de «Casos límite»: la paginación del listado de visitas la genera el servidor, no un script; (e) esta spec se mantiene como una sola, con 12-13 tareas (excepción explícita a la regla de más de 10 tareas, ver tasks.md).
 
 ## Contexto y objetivo

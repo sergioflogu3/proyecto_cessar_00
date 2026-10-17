@@ -111,7 +111,14 @@ Todo el cableado de DI (repositorios, servicios, JWT, autenticación) ocurre en 
 
 - Sin tests automatizados, sin pipeline de CI conectado (`planes/ci.yml` es un borrador, no instalado), sin 2FA. `planes/01-problemas-de-seguridad.md`, `planes/02-ci-cd-plan.md` y `planes/03-plan-arquitectura.md` catalogan los problemas de seguridad conocidos y las mejoras propuestas de arquitectura/CI: consúltalos antes de proponer cambios de seguridad o CI/CD para no duplicar ni contradecir el análisis existente.
 - **B2 (CVE de dependencias)**: resuelto parcialmente. Las versiones de los paquetes directos se subieron a su último minor/patch (ver `cambios/B2-dependencias-vulnerables.md`) y `dotnet list package --vulnerable --include-transitive` reporta cero vulnerabilidades conocidas a la fecha de escribir esto. La mitad de CI de la remediación (instalar `planes/ci.yml` → `.github/workflows/ci.yml`, o GitHub Dependabot) sigue **sin** instalarse a propósito: el repo tiene un remoto real en GitHub, así que activarla empezaría a ejecutar Actions en cada push/PR; es una decisión que corresponde al usuario, no algo que hacer sin que se pida.
-- Specs en `/specs`: solo existe `001-deudaTecnica` (implementada: las 4 vistas de detalle usan ViewModel propio); el resto del comportamiento aún no está especificado (principio 2 de `docs/constitution.md`).
+- Specs en `/specs`: existen `001-deudaTecnica` (implementada: las 4 vistas de detalle usan ViewModel propio) y `003-vistaResponsive` (implementada con salvedades, ver abajo); el resto del comportamiento aún no está especificado (principio 2 de `docs/constitution.md`).
+- **Spec 003 (vista y responsive), salvedades de cierre** (detalle en `specs/003-vistaResponsive/verificacion.md`):
+  - Solo se midió con el rol Administrador: 27 de las 32 pantallas. Sin medir: `Home/Index` (redirige al panel del rol), `Home/Privacy` (vista huérfana: no tiene acción ni enlaces, `/Home/Privacy` da 404) y los inicios de Supervisor, Soporte y Usuario (solo se cambió su marcado). Lighthouse y consola "0 campos sin nombre" también solo con el Administrador.
+  - Las 6 paginaciones usan el parcial `_Paginacion`, probado con 300 páginas simuladas, pero no con ≥200 registros reales (los listados tienen 7-10 filas).
+  - Fallo preexistente, sin corregir: `UsersController.Edit` hace `ModelState.Remove(Password)` y `UsuarioService.UpdateAsync` hashea cualquier contraseña no vacía, así que la política de contraseñas (M2) no se aplica al editar un usuario. Durante la verificación la cuenta de pruebas `qa_admin` quedó con la contraseña `abc`; hay que restablecerla.
+  - Fallo preexistente, sin corregir: el selector "Descontar de sede" del modal de consumo de `Campo/VisitaDetails` nunca se llena (solo ofrece "No descontar").
+  - Bootstrap es la 5.1.0: no existen `bg-*-subtle` ni `text-*-emphasis`; los ajustes de contraste viven en `site.css`.
+  - La separación mínima de 8 px entre objetivos táctiles depende de overrides de `.gap-2`, `.g-2`, `.mb-2`… en `site.css` (<=991 px): con `html` a 14 px `.5rem` son 7 px.
 
 ## Verificación
 

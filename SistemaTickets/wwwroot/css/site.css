@@ -493,6 +493,33 @@ a:hover { color: var(--color-primary-dark); }
 .text-primary { color: var(--color-primary) !important; }
 .text-success { color: #146c43 !important; }   /* #198754 da 4,18:1 sobre #f4f6f9 */
 .text-secondary { color: var(--color-muted-fuerte) !important; }   /* #6c757d da 4,33:1 sobre #f4f6f9 */
+/* <code> (Request ID de la página de Error): el rosa de Bootstrap #d63384 da 4,15:1 sobre #f4f6f9 */
+code { color: #b02a6e; }
+/* Botón de contorno secundario («← Volver», «Limpiar»…): mismo gris AA que .text-secondary (Lighthouse: 4,33:1 sobre #f4f6f9) */
+.btn-outline-secondary { color: var(--color-muted-fuerte); border-color: var(--color-muted-fuerte); }
+.btn-outline-secondary:hover, .btn-outline-secondary:focus, .btn-outline-secondary:active,
+.btn-outline-secondary.active, .btn-check:checked + .btn-outline-secondary {
+    color: var(--color-white); background-color: var(--color-muted-fuerte); border-color: var(--color-muted-fuerte);
+}
+
+/* Botones de contorno primary/success/danger sobre el fondo de página #f4f6f9 (Lighthouse: #0d6efd da 4,15:1).
+   Mismo matiz, un tono más oscuro: #0b5ed7 (5,4:1), #146c43 y --color-danger-texto. El relleno al pasar el ratón no cambia. */
+/* Pestañas: el azul por defecto de Bootstrap (#0d6efd) da 4,15:1 sobre #f4f6f9; se usa el azul de marca como en los enlaces */
+.nav-link { color: var(--color-primary); }
+.nav-link:hover, .nav-link:focus { color: var(--color-primary-dark); }
+.nav-tabs .nav-link.active { color: #495057; }
+.btn-outline-primary { color: #0b5ed7; border-color: #0b5ed7; }
+.btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active, .btn-outline-primary.active {
+    color: var(--color-white); background-color: #0b5ed7; border-color: #0b5ed7;
+}
+.btn-outline-success { color: #146c43; border-color: #146c43; }
+.btn-outline-success:hover, .btn-outline-success:focus, .btn-outline-success:active, .btn-outline-success.active {
+    color: var(--color-white); background-color: #146c43; border-color: #146c43;
+}
+.btn-outline-danger { color: var(--color-danger-texto); border-color: var(--color-danger-texto); }
+.btn-outline-danger:hover, .btn-outline-danger:focus, .btn-outline-danger:active, .btn-outline-danger.active {
+    color: var(--color-white); background-color: var(--color-danger-texto); border-color: var(--color-danger-texto);
+}
 .field-validation-error { color: var(--color-danger-texto); font-size: var(--fs-ayuda); }
 .field-validation-error::before { content: "\26A0\FE0E  "; }
 
@@ -565,6 +592,7 @@ td.celda-acciones { white-space: nowrap; }
     }
     .sidebar-toggle-btn { min-width: var(--tap-min); min-height: var(--tap-min); justify-content: center; }
     .login-show-btn { min-width: var(--tap-min); min-height: var(--tap-min); }
+    .login-input-group, .btn-login { min-height: var(--tap-min); }
     .sidebar-link, .sidebar-logout { min-height: var(--tap-min); white-space: normal; overflow-wrap: anywhere; }
     .sidebar-username { max-width: 100%; overflow-wrap: anywhere; }
 
@@ -618,6 +646,9 @@ td.celda-acciones { white-space: nowrap; }
     /* Enlaces de lista (adjuntos del detalle): objetivo de 44 px */
     .enlace-tap { display: flex !important; align-items: center; min-height: var(--tap-min); }
 
+    /* Badge que es un enlace (p. ej. «Ticket #n» de la visita): objetivo de 44 px sin estirarse a todo el ancho */
+    .badge-enlace { display: inline-flex; align-items: center; min-height: var(--tap-min); }
+
     /* Palabras sin espacios muy largas: se parten en varias líneas en vez de ensanchar la tabla (RF-2) */
     .tabla-apilable td { overflow-wrap: anywhere; }
 
@@ -626,7 +657,22 @@ td.celda-acciones { white-space: nowrap; }
         display: inline-flex;
         align-items: center;
         min-height: var(--tap-min);
+        min-width: var(--tap-min);
     }
+
+    /* Separación entre objetivos contiguos >= 8 px (RF-24): con html a 14 px, .5rem son 7 px y las
+       utilidades de Bootstrap (!important) pisaban --gap-acciones. Solo en <=991 px. */
+    .gap-2 { gap: var(--gap-acciones) !important; }
+    /* Pestañas contiguas: 8 px entre objetivos (en escritorio quedan pegadas, como siempre) */
+    /* (el -1px de margin-bottom de .nav-link resta 1 px a la separación vertical) */
+    .nav-tabs { column-gap: var(--gap-acciones); row-gap: calc(var(--gap-acciones) + 1px); }
+    .g-2, .gy-2 { --bs-gutter-y: var(--gap-acciones); }
+    .g-2, .gx-2 { --bs-gutter-x: var(--gap-acciones); }
+    .mb-2 { margin-bottom: var(--gap-acciones) !important; }
+    .mt-2 { margin-top: var(--gap-acciones) !important; }
+    .my-2 { margin-top: var(--gap-acciones) !important; margin-bottom: var(--gap-acciones) !important; }
+    .ms-2 { margin-left: var(--gap-acciones) !important; }
+    .me-2 { margin-right: var(--gap-acciones) !important; }
 }
 
 /* ---------- Móvil: <=575px ---------- */
@@ -729,6 +775,8 @@ td.celda-acciones { white-space: nowrap; }
     }
     .modal-header, .modal-footer { flex-shrink: 0; }
     .modal-body { overflow-y: auto; min-height: 0; }
+    /* Modales cuyo <form> envuelve cuerpo y pie: el form hereda la columna flex para que el scroll quede en el cuerpo */
+    .modal-content > form { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
     .modal-footer { flex-wrap: wrap; }
     .modal-footer > .btn { flex: 1 1 100%; }
     .modal-footer > .btn-primary, .modal-footer > .btn-success, .modal-footer > .btn-danger,

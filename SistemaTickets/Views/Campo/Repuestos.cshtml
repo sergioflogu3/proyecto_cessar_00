@@ -7,14 +7,14 @@
     var esAdminOSupervisor = role is "Administrador" or "Supervisor";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h4 class="mb-0 fw-bold">Repuestos</h4>
-        <small class="text-muted">
+        <h1 class="page-title">Repuestos</h1>
+        <small class="page-subtitle">
             Mostrando @Model.DesdeRegistro–@Model.HastaRegistro de @Model.TotalRegistros repuestos
         </small>
     </div>
-    <div class="d-flex gap-2">
+    <div class="page-actions">
         <a asp-action="Visitas" class="btn btn-outline-primary btn-sm">Ver Visitas</a>
         @if (esAdminOSupervisor)
         {
@@ -25,15 +25,15 @@
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
         @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
 }
 
 @if (Model.StockAlerta.Any())
 {
-    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+    <div class="alert alert-warning d-flex flex-wrap align-items-center gap-2 mb-4" role="status">
         <span class="fw-semibold">⚠ Stock bajo mínimo:</span>
         @foreach (var s in Model.StockAlerta)
         {
@@ -45,14 +45,14 @@
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body py-3">
         <form method="get" asp-action="Repuestos" class="row g-2 align-items-end">
-            <div class="col-md-5">
-                <label class="form-label small text-muted mb-1">Buscar repuesto</label>
-                <input type="text" name="search" value="@Model.Search"
+            <div class="col-12 col-md-6 col-lg-5">
+                <label for="filtroSearch" class="form-label small text-muted mb-1">Buscar repuesto</label>
+                <input type="text" id="filtroSearch" name="search" value="@Model.Search"
                        class="form-control form-control-sm" placeholder="Nombre o código..." />
             </div>
-            <div class="col-md-3">
-                <label class="form-label small text-muted mb-1">Categoría</label>
-                <select name="categoria" class="form-select form-select-sm">
+            <div class="col-12 col-md-6 col-lg-3">
+                <label for="filtroCategoria" class="form-label small text-muted mb-1">Categoría</label>
+                <select id="filtroCategoria" name="categoria" class="form-select form-select-sm">
                     <option value="">Todas</option>
                     @foreach (var c in SistemaTickets.Domain.Entities.Repuesto.Categorias)
                     {
@@ -60,11 +60,9 @@
                     }
                 </select>
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary btn-sm w-100">Buscar</button>
-            </div>
-            <div class="col-md-2">
-                <a asp-action="Repuestos" class="btn btn-outline-secondary btn-sm w-100">Limpiar</a>
+            <div class="col-12 col-lg-4 acciones-form d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm flex-grow-1">Buscar</button>
+                <a asp-action="Repuestos" class="btn btn-outline-secondary btn-sm flex-grow-1">Limpiar</a>
             </div>
         </form>
     </div>
@@ -73,7 +71,7 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 tabla-apilable">
                 <thead class="table-light">
                     <tr>
                         <th class="ps-4" style="width:50px">#</th>
@@ -88,7 +86,11 @@
                 <tbody>
                     @if (!Model.Repuestos.Any())
                     {
-                        <tr><td colspan="7" class="text-center py-5 text-muted">No se encontraron repuestos.</td></tr>
+                        <tr>
+                            <td colspan="7" class="fila-vacia p-0">
+                                <partial name="_EstadoVacio" model='("fa-solid fa-screwdriver-wrench", "No se encontraron repuestos.", (string?)null, (string?)null)' />
+                            </td>
+                        </tr>
                     }
                     else
                     {
@@ -97,8 +99,8 @@
                         {
                             var tieneAlerta = Model.StockAlerta.Any(s => s.Repuesto.Id == r.Id);
                             <tr>
-                                <td class="ps-4 text-muted small">@num</td>
-                                <td>
+                                <td data-label="#" class="ps-4 text-muted small">@num</td>
+                                <td data-label="Nombre">
                                     <a asp-action="RepuestoDetails" asp-route-id="@r.Id"
                                        class="fw-semibold text-decoration-none text-dark">
                                         @r.Nombre
@@ -108,13 +110,13 @@
                                         }
                                     </a>
                                 </td>
-                                <td class="small text-muted">@(r.Codigo ?? "—")</td>
-                                <td class="small">@r.Categoria</td>
-                                <td class="small">@r.UnidadMedida</td>
-                                <td class="small">
+                                <td data-label="Código" class="small text-muted">@(r.Codigo ?? "—")</td>
+                                <td data-label="Categoría" class="small">@r.Categoria</td>
+                                <td data-label="Unidad" class="small">@r.UnidadMedida</td>
+                                <td data-label="Precio" class="small">
                                     @(r.PrecioUnitario > 0 ? r.PrecioUnitario.ToString("C") : "—")
                                 </td>
-                                <td class="text-end pe-4">
+                                <td class="text-end pe-4 celda-acciones">
                                     <a asp-action="RepuestoDetails" asp-route-id="@r.Id"
                                        class="btn btn-outline-primary btn-sm" title="Ver" aria-label="Ver">
                                         <i class="fa-solid fa-eye" aria-hidden="true"></i>
@@ -130,22 +132,9 @@
     </div>
 </div>
 
-@if (Model.TotalPaginas > 1)
-{
-    <nav class="mt-4 d-flex justify-content-center">
-        <ul class="pagination pagination-sm mb-0">
-            <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
-                <a class="page-link" href="?page=@(Model.PaginaActual-1)&search=@Model.Search&categoria=@Model.FiltroCategoria">‹</a>
-            </li>
-            @for (int i = 1; i <= Model.TotalPaginas; i++)
-            {
-                <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
-                    <a class="page-link" href="?page=@i&search=@Model.Search&categoria=@Model.FiltroCategoria">@i</a>
-                </li>
-            }
-            <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
-                <a class="page-link" href="?page=@(Model.PaginaActual+1)&search=@Model.Search&categoria=@Model.FiltroCategoria">›</a>
-            </li>
-        </ul>
-    </nav>
+@{
+    Func<int, string> urlPagina = n =>
+        "?page=" + n + "&search=" + Uri.EscapeDataString(Model.Search ?? "") +
+        "&categoria=" + Uri.EscapeDataString(Model.FiltroCategoria ?? "");
 }
+<partial name="_Paginacion" model="(Model.PaginaActual, Model.TotalPaginas, urlPagina)" />

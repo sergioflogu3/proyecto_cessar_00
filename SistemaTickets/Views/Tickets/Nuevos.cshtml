@@ -107,11 +107,11 @@ else
 }
 
 @* Modal confirmación *@
-<div class="modal fade" id="modalTomar" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+<div class="modal fade" id="modalTomar" tabindex="-1" aria-labelledby="modalTomarTitulo">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-sm">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h6 class="modal-title fw-bold">¿Tomar este ticket?</h6>
+                <h6 class="modal-title fw-bold" id="modalTomarTitulo">¿Tomar este ticket?</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body pt-1 pb-2">

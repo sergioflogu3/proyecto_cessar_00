@@ -11,10 +11,10 @@
     string J(object o) => JsonSerializer.Serialize(o, opts);
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h4 class="mb-0 fw-bold">Dashboard</h4>
-        <small class="text-muted">
+        <h1 class="page-title">Dashboard</h1>
+        <small class="page-subtitle">
             @if (Model.EsAdminOSupervisor)
             { <span>Vista general del sistema</span> }
             else
@@ -36,7 +36,7 @@
                         <div class="text-muted small mb-1">Tickets abiertos</div>
                         <div class="fs-2 fw-bold text-primary">@Model.TicketsAbiertos</div>
                     </div>
-                    <span class="badge bg-primary-subtle text-primary fs-4 p-2">🎫</span>
+                    <span class="badge bg-primary-subtle text-primary fs-4 p-2" aria-hidden="true">🎫</span>
                 </div>
             </div>
         </div>
@@ -49,7 +49,7 @@
                         <div class="text-muted small mb-1">Cerrados hoy</div>
                         <div class="fs-2 fw-bold text-success">@Model.TicketsCerradosHoy</div>
                     </div>
-                    <span class="badge bg-success-subtle text-success fs-4 p-2">✅</span>
+                    <span class="badge bg-success-subtle text-success fs-4 p-2" aria-hidden="true">✅</span>
                 </div>
             </div>
         </div>
@@ -66,7 +66,7 @@
                                 @Model.TicketsSinAsignar
                             </div>
                         </div>
-                        <span class="badge bg-warning-subtle text-warning fs-4 p-2">👤</span>
+                        <span class="badge bg-warning-subtle text-warning fs-4 p-2" aria-hidden="true">👤</span>
                     </div>
                 </div>
             </div>
@@ -81,9 +81,9 @@
             <div class="card-header bg-white border-bottom py-3">
                 <span class="fw-semibold">Tickets por estado</span>
             </div>
-            <div class="card-body d-flex align-items-center justify-content-center" style="min-height:260px">
+            <div class="card-body" style="min-height:260px">
                 @if (Model.PorEstado.Any())
-                {<canvas id="chartEstado" height="220"></canvas>}
+                {<div class="chart-box"><canvas id="chartEstado" role="img" aria-label="Gráfico de tickets por estado"></canvas></div>}
                 else
                 {<p class="text-muted">Sin datos</p>}
             </div>
@@ -94,9 +94,9 @@
             <div class="card-header bg-white border-bottom py-3">
                 <span class="fw-semibold">Tickets por prioridad</span>
             </div>
-            <div class="card-body d-flex align-items-center justify-content-center" style="min-height:260px">
+            <div class="card-body" style="min-height:260px">
                 @if (Model.PorPrioridad.Any())
-                {<canvas id="chartPrioridad" height="220"></canvas>}
+                {<div class="chart-box"><canvas id="chartPrioridad" role="img" aria-label="Gráfico de tickets por prioridad"></canvas></div>}
                 else
                 {<p class="text-muted">Sin datos</p>}
             </div>
@@ -114,7 +114,7 @@
                     <span class="fw-semibold">Tickets por técnico</span>
                 </div>
                 <div class="card-body" style="min-height:280px">
-                    <canvas id="chartTecnico"></canvas>
+                    <div class="chart-box"><canvas id="chartTecnico" role="img" aria-label="Gráfico de tickets por técnico"></canvas></div>
                 </div>
             </div>
         </div>
@@ -126,7 +126,7 @@
             </div>
             <div class="card-body" style="min-height:280px">
                 @if (Model.PorCategoria.Any())
-                {<canvas id="chartCategoria"></canvas>}
+                {<div class="chart-box"><canvas id="chartCategoria" role="img" aria-label="Gráfico de tickets por categoría"></canvas></div>}
                 else
                 {<p class="text-muted text-center pt-5">Sin datos</p>}
             </div>
@@ -142,7 +142,7 @@
                 <span class="fw-semibold">Evolución de tickets — últimos 6 meses</span>
             </div>
             <div class="card-body">
-                <canvas id="chartMes" height="90"></canvas>
+                <div class="chart-box"><canvas id="chartMes" role="img" aria-label="Gráfico de evolución de tickets por mes"></canvas></div>
             </div>
         </div>
     </div>
@@ -157,8 +157,8 @@
                 <div class="card-header bg-white border-bottom py-3">
                     <span class="fw-semibold">Visitas técnicas por estado</span>
                 </div>
-                <div class="card-body d-flex align-items-center justify-content-center" style="min-height:220px">
-                    <canvas id="chartVisitas" height="200"></canvas>
+                <div class="card-body" style="min-height:220px">
+                    <div class="chart-box"><canvas id="chartVisitas" role="img" aria-label="Gráfico de visitas técnicas por estado"></canvas></div>
                 </div>
             </div>
         </div>
@@ -190,7 +190,7 @@
                             @foreach (var a in Model.StockAlertas)
                             {
                                 <li class="list-group-item d-flex align-items-center gap-2 px-4 py-2">
-                                    <span class="text-danger">⚠</span>
+                                    <span class="text-danger" aria-hidden="true">⚠</span>
                                     <span class="small">@a</span>
                                 </li>
                             }
@@ -200,7 +200,7 @@
                 @if (Model.StockAlertas.Any())
                 {
                     <div class="card-footer bg-white border-top py-2 px-4">
-                        <a asp-controller="Campo" asp-action="Repuestos" class="small text-primary">Ver repuestos →</a>
+                        <a asp-controller="Campo" asp-action="Repuestos" class="small text-primary enlace-tap">Ver repuestos →</a>
                     </div>
                 }
             </div>
@@ -215,7 +215,7 @@
         <div class="col-md-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-body d-flex align-items-center gap-3">
-                    <span class="fs-1">⏱</span>
+                    <span class="fs-1" aria-hidden="true">⏱</span>
                     <div>
                         <div class="text-muted small">Tiempo promedio de resolución</div>
                         <div class="fs-4 fw-bold text-info">@tiempoLabel</div>
@@ -226,7 +226,7 @@
         <div class="col-md-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-body d-flex align-items-center gap-3">
-                    <span class="fs-1">📊</span>
+                    <span class="fs-1" aria-hidden="true">📊</span>
                     <div>
                         <div class="text-muted small">Total tickets (historial completo)</div>
                         <div class="fs-4 fw-bold">@(Model.PorEstado.Sum(x => x.Value))</div>
@@ -237,7 +237,7 @@
         <div class="col-md-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-body d-flex align-items-center gap-3">
-                    <span class="fs-1">🚗</span>
+                    <span class="fs-1" aria-hidden="true">🚗</span>
                     <div>
                         <div class="text-muted small">Total visitas técnicas</div>
                         <div class="fs-4 fw-bold">@(Model.VisitasPorEstado.Sum(x => x.Value))</div>
@@ -251,6 +251,8 @@
 @section Scripts {
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
+    // Si la librería de gráficos no cargó (CDN bloqueada o sin red), no se dibuja nada y los indicadores quedan visibles
+    if (typeof Chart !== 'undefined') {
     const palette = [
         '#4e79a7','#f28e2b','#e15759','#76b7b2',
         '#59a14f','#edc948','#b07aa1','#ff9da7',
@@ -325,7 +327,10 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                scales: {
+                    x: { beginAtZero: true, ticks: { stepSize: 1 } },
+                    y: { ticks: { callback: function (v) { const t = this.getLabelForValue(v); return t.length > 16 ? t.slice(0, 15) + '…' : t; } } }
+                }
             }
         });
     })();
@@ -353,7 +358,10 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                scales: {
+                    y: { beginAtZero: true, ticks: { stepSize: 1 } },
+                    x: { ticks: { maxRotation: 60, autoSkip: true, callback: function (v) { const t = this.getLabelForValue(v); return t.length > 14 ? t.slice(0, 13) + '…' : t; } } }
+                }
             }
         });
     })();
@@ -390,7 +398,8 @@
             },
             options: {
                 responsive: true,
-                plugins: { legend: { position: 'top' } },
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } },
                 scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
             }
         });
@@ -417,6 +426,7 @@
         });
     })();
         </text>
+    }
     }
 </script>
 }

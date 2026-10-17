@@ -38,14 +38,13 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
 - `UseStatusCodePages` debe registrarse antes de `UseAuthentication`/`UseAuthorization`.
 - Tras desplegar con dominio real, actualizar `AllowedHosts` o todo da 400.
 - Fallos de permisos conocidos (herramienta sin filtro por técnico, VisitaCambiarEstado sin propietario): leer el atributo de cada acción, no el vecino.
-- Login limitado a 10 intentos/min por IP: al capturar HTML por rol, espaciar las ejecuciones
-  (~60 s) o los logins fallan en silencio.
+- Login limitado a 10 intentos/min por IP: al capturar HTML por rol, espaciar las ejecuciones (~60 s). No probar endpoints reales con datos "inválidos": simular el `fetch`.
 
 ## Próximos pasos
 - Abrir incidencias/specs para la deuda adyacente de `specs/001-deudaTecnica/tasks.md` (2 fallos de permisos en herramienta y visita primero).
 - Especificar el resto del comportamiento en `/specs` (principio 2).
 - Decidir si instalar CI (`planes/ci.yml` → `.github/workflows/`) o Dependabot (B2).
 - Añadir proyecto de tests (hoy `dotnet build` + prueba manual son la única validación).
-- Persistir revocación de tokens e intentos de login si se escala; evaluar 2FA.
+- Persistir revocación de tokens e intentos de login si se escala; evaluar 2FA. Restablecer la contraseña de `qa_admin` (quedó en `abc` por una prueba; `Users/Edit` no aplica la política de contraseñas).
 - Las vistas en Docker van precompiladas: tras cambiar un .cshtml hay que `docker-compose up -d --build app` para verlas.
-- Spec 003-vistaResponsive: T1–T7 hechas (T8 es la siguiente, una tarea cada vez). Si el disco se llena, `docker builder prune` libera caché sin tocar la BD; `resize_page` no cambia `innerWidth`, usar `emulate`.
+- Spec 003-vistaResponsive: IMPLEMENTADA 17/10/2026 con salvedades (T1–T13; 27/32 pantallas medidas, solo rol Administrador; ver CLAUDE.md y `verificacion.md`). Tips: `docker builder prune` libera caché sin tocar la BD; `resize_page` no cambia `innerWidth`, usar `emulate`; medir en iframes del ancho exacto.

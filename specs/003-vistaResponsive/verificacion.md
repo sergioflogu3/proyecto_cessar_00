@@ -357,3 +357,260 @@ Archivos: `Views/Inventario/{ActivoCreate,HerramientaCreate,ActivoDetails,Herram
 - ActivoDetails en un activo con garantía vencida / en mantenimiento (badge `warning text-dark`): no hay datos; el cambio es solo de clase.
 - Herramientas con movimientos o asignaciones reales largas: el texto largo se probó inyectado por DOM.
 - HerramientaCreate a 600 px y HerramientaDetails/6 a 600/768/1280 (se midió la 1, mismo marcado).
+
+
+## T8. Campo: visitas y repuestos (listados, formularios y detalles)
+
+Archivos: `Views/Campo/{Visitas,Repuestos,VisitaCreate,RepuestoCreate,VisitaDetails,RepuestoDetails}.cshtml` y `wwwroot/css/site.css` (1 regla nueva `.badge-enlace`, solo en <=991 px). Sin cambios de servidor ni ViewModels. `dotnet build`: 0 errores; imagen reconstruida con `docker-compose up -d --build app` (2 veces: la segunda tras el hallazgo del badge). Rol Administrador. Capturas `capturas/t8-1280-{visitas,repuestos,visita-details}.png`.
+
+### Cambios
+- Listados: `.page-header`/`h1.page-title`/`.page-actions`; filtros con `for`/`id` y rejilla `col-12 col-md-6 col-lg-5/3` + `.acciones-form` (Buscar/Limpiar); `tabla-apilable` + `data-label` + `celda-acciones` (Visitas 7 campos con técnico, Repuestos 7: ninguna supera 8, sin plegado); estado vacío con `_EstadoVacio`; alerta de stock bajo con `flex-wrap` y `role="status"`; `role="alert"` y `aria-label="Cerrar"` en el aviso de éxito; paginación con `_Paginacion` (URL en bloque `@{}` con `Uri.EscapeDataString`, antes se interpolaba `search` sin escapar).
+- Formularios: `.page-header`, `p-3 p-sm-4`, `col-12 col-md-6`, `.acciones-form`.
+- Detalles: cabecera con `.page-actions.acciones-icono`, listas de información con `gap-3`, valores `text-end text-break min-w-0`, filas de consumos/stock con `min-w-0 text-break`, estados vacíos con `_EstadoVacio`, `flex-wrap` en la cabecera de tarjeta con botón.
+- Modales (2): `aria-labelledby`, `aria-label="Cerrar"`, `modal-dialog-scrollable`, `label for` en todos los campos (buscarRepuesto, txtCantidad, selectSede, txtConsumoObs; selectSede, selectTipo, txtCantidad), `aria-label="Repuestos encontrados"` en la lista de repuestos, `col-12 col-sm-6` para Cantidad/Sede, `role="alert"` en los avisos. Ids y JS sin cambios.
+- Hallazgo y corrección: el enlace «Ticket #n» de VisitaDetails (`a.badge`) medía 61x18 px (<44) y `bg-info` llevaba texto blanco (contraste insuficiente). Ahora `bg-info text-dark badge-enlace`: 61x44 px, texto `#212529` sobre `rgb(13,202,240)`.
+
+### Medición (Chrome DevTools, `emulate`, `localhost:8080`)
+| Pantalla | 375 | 600 | 768 | 1280 |
+|---|---|---|---|---|
+| Visitas (7 reg.) | desborde 0, `tr` block, 0 `td` sin label, 0 <44 px, 0 sin nombre, 0 ids dup. | table-row, scroll solo interno (558/558) | table-row, 0 <44 px | table-row |
+| Repuestos (10 reg.) | igual; alerta de stock a 333 px | table-row | table-row | table-row |
+| VisitaCreate | 1 col, botones 305x44 | n/a | n/a | 2 col |
+| RepuestoCreate | 1 col, botones 305x44 | n/a | 2 col | 0 |
+| VisitaDetails/6 | 0, 0 <44 px, panel bajo | 0 | 0, panel bajo | 0 |
+| RepuestoDetails/1 | 0, 0 <44 px, panel bajo | 0 | 0, panel bajo | 0 |
+
+- Estado vacío (`?search=zzzsinresultado`) a 375 px en ambos listados: «No se encontraron visitas/repuestos.», 1 fila, sin desborde, sin paginación.
+- Errores de validación a 375 px (envío vacío, solo cliente): VisitaCreate «La dirección es obligatoria»; RepuestoCreate «El nombre es obligatorio» y «La categoría es obligatoria»; todos junto al campo, `aria-describedby="err-…"` y `aria-invalid="true"`.
+- Texto largo inyectado por DOM (título 120 caracteres, valores 80 sin espacios) en VisitaDetails y RepuestoDetails a 375 px: sin desborde.
+- Menú «Cambiar estado» de VisitaDetails (abierto a 375 px): 3 opciones de 138x44 px.
+- Modal de consumo (VisitaDetails/6, 375x400, abierto con `#btnAgregarConsumo`): contenido 7..393, cuerpo con scroll interno (434/223) y pie alcanzable, controles de 44 px (la lista de repuestos es un `size=4` de 83 px), 0 campos sin nombre, 10 repuestos cargados por script, aviso «Selecciona un repuesto.» con `role="alert"`, cierra bien.
+- Modal de ajuste de stock (RepuestoDetails/1, 375x400, con `#btnAjustarStock`): 7..393, controles de 44 px, 3 campos con etiqueta, aviso «La cantidad debe ser mayor a 0.» con `role="alert"`, pie alcanzable, cierra bien.
+- Consola: sin errores ni avisos.
+- Regresión a 1280: las 3 capturas mantienen la disposición previa (filtros en una fila, 1 acción por fila).
+
+### Hallazgos fuera de plan
+- `#selectSede` del modal de consumo (VisitaDetails) nunca se llena: el JS pide `/Inventario/GetAreasBySede?sedeId=0` y `/Campo/GetRepuestosSelect` pero no pinta sedes, así que solo ofrece «No descontar». Es un fallo funcional previo; no se tocó (fuera de RNF-1) y queda para una spec de deuda.
+- `fs-6` en los badges de cantidad/estado de los detalles se mantiene (1 rem, mayor que la escala de badges; no hay problema de contraste).
+
+### No verificado en T8
+- Paginación con ≥200 registros: solo hay 7 visitas y 10 repuestos (1 página). El parcial `_Paginacion` ya se probó en T2/T3/T4; aquí solo se migró la URL. No se crearon datos de prueba.
+- Listados con 1 registro y con ≥200 registros; VisitaCreate a 600/768 y RepuestoCreate a 600 (mismo marcado que lo medido).
+- VisitaEdit y RepuestoEdit (reutilizan `VisitaCreate`/`RepuestoCreate`).
+- Roles Supervisor y Soporte (solo hay sesión de Administrador). Soporte ve solo sus visitas y, sin columna Técnico, la tabla tiene 6 campos.
+- Acciones POST reales (cambiar estado, registrar consumo, ajustar stock, crear/editar): no se ejecutaron para no modificar datos; el modal de consumo se probó solo hasta la validación de cliente.
+- Tiempo: la tarea superó los 30 min previstos; el plan sugería proponer dividirla, pero se terminó entera sin incidencias (decisión del usuario fue continuar).
+
+
+## T9. Usuarios: listado y alta
+
+Archivos: `Views/Users/{Index,Create}.cshtml` y `wwwroot/css/site.css` (1 regla nueva dentro del bloque <=991 px). Sin cambios de servidor ni ViewModels. `dotnet build`: 0 errores; imagen reconstruida con `docker-compose up -d --build app` (2 veces). Rol Administrador (la sesión caducó a los 30 min y se volvió a iniciar). Capturas `capturas/t9-1280-usuarios.png` y `t9-1280-usuarios-create.png`.
+
+### Cambios
+- Index: `.page-header`/`h1.page-title`/`.page-actions`; filtros con `for`/`id` y rejilla `col-12 col-md-6 col-lg-5/3` + `.acciones-form`; `tabla-apilable` + `data-label` + `celda-acciones` (8 campos, sin plegado); estado vacío `_EstadoVacio`; badges `warning`/`info` con `text-dark` (rol Supervisor/Soporte); acciones Editar/Inactivar con `aria-label` y iconos `aria-hidden`; paginación con `_Paginacion` (URL con `Uri.EscapeDataString`; `activo` ya no se envía como cadena vacía de `bool?` sin escapar).
+- Modales (2): `aria-labelledby`, `aria-label="Cerrar"`, `modal-dialog-scrollable`; edición con `label for` en los 7 campos, `col-12 col-md-6`, `role="alert"` en `#editErrors`, `aria-describedby="editPasswordAyuda"` en la contraseña; confirmación con `text-break` en el nombre.
+- JS mínimo (RF-26): `marcarErrorPassword()` pone `aria-invalid="true"` y añade `#editErrors` a `aria-describedby` de la contraseña cuando el error menciona «contraseña»; `scrollIntoView({block:'nearest'})` lleva el aviso a la vista dentro del cuerpo con scroll.
+- Create: `.page-header`, `p-3 p-sm-4`, `col-12 col-md-6`, `.acciones-form`, `id`+`aria-describedby="passwordAyuda"` en el texto de la política.
+- **Corrección global en `site.css`**: `.modal-content > form { display:flex; flex-direction:column; flex:1 1 auto; min-height:0 }` en <=991 px. El modal de edición envuelve cuerpo y pie en un `<form>`, lo que rompía el scroll del cuerpo: a 375x400 el pie quedaba en y=664-788 (inalcanzable). Tras el cambio: cuerpo con scroll (656/201), pie en y=392 y botón «Guardar cambios» alcanzable. Aplica a cualquier modal con ese patrón (T11 lo reutilizará).
+
+### Medición (Chrome DevTools, `emulate`, `localhost:8080`)
+| Pantalla | 375 | 600 | 768 | 1280 |
+|---|---|---|---|---|
+| Users/Index (9 usuarios) | desborde 0, `tr` block, 0 `td` sin label, 0 <44 px, 0 sin nombre, 0 ids dup.; acciones 44x44 a 8 px | table-row, scroll interno (598/558), 0 <44 px | table-row, 0 <44 px | table-row, sin scroll |
+| Users/Create | 1 col, botones 305x44 (Crear antes que Cancelar), 0 <44 px, 0 `for` rotos | 0 | 0, 2 col | 0 |
+
+- Estado vacío (`?search=zzzsinresultado`) a 375 px: «No se encontraron usuarios.», sin desborde ni paginación.
+- Modal de edición a 375x400 (abierto con su disparador real): 7..393 de 400, 1 columna, controles de 44 px, 0 campos sin nombre, cierra bien. Con una respuesta de error simulada (`fetch` interceptado, sin POST) «La contraseña debe tener al menos 12 caracteres.» sale con `role="alert"`, dentro de la ventana, y la contraseña queda con `aria-invalid="true"` y `aria-describedby="editPasswordAyuda editErrors"`.
+- Modal de confirmación a 375x400: 60..340, botones de 44 px, `aria-label="Cerrar"`, cierra con Escape. No se pulsó «Sí, inactivar».
+- Create con contraseña `abc` y resto vacío (solo validación de cliente, nada se crea): errores en español junto a cada campo («El nombre es requerido», «Mínimo 12 caracteres», …), `aria-invalid="true"` y `aria-describedby` con el texto de la política y el error.
+- Consola: sin errores ni avisos.
+
+### INCIDENTE durante la verificación (leer)
+Al probar el error de contraseña del modal de edición envié un POST real a `/Users/Edit` con contraseña `abc` sobre el usuario **`qa_admin` (id 1002)**, esperando que el servidor lo rechazara. **Lo aceptó**: la página se recargó (`success`). Causa (ya existente, no de esta tarea): `UsersController.Edit` ejecuta `ModelState.Remove(nameof(model.Password))` y `UsuarioService.UpdateAsync` hashea cualquier contraseña no vacía, así que **la política de contraseñas (M2: 12 caracteres, complejidad, lista de comunes) no se aplica al editar un usuario**, aunque `UsuarioFormViewModel.Password` lleva los atributos. Consecuencia: la contraseña de `qa_admin` (cuenta de pruebas de rol Administrador) es ahora `abc`; su valor original no está en el repositorio y no se pudo restaurar. Pendiente: el usuario debe restablecerla (por ejemplo editando el usuario con una contraseña fuerte) y decidir si abre una spec para el fallo de `Edit`. No se tocó el servidor (RNF-1/RNF-2). Las pruebas posteriores no hicieron más POST a `/Users/Edit`.
+
+### No verificado en T9
+- Paginación con ≥200 usuarios: hay 9 (1 página); `_Paginacion` se probó en T2/T3/T4. Listado con 1 y con ≥200 usuarios.
+- Error de contraseña devuelto por el servidor en el modal de edición: solo se probó con respuesta simulada (el servidor real no valida la contraseña en `Edit`, ver incidente).
+- «Sí, inactivar» y el guardado real del modal de edición con datos válidos; envío válido de Create.
+- Roles Supervisor/Soporte/Usuario (la pantalla es solo del Administrador).
+
+
+## T10. Configuración: tablas y pestañas
+
+Archivos: `Views/Configuracion/Index.cshtml` (solo cabecera, pestañas y las 6 tablas; los 6 formularios de alta y los 6 modales de edición quedan para la T11). Sin cambios de servidor, ViewModels ni `site.css`. `dotnet build`: 0 errores; imagen reconstruida con `docker-compose up -d --build app` (2 veces). Rol Administrador (la sesión caducó a los 30 min y se volvió a iniciar). Ruta real: `/Configuracion/Index?tab=…` (la acción por defecto del router es `Login`). Capturas `capturas/t10-375-configuracion.png` y `t10-1280-prioridades.png`.
+
+### Cambios
+- Cabecera `.page-header` + `h1.page-title`; `aria-label="Cerrar"` en los avisos de éxito/error.
+- Pestañas: `aria-label="Secciones de configuración"` y `aria-current="page"` en la activa. **Decisión: `flex-wrap`** (comportamiento por defecto de `.nav-tabs`), no scroll interno: a 375 px pasan a 3 filas (130 px) con cada pestaña de 44 px de alto, sin desborde ni CSS nuevo.
+- Las 6 tablas (categorías, prioridades, estados, tipos de activo, sedes, áreas): `.table-responsive` + `tabla-apilable`, `data-label` en cada celda (20 en total), `celda-acciones` en la de acciones, `fila-inactiva` en lugar de `opacity-50` (0 usos de `opacity-50` ya), estado vacío por tabla con `_EstadoVacio`, `aria-label` en Editar y Activar/Desactivar y `aria-hidden` en los iconos, muestra de color con `aria-hidden`.
+- Badges Activa/Inactiva: `bg-success-subtle text-success` y `bg-secondary-subtle text-secondary` (contraste insuficiente) pasan a `bg-success`/`bg-secondary` (blanco sobre `#198754`, ≥4,5:1). Prioridades y Estados usan `_BadgeEstado` (texto claro u oscuro según el color de la BD) en lugar de `style="background:…"` con texto blanco fijo.
+- Truncados/anchos fijos: la tabla no usaba `text-truncate` ni anchos fijos; los `style` restantes son la muestra de color de 20 px (decorativa), los `max-width` de los modales (T11) y el `input[type=color]` de 44x32 (formularios, T11).
+
+### Medición (Chrome DevTools; cada pestaña cargada en un iframe del ancho exacto, mismo origen)
+| Pestaña (filas) | 375 | 600 | 768 | 1280 |
+|---|---|---|---|---|
+| Categorías (7) | desborde 0, `tr` block, 0 `td` sin label, 0 acciones <44 px, separación 8 px | table-row, scroll solo interno (558/558: sin scroll), separación 12 px | table-row, 12 px | table-row, 4 px |
+| Prioridades (4) | igual | igual | igual | igual |
+| Estados (6) | igual (1 acción) | igual | igual | igual |
+| Tipos de Activo (8) | igual | igual | igual | igual |
+| Sedes (3) | igual | igual | igual | igual |
+| Áreas (7) | igual | igual | igual | igual |
+
+- `scrollWidth` del documento = ancho del viewport en las 24 combinaciones; 0 elementos fuera de ventana fuera de `.table-responsive`.
+- Pestañas a 375 px: 6 pestañas en 3 filas de 44 px, ancho total 333 px (sin scroll horizontal); `aria-current` solo en la activa.
+- Contraste de `.fila-inactiva`: color `--color-muted-fuerte` `#5a6b82` ≥ 5,44:1 sobre blanco y 4,86:1 sobre el hover de tabla (≥4,5:1).
+- Consola: sin errores. Un aviso del inspector «No label associated with a form field» corresponde al formulario de alta y al modal de edición (campos `nombre`, `descripcion`, `editCatNombre`, `editCatDesc` en la pestaña de categorías): es el alcance de la T11. (El contador 108 es acumulado de las 24 cargas de los iframes de la medición.)
+- Regresión a 1280: capturas con la disposición previa (tabla a la izquierda, formulario de alta a la derecha); el badge de «Media» pasa a texto oscuro por contraste.
+
+### No verificado en T10
+- Filas inactivas reales: no hay ninguna (todas las categorías, prioridades, etc. están activas); el contraste se calculó desde la variable CSS y no sobre una fila renderizada. Tampoco se probó Activar/Desactivar (POST real).
+- Estado vacío por tabla: no se pudo vaciar ninguna tabla real; el marcado es el mismo `td.fila-vacia` + `_EstadoVacio` verificado en T6/T8/T9.
+- Las acciones de fila se midieron en un viewport con `isMobile` solo en la captura de 375 px; en los iframes de 600/768 px no hay emulación táctil (el tamaño de objetivo depende de la media query de ancho, no del tacto).
+- Otros roles: la pantalla es solo del Administrador.
+- La cuenta `qa_admin` sigue con la contraseña `abc` por el incidente de la T9; no se usó.
+
+
+## T11. Configuración: formularios de alta y modales de edición
+
+Archivos: `Views/Configuracion/Index.cshtml` (solo formularios y modales; tablas y pestañas son de la T10). Sin cambios de servidor, ViewModels, `site.js` ni `site.css` (la regla `.modal-content > form` de la T9 ya cubre estos modales). `dotnet build`: 0 errores; imagen reconstruida con `docker-compose up -d --build app`. Rol Administrador (la sesión caducó otra vez y se volvió a iniciar). Captura `capturas/t11-375x400-modal-prioridad.png`.
+
+### Cuenta de formularios (corrección respecto al plan)
+El plan y la spec hablan de **12 formularios** (6 de alta + 6 de edición). En la vista real hay **11**: 5 de alta (categoría, prioridad, tipo de activo, sede, área) y 6 modales de edición (categoría, prioridad, estado, tipo, sede, área). **Estados no tiene formulario de alta**: solo una tarjeta informativa («No se pueden agregar ni eliminar…»). Los 6 modales sí cuadran con las cuentas de control (T11 = 6 de 19). La cuenta de la T13 debe usar 11 formularios, no 12.
+
+### Cambios
+- Los 11 `<form>` llevan `data-validar` (validación de `site.js`, `novalidate` y mensaje junto al campo). Mensajes en español en la vista (`data-msg-required`): «El nombre es obligatorio.» (nombre), «La ciudad es obligatoria.» (ciudad), «Selecciona una sede.» (sede).
+- Cada campo visible tiene `id` único y su `<label for>`: 5 formularios de alta con ids nuevos (`altaCatNombre`, `altaPriColor`, `altaSedeCiudad`, `altaAreaSedeId`, …) y los 6 modales con los `id` que ya tenían.
+- Los 6 modales: `aria-labelledby` + `id` en el título (`modalEdit…Titulo`), `aria-label="Cerrar"` en el `btn-close`, `modal-dialog-scrollable`. IDs, `abrirEdit…` y rutas sin cambios.
+- Incidencia durante el cambio: mi regex partió un `<input>` en el `=>` de `Model.Prioridades.Max(p => p.Orden)` (error de compilación); se reparó a mano y se revisaron los demás `id` insertados (11 con prefijo `alta…`).
+
+### Medición (Chrome DevTools; pestañas cargadas en iframes del ancho exacto, mismo origen)
+| Comprobación | Resultado |
+|---|---|
+| Formularios con `data-validar` | 11 (categorías 2, prioridades 2, estados 1, tipos 2, sedes 2, áreas 2) |
+| ids duplicados en la página (6 pestañas, con modales) | 0 |
+| Campos sin nombre accesible / `label for` rotos (6 pestañas) | 0 / 0 |
+| Objetivos <44 px en los 5 formularios de alta a 375, 600 y 768 px | 0 |
+| Objetivos <44 px dentro de los 6 modales a 375x400 | 0 |
+| Alta enviada vacía (5 formularios, a 375 px) | mensaje en español junto al campo, `aria-invalid="true"` y `aria-describedby` apuntando al mensaje; no se envía (Sedes y Áreas muestran 2 mensajes: «El nombre es obligatorio.» + «La ciudad es obligatoria.» / «Selecciona una sede.») |
+| Modal de edición con el campo obligatorio vacío (5 modales con campo obligatorio) | «El nombre es obligatorio.» asociado (`editCatNombre`, `editPriNombre`, `editTipoNombre`, `editSedeNombre`, `editAreaNombre`); Estados no tiene campos obligatorios |
+| Envío con datos válidos (Sedes, alta y edición) | el evento llega al final sin `defaultPrevented` y con la acción correcta (`/Configuracion/CrearSede`, `/Configuracion/EditarSede`): `site.js` no bloquea; el envío se cancelaba a propósito después, no se guardó nada |
+| 6 modales a 375x400 abiertos con su disparador real (`abrirEdit…`) | caben (bordes 7..393, 22..378 o 65..335 de 400), cuerpo con scroll interno cuando hace falta (363/223 y 277/223), pie con «Guardar» alcanzable, `aria-labelledby` resuelve al título, `aria-label="Cerrar"`, se cierran bien |
+| Desborde a 600, 768 y 1280 (6 pestañas) | `scrollWidth` = ancho del viewport, 0 elementos fuera de ventana; el formulario de alta queda bajo la tabla a 600/768 y a la derecha a 1280 |
+| Consola (página de Prioridades con modal abierto) | sin errores ni avisos; el aviso «No label associated with a form field» de la T10 desaparece |
+
+### No verificado en T11
+- Guardado real (POST) de altas y ediciones, y el comportamiento tras el envío (redirección y `TempData`): no se ejecutó para no modificar la configuración real.
+- Errores de servidor (por ejemplo nombre duplicado): la vista no los pinta junto al campo; se muestran con `TempData["Error"]` arriba (comportamiento anterior, sin cambios).
+- Mensajes de campos opcionales mal formados (por ejemplo orden no numérico): `site.js` solo valida `required`.
+- Otros roles: la pantalla es solo del Administrador.
+- La cuenta `qa_admin` sigue con la contraseña `abc` (incidente de la T9); no se usó.
+
+
+## T12. Inicio por rol, Home, Error, Privacidad, Dashboard, Reportes y Login
+
+Archivos: `Views/Users/Login.cshtml`, `Views/Home/{Index,Privacy,Administrador,Soporte,Supervisor,Usuario}.cshtml`, `Views/Dashboard/Index.cshtml`, `Views/Reportes/Index.cshtml` y `wwwroot/css/site.css` (1 regla nueva en <=991 px). `Error.cshtml` no se tocó (se mide tal cual). Sin cambios de servidor ni ViewModels. `dotnet build`: 0 errores; imagen reconstruida con `docker-compose up -d --build app` (3 veces). Capturas `capturas/t12-375x400-login.png`, `t12-1280-login.png`, `t12-375-dashboard-donut.png`.
+
+### Cambios
+- **Login**: `aria-label` en usuario y contraseña (sin etiqueta visible por diseño), iconos `aria-hidden`, botón de mostrar contraseña con `aria-label` («Mostrar/Ocultar contraseña», actualizado por el script existente) y `aria-controls`. `site.css` (<=991 px): `.login-input-group, .btn-login { min-height: var(--tap-min) }` (medían 42 px a 375 px). Degradado y colores de marca sin cambios.
+- **Inicios por rol (4)**: `.page-header` + `h1.page-title` (antes `h2`), subtítulo `page-subtitle`, badge del rol en `.page-actions`; rejilla `col-12 col-sm-6 col-lg-3/4` (antes `col-md-3/4`: 4 tarjetas de ~190 px a 768 px) y `col-12 col-md-6`; emojis/iconos de tarjeta con `aria-hidden`.
+- **Home/Index**: `h1.page-title`. **Home/Privacy**: `.page-header` + `h1.page-title`.
+- **Dashboard**: `.page-header`/`h1`; cada `<canvas>` dentro de `.chart-box` (260 px en <=991, 300 px en escritorio) con `role="img"` y `aria-label` en español; `maintainAspectRatio:false` en el gráfico de línea (leyenda abajo); etiquetas truncadas con «…» (16 caracteres en el eje Y de técnicos, 14 en el eje X de categorías) y rotación máx. 60° con `autoSkip`; **guarda** `if (typeof Chart !== 'undefined') { … }` alrededor de todo el script de gráficos; emojis decorativos `aria-hidden`; enlace «Ver repuestos →» con `.enlace-tap`.
+- **Reportes**: `.page-header`/`h1`; 8 filtros con `label for` (antes sin `for`) y rejilla `col-12 col-md-6 col-lg-2` (≥992 px igual que antes); tarjetas `col-12 col-md-6 col-lg-4`; iconos de botones y emojis `aria-hidden`.
+
+### Medición (Chrome DevTools; pantallas cargadas en iframes del ancho exacto, mismo origen)
+| Pantalla | 375 | 600 | 768 | 1280 |
+|---|---|---|---|---|
+| Inicio `/Home/Index` | desborde 0, 0 <44 px, 0 sin nombre, 0 ids dup. | igual | igual | igual |
+| Inicio Administrador | igual | igual | igual | igual |
+| Error `/Home/Error` | igual | igual | igual | igual |
+| Dashboard (admin) | igual | igual | igual | igual |
+| Reportes | igual | igual | igual | igual |
+| Login | desborde 0; con 375x400: alcanzable desplazando (scrollH 458 > 400) | 0, 0 <44 px | 0, 0 <44 px | 0, botón y campos 45 px |
+
+- `scrollWidth` del documento = ancho del viewport en todas las combinaciones; 0 elementos fuera de ventana.
+- **Login a 375x400** (teclado en pantalla simulado): sin desborde horizontal; el botón «Ingresar» (44 px) queda alcanzable desplazando en vertical hasta el final (scrollY 56). Botón de mostrar contraseña 44x44, campos de 44-47 px. El script alterna `type` y `aria-label` correctamente (`password`↔`text`). Contrastes medidos: subtítulo blanco sobre `#2166b8` 5,74:1, «Bienvenido» sobre `#123d73` 10,82:1, marcador de posición `#5a6b82` sobre `#f8fafc` 5,20:1. Degradado `linear-gradient(135deg, rgb(26,83,153) → rgb(18,61,115))` sin cambio. Con envío vacío salen «El usuario, correo o teléfono es obligatorio.» y «La contraseña es obligatoria.», asociados al campo (`err-…`).
+- **Dashboard a 375 px** (6 gráficos): cada `.chart-box` 305x260 dentro de la ventana, 0 ejes cortados; leyendas de donuts y línea abajo (dentro del canvas). Prueba con 12 etiquetas de ~50 caracteres inyectadas en el cliente: tras el recorte el área de dibujo de categorías pasó de 53 a 265 px de ancho (12 etiquetas rotadas 60°) y el de técnicos 183x216 px; el documento no desborda. Los donuts mostraban una captura a medio dibujar en la captura de página completa (animación al redimensionar); con captura normal se ven completos.
+- **Guarda con la librería de gráficos no disponible** (simulada con `Object.defineProperty(window,'Chart',…)` antes de cargar la CDN, no bloqueando la red): `typeof Chart` = `undefined`, 6 canvas vacíos, los 3 indicadores visibles, sin errores ni avisos en consola, sin desborde.
+- Consola: sin errores ni avisos en Dashboard, Login y las demás.
+
+### Hallazgos
+- **`Home/Privacy.cshtml` es una vista huérfana**: `HomeController` no tiene acción `Privacy` ni hay enlaces a ella; `/Home/Privacy` responde 404. No se puede medir en la app. Se maquetó igual (cabecera estándar) por si se enlaza; las cuentas de control (32 pantallas) la cuentan, pero no es alcanzable.
+- Bootstrap es la **5.1.0**: clases como `bg-success-subtle`, `text-*-emphasis` no existen en esa versión (aparecen en los badges de Reportes y en los KPI del Dashboard sin efecto; el texto queda con el color por defecto, que sí cumple contraste). No se cambiaron (cambiaría el aspecto).
+
+### No verificado en T12
+- **Inicios de Supervisor, Soporte y Usuario con su rol** (solo hay sesión de Administrador; el usuario decidió cerrar la tarea sin ellos). Se cambió su marcado con el mismo patrón que el del Administrador (cabecera, rejilla, `aria-hidden`), pero no se midió ninguno. `Home/Administrador` sí se midió. Tampoco el Dashboard ni los Reportes con los roles Supervisor/Soporte (el Dashboard de Soporte muestra «Mi actividad», sin gráficos de técnico).
+- Dashboard con CDN realmente bloqueada en red: se simuló en cliente; la lógica de la guarda es la misma.
+- Descargas de Reportes (Excel/PDF): no se pulsaron.
+- Login con credenciales reales (pantalla de error de servidor): no se ejercitó más allá del envío vacío de cliente.
+- Zoom/texto al 200 % (T13).
+- La cuenta `qa_admin` sigue con la contraseña `abc` (incidente de la T9); no se usó. La sesión de Administrador se cerró para medir el Login.
+
+
+## T13. Verificación global y cierre (verificación hecha; cierre pendiente de aprobación)
+
+Rol Administrador (único con sesión); cuenta `qa_admin` inutilizable por el incidente de la T9. `dotnet build`: 0 errores; imagen reconstruida con `docker-compose up -d --build app` tras cada cambio. Capturas `capturas/t13-1280-{1-tickets,2-activos,3-repuestos,4-usuarios,5-configuracion,6-dashboard}.png`.
+
+### Búsquedas globales (RF-20, RF-22, RF-2, RF-25)
+- `outline:\s*(none|0)|box-shadow:\s*none` en `site.css` y en las vistas: **0** resultados.
+- `<label class="form-label` sin `for`/`asp-for`: **0**.
+- Tablas: **14** `<table>`, **14** con `tabla-apilable`; `table-responsive` en las 9 vistas con tabla (Configuración 6).
+- Truncados: solo `text-truncate` en 4 sitios (tarjeta de Nuevos, nombre del usuario del menú, nombre de adjunto, enlace de adjunto de Details); en <=991 px `.text-truncate` pasa a texto completo (RF-2). Anchos fijos restantes: columna `#` de listados, `max-width` de tarjetas de formulario y de modales (caben con el margen de 8 px), muestras de color y avatar de 32 px.
+
+### Cambios hechos durante la T13 (hallazgos reales de la verificación)
+| Hallazgo | Cómo se detectó | Corrección |
+|---|---|---|
+| Separación entre objetivos contiguos de **7 px** en vez de 8 px: `.5rem` = 7 px con `html` a 14 px y las utilidades `gap-2`, `g-2`, `mb-2`… de Bootstrap (`!important`) pisaban `--gap-acciones` | auditor de pares de objetivos (CF-5), Activos/Tickets/Edit/etc. a 375 y 600 px | `site.css` en <=991 px: `.gap-2`, `.g-2/.gy-2/.gx-2`, `.mb-2`, `.mt-2`, `.my-2`, `.ms-2`, `.me-2` a `max(.5rem,8px)` |
+| Pestañas de Configuración **pegadas** (0 px) | auditor, 6 pestañas a 375/600/768 px | `.nav-tabs { column-gap: 8px; row-gap: 9px }` en <=991 (el `-1px` de `.nav-link` resta 1 px); a 1280 siguen pegadas |
+| Enlace de título en tabla de 40 px de ancho a 600 px | auditor | `min-width: var(--tap-min)` en `.tabla-apilable td > a` (<=991 px) |
+| Modal «¿Tomar este ticket?» (`#modalTomar`) sin título asociado (T4) | barrido de los 19 modales | `aria-labelledby` + `id` del título + `modal-dialog-scrollable` |
+| «← Volver» (`btn-outline-secondary`, `#6c757d` sobre `#f4f6f9`) 4,33:1 | Lighthouse | `.btn-outline-secondary` con `--color-muted-fuerte` (`#5a6b82`) |
+| Botones de contorno primary/success/danger sobre el fondo de página (`#0d6efd` 4,15:1) | Lighthouse (Activos, Herramientas) | `#0b5ed7` (5,4:1), `#146c43`, `--color-danger-texto`; el relleno al pasar el ratón no cambia |
+| Pestañas `.nav-link` `#0d6efd` 4,15:1 | Lighthouse (6 pestañas de Configuración) | `.nav-link` con `--color-primary` como los enlaces |
+| `<code>` rosa `#d63384` 4,15:1 (Request ID de la página de Error) | Lighthouse | `code { color:#b02a6e }` |
+| Falta landmark `main` en el Login | Lighthouse | `<main class="w-100 d-flex justify-content-center">` en `_LoginLayout` |
+| Saltos de encabezados `h1`→`h6` (Reportes) y `h1`→`h5` (inicios por rol) | Lighthouse | `h2 class="h6"` / `h2 class="card-title h5"` (mismo tamaño visual) |
+| Fila «← Herramientas / Herramienta #n» de las cabeceras de detalle desbordaba 5 px con zoom del 200 % a 188 px | zoom 200 % | `flex-wrap` en las 5 cabeceras de detalle |
+
+### CF-1 / CF-2 / CF-5 — barrido de anchos con auditor (iframes del ancho exacto)
+- **124 combinaciones pantalla x ancho** (375/600/768/1280) con 0 fallos de: desborde del documento, elementos fuera de ventana, tablas (apilada a 375 px, formato de tabla con scroll solo interno a 600/768/1280), objetivos <44 px, pares de objetivos con <8 px, campos sin nombre accesible e ids duplicados. Pantallas: Tickets (Index, Nuevos, Create, Details/1, Edit/1), Seguimiento, Inventario (7), Campo (6), Usuarios (2), Configuración (6 pestañas), Dashboard, Reportes, Inicio del Administrador y Error; el Login se midió aparte (T12: botón de 44 px, campos de 44-47 px).
+- **Tablas: 13 de 14 medidas en este barrido** (Tickets/Index, Seguimiento, Activos, Herramientas, Visitas, Repuestos, Usuarios y las 6 de Configuración). `Tickets/Nuevos` no muestra tabla ahora (no hay tickets nuevos y la vista pinta el estado vacío); su tabla se midió en la T4.
+- **Modales: los 19 distintos** (`modalTomar`, `modalCambiarPassword`, `confirmCerrarModal`, `bajaModal`, `asignarModal`, `devolverModal`, `asignarActivoModal`, `asignarHModal`, `devolverHModal`, `consumoModal`, `stockModal`, `editModal`, `confirmModal` y los 6 `modalEdit…`) abiertos a 375x400, 600x900, 768x1024 y 1280x900 (76 combinaciones): 0 desbordes, contenido dentro de la ventana, pie alcanzable, 0 objetivos <44 px en <=991 px, 0 campos sin nombre, título asociado y botón de cierre con nombre. Cuenta de control: **19 / 19**.
+- Cuenta de control de pantallas: **27 de 32** medidas directamente; faltan 5 (ver «No verificado»).
+
+### CF-3 — Lighthouse de accesibilidad (móvil) y consola
+- **Accesibilidad 100** en las 26 pantallas medidas con el Administrador y en el Login: Tickets (Index, Nuevos, Create, Details, Edit), Seguimiento, Inventario (Activos, Herramientas, ActivoCreate, ActivoEdit, ActivoDetails, HerramientaCreate, HerramientaDetails), Campo (Visitas, Repuestos, VisitaCreate, RepuestoCreate, VisitaDetails, RepuestoDetails), Usuarios (Index, Create), Configuración (6 pestañas), Dashboard, Reportes, Inicio Administrador y Error. Siempre **0 campos sin nombre** (auditoría `label`/`aria-input-field-name` aprobada). El único aviso restante es SEO «sin meta descripción» (fuera de alcance) y, en el inicio del Administrador, un CLS de 0,082 de la categoría «navegación para agentes» (no accesibilidad).
+- Consola de Chrome: sin avisos de «campo sin etiqueta» en ninguna pantalla medida (línea base inicial ≈34).
+
+### CF-4 — foco visible
+- Regla global `a/button/input/select/textarea/[tabindex]/.btn/.page-link/.nav-link/.dropdown-item:focus-visible` con aro de 2 px y separación de 2 px (`--focus-ring` `#1A5399`). Medido con foco de teclado real (Tab) a 1280 y 375 px: aro **7,66:1** sobre el fondo adyacente (7,08:1 en botones primarios), 7,66:1 blanco sobre azul en el menú lateral. Búsqueda de reglas que quiten el contorno: 0.
+
+### CF-6 — comparación visual (6 módulos a 1280 px)
+Tickets, Activos, Repuestos, Usuarios, Configuración y Dashboard: misma cabecera (`h1` + subtítulo + acciones a la derecha), mismos badges, botones de relleno y contorno de la misma altura y tarjetas con las mismas sombras y bordes (capturas `t13-1280-*.png`).
+
+### CF-10 y RF-11 — menú lateral (375 px)
+Abre con el botón («Abrir menú», `aria-expanded`/`aria-controls`), se cierra con **Escape** (tecla real), con el fondo de cierre y al elegir una opción; en los tres casos el foco vuelve al botón. Cerrado no es tabulable (0 enlaces/botones tabulables). No tapa el contenido de forma permanente (`app-main` a 0 px de margen).
+
+### RF-27 — zoom y texto al 200 %
+- Zoom del 200 % (ventana a la mitad: 188, 384 y 640 px) y texto al 200 % (`font-size` de `html` doblado) a 375, 768 y 1280 px sobre 12 pantallas representativas (72 combinaciones): 0 desbordes tras corregir las cabeceras de detalle; repetido para las 5 vistas de detalle (30 combinaciones, 0 fallos). Ningún control queda sin área (0 controles de 0 px).
+
+### CF-7 — `dotnet build`
+`dotnet build SistemaTickets.sln`: **0 errores**.
+
+### CF-9 — lista manual para el commit (CF-1 a CF-8)
+- CF-1 desborde 0 a 375/600/768/1280 en las pantallas medidas y en los 19 modales.
+- CF-2 las 14 tablas apiladas a 375 px y tabla con scroll interno a 600-1280 px (13 en el barrido final, Nuevos en T4).
+- CF-3 Lighthouse accesibilidad 100 y 0 campos sin nombre en 27 pantallas.
+- CF-4 foco con aro de 2 px a ≥7:1; 0 reglas que lo quiten.
+- CF-5 0 objetivos <44 px y 0 pares a <8 px en <=991 px; tamaños sin cambios a 1280 px.
+- CF-6 capturas de 6 módulos a 1280 px coherentes.
+- CF-7 `dotnet build` sin errores.
+- CF-8 recorrido con el Administrador: acciones y modales abiertos con su disparador real en T4-T12; consola sin errores nuevos.
+
+### No verificado (se declara explícitamente)
+- **5 de las 32 pantallas**: Inicio (`Home/Index`, redirige al panel del rol), **Privacidad** (vista huérfana: no tiene acción, `/Home/Privacy` da 404) y los inicios de **Supervisor, Soporte y Usuario** (no hay sesión con esos roles; decisión del usuario en la T12). En consecuencia, CF-3 y CF-8 «con cada rol» solo se cumplen para el Administrador.
+- **Paginaciones con ≥200 registros** (CF-10 / RF-28): hay 7-10 registros por listado y no se crearon datos de prueba. La barra se probó en T2/T3/T4 (ventana de 7 elementos con 300 páginas, móvil «n de total») y las 6 listas usan el mismo parcial `_Paginacion`.
+- **Roles Supervisor, Soporte y Usuario** en el resto de pantallas (Seguimiento, Tickets, Inventario, Campo según rol): solo se midió lo que ve el Administrador.
+- Acciones POST reales (crear, editar, asignar, cerrar, descargar reportes): no se ejecutaron para no alterar datos; el único POST real fue el incidente de la T9 (contraseña de `qa_admin` en `abc`, **sigue pendiente de restablecer**).
+- Lighthouse en modo escritorio y con los modales abiertos (los modales se midieron con el auditor propio, no con Lighthouse).
+- Lector de pantalla real, CDN de gráficos bloqueada en red (simulado en cliente) y Select2 hidden-accessible (excluido de las mediciones por ser el `select` oculto de la librería).
+- Spec 003 **no** marcada como «implementada» ni `CLAUDE.md`/`tasks.md` (T13) actualizados: requieren la orden de cierre del usuario.

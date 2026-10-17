@@ -6,14 +6,14 @@
     var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h4 class="mb-0 fw-bold">Visitas Técnicas</h4>
-        <small class="text-muted">
+        <h1 class="page-title">Visitas Técnicas</h1>
+        <small class="page-subtitle">
             Mostrando @Model.DesdeRegistro–@Model.HastaRegistro de @Model.TotalRegistros visitas
         </small>
     </div>
-    <div class="d-flex gap-2">
+    <div class="page-actions">
         <a asp-action="Repuestos" class="btn btn-outline-primary btn-sm">Ver Repuestos</a>
         <a asp-action="VisitaCreate" class="btn btn-primary btn-sm px-3">+ Nueva Visita</a>
     </div>
@@ -21,23 +21,23 @@
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
         @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
 }
 
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body py-3">
         <form method="get" asp-action="Visitas" class="row g-2 align-items-end">
-            <div class="col-md-5">
-                <label class="form-label small text-muted mb-1">Buscar dirección</label>
-                <input type="text" name="search" value="@Model.Search"
+            <div class="col-12 col-md-6 col-lg-5">
+                <label for="filtroSearch" class="form-label small text-muted mb-1">Buscar dirección</label>
+                <input type="text" id="filtroSearch" name="search" value="@Model.Search"
                        class="form-control form-control-sm" placeholder="Dirección o descripción..." />
             </div>
-            <div class="col-md-3">
-                <label class="form-label small text-muted mb-1">Estado</label>
-                <select name="estado" class="form-select form-select-sm">
+            <div class="col-12 col-md-6 col-lg-3">
+                <label for="filtroEstado" class="form-label small text-muted mb-1">Estado</label>
+                <select id="filtroEstado" name="estado" class="form-select form-select-sm">
                     <option value="">Todos</option>
                     @foreach (var e in SistemaTickets.Domain.Entities.VisitaTecnica.Estados)
                     {
@@ -45,11 +45,9 @@
                     }
                 </select>
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary btn-sm w-100">Buscar</button>
-            </div>
-            <div class="col-md-2">
-                <a asp-action="Visitas" class="btn btn-outline-secondary btn-sm w-100">Limpiar</a>
+            <div class="col-12 col-lg-4 acciones-form d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm flex-grow-1">Buscar</button>
+                <a asp-action="Visitas" class="btn btn-outline-secondary btn-sm flex-grow-1">Limpiar</a>
             </div>
         </form>
     </div>
@@ -58,7 +56,7 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 tabla-apilable">
                 <thead class="table-light">
                     <tr>
                         <th class="ps-4" style="width:50px">#</th>
@@ -76,7 +74,11 @@
                 <tbody>
                     @if (!Model.Visitas.Any())
                     {
-                        <tr><td colspan="7" class="text-center py-5 text-muted">No se encontraron visitas.</td></tr>
+                        <tr>
+                            <td colspan="7" class="fila-vacia p-0">
+                                <partial name="_EstadoVacio" model='("fa-solid fa-route", "No se encontraron visitas.", (string?)null, (string?)null)' />
+                            </td>
+                        </tr>
                     }
                     else
                     {
@@ -92,23 +94,23 @@
                                 _             => "secondary"
                             };
                             <tr>
-                                <td class="ps-4 text-muted small">@num</td>
-                                <td>
+                                <td data-label="#" class="ps-4 text-muted small">@num</td>
+                                <td data-label="Dirección">
                                     <a asp-action="VisitaDetails" asp-route-id="@v.Id"
                                        class="fw-semibold text-decoration-none text-dark">
                                         @v.Direccion
                                     </a>
                                 </td>
-                                <td class="small">@v.FechaVisita.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                                <td><span class="badge bg-@estadoColor">@v.Estado</span></td>
+                                <td data-label="Fecha visita" class="small">@v.FechaVisita.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td data-label="Estado"><span class="badge bg-@estadoColor">@v.Estado</span></td>
                                 @if (role is "Administrador" or "Supervisor")
                                 {
-                                    <td class="small text-muted">@v.Tecnico.NombreCompleto</td>
+                                    <td data-label="Técnico" class="small text-muted">@v.Tecnico.NombreCompleto</td>
                                 }
-                                <td class="small text-muted">
+                                <td data-label="Ticket" class="small text-muted">
                                     @(v.Ticket is null ? "—" : $"#{v.Ticket.Id}")
                                 </td>
-                                <td class="text-end pe-4">
+                                <td class="text-end pe-4 celda-acciones">
                                     <a asp-action="VisitaDetails" asp-route-id="@v.Id"
                                        class="btn btn-outline-primary btn-sm" title="Ver" aria-label="Ver">
                                         <i class="fa-solid fa-eye" aria-hidden="true"></i>
@@ -124,22 +126,9 @@
     </div>
 </div>
 
-@if (Model.TotalPaginas > 1)
-{
-    <nav class="mt-4 d-flex justify-content-center">
-        <ul class="pagination pagination-sm mb-0">
-            <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
-                <a class="page-link" href="?page=@(Model.PaginaActual-1)&search=@Model.Search&estado=@Model.FiltroEstado">‹</a>
-            </li>
-            @for (int i = 1; i <= Model.TotalPaginas; i++)
-            {
-                <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
-                    <a class="page-link" href="?page=@i&search=@Model.Search&estado=@Model.FiltroEstado">@i</a>
-                </li>
-            }
-            <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
-                <a class="page-link" href="?page=@(Model.PaginaActual+1)&search=@Model.Search&estado=@Model.FiltroEstado">›</a>
-            </li>
-        </ul>
-    </nav>
+@{
+    Func<int, string> urlPagina = n =>
+        "?page=" + n + "&search=" + Uri.EscapeDataString(Model.Search ?? "") +
+        "&estado=" + Uri.EscapeDataString(Model.FiltroEstado ?? "");
 }
+<partial name="_Paginacion" model="(Model.PaginaActual, Model.TotalPaginas, urlPagina)" />

@@ -8,21 +8,23 @@
 @* Token CSRF global para AJAX *@
 @Html.AntiForgeryToken()
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header">
     <div>
-        <h4 class="mb-0 fw-bold">Gestión de Usuarios</h4>
-        <small class="text-muted">
+        <h1 class="page-title">Gestión de Usuarios</h1>
+        <small class="page-subtitle">
             Mostrando @Model.DesdeRegistro–@Model.HastaRegistro de @Model.TotalRegistros usuarios
         </small>
     </div>
-    <a asp-action="Create" class="btn btn-primary btn-sm px-3">+ Nuevo Usuario</a>
+    <div class="page-actions">
+        <a asp-action="Create" class="btn btn-primary btn-sm px-3">+ Nuevo Usuario</a>
+    </div>
 </div>
 
 @if (TempData["Success"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show" role="alert">
         @TempData["Success"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
     </div>
 }
 
@@ -30,25 +32,23 @@
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body py-3">
         <form method="get" asp-action="Index" class="row g-2 align-items-end">
-            <div class="col-md-5">
-                <label class="form-label small text-muted mb-1">Buscar</label>
-                <input type="text" name="search" value="@Model.Search"
+            <div class="col-12 col-md-6 col-lg-5">
+                <label for="filtroSearch" class="form-label small text-muted mb-1">Buscar</label>
+                <input type="text" id="filtroSearch" name="search" value="@Model.Search"
                        class="form-control form-control-sm"
                        placeholder="Nombre, apellido o usuario..." />
             </div>
-            <div class="col-md-3">
-                <label class="form-label small text-muted mb-1">Estado</label>
-                <select name="activo" class="form-select form-select-sm">
+            <div class="col-12 col-md-6 col-lg-3">
+                <label for="filtroActivo" class="form-label small text-muted mb-1">Estado</label>
+                <select id="filtroActivo" name="activo" class="form-select form-select-sm">
                     <option value="" selected="@(Model.FiltroActivo == null)">Todos</option>
                     <option value="true"  selected="@(Model.FiltroActivo == true)">Activos</option>
                     <option value="false" selected="@(Model.FiltroActivo == false)">Inactivos</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary btn-sm w-100">Buscar</button>
-            </div>
-            <div class="col-md-2">
-                <a asp-action="Index" class="btn btn-outline-secondary btn-sm w-100">Limpiar</a>
+            <div class="col-12 col-lg-4 acciones-form d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm flex-grow-1">Buscar</button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm flex-grow-1">Limpiar</a>
             </div>
         </form>
     </div>
@@ -58,7 +58,7 @@
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 tabla-apilable">
                 <thead class="table-light">
                     <tr>
                         <th class="ps-4" style="width:40px">#</th>
@@ -75,8 +75,8 @@
                     @if (!Model.Usuarios.Any())
                     {
                         <tr>
-                            <td colspan="8" class="text-center py-5 text-muted">
-                                No se encontraron usuarios.
+                            <td colspan="8" class="fila-vacia p-0">
+                                <partial name="_EstadoVacio" model='("fa-solid fa-users", "No se encontraron usuarios.", (string?)null, (string?)null)' />
                             </td>
                         </tr>
                     }
@@ -86,26 +86,26 @@
                         @foreach (var u in Model.Usuarios)
                         {
                             <tr>
-                                <td class="ps-4 text-muted small">@num</td>
-                                <td>
+                                <td data-label="#" class="ps-4 text-muted small">@num</td>
+                                <td data-label="Nombre">
                                     <span class="fw-semibold">@u.NombreCompleto</span>
                                 </td>
-                                <td class="text-muted">@u.Username</td>
-                                <td class="text-muted small">@u.Email</td>
-                                <td class="text-muted small">@(u.NumeroTelefono ?? "—")</td>
-                                <td>
+                                <td data-label="Usuario" class="text-muted">@u.Username</td>
+                                <td data-label="Email" class="text-muted small">@u.Email</td>
+                                <td data-label="Teléfono" class="text-muted small">@(u.NumeroTelefono ?? "—")</td>
+                                <td data-label="Rol">
                                     @{
                                         var (rolClass, rolLabel) = u.Rol switch
                                         {
                                             RolUsuario.Administrador => ("success",   "Administrador"),
-                                            RolUsuario.Supervisor    => ("warning",   "Supervisor"),
-                                            RolUsuario.Soporte       => ("info",      "Soporte"),
+                                            RolUsuario.Supervisor    => ("warning text-dark", "Supervisor"),
+                                            RolUsuario.Soporte       => ("info text-dark", "Soporte"),
                                             _                        => ("secondary", "Usuario")
                                         };
                                     }
                                     <span class="badge bg-@rolClass">@rolLabel</span>
                                 </td>
-                                <td>
+                                <td data-label="Estado">
                                     @if (u.Activo)
                                     {
                                         <span class="badge bg-success">Activo</span>
@@ -115,16 +115,16 @@
                                         <span class="badge bg-danger">Inactivo</span>
                                     }
                                 </td>
-                                <td class="text-end pe-4">
-                                    <button class="btn btn-outline-primary btn-sm" title="Editar"
+                                <td class="text-end pe-4 celda-acciones">
+                                    <button class="btn btn-outline-primary btn-sm" title="Editar" aria-label="Editar"
                                             onclick="abrirEdicion(@u.Id)">
-                                        <i class="fa-solid fa-pen"></i>
+                                        <i class="fa-solid fa-pen" aria-hidden="true"></i>
                                     </button>
                                     @if (u.Activo)
                                     {
-                                        <button class="btn btn-outline-danger btn-sm ms-1" title="Inactivar"
+                                        <button class="btn btn-outline-danger btn-sm ms-1" title="Inactivar" aria-label="Inactivar"
                                                 onclick="inactivarUsuario(@u.Id, '@u.NombreCompleto')">
-                                            <i class="fa-solid fa-ban"></i>
+                                            <i class="fa-solid fa-ban" aria-hidden="true"></i>
                                         </button>
                                     }
                                 </td>
@@ -139,87 +139,65 @@
 </div>
 
 @* Paginación *@
-@if (Model.TotalPaginas > 1)
-{
-    <nav class="mt-4 d-flex justify-content-center">
-        <ul class="pagination pagination-sm mb-0">
-            <li class="page-item @(Model.PaginaActual == 1 ? "disabled" : "")">
-                <a class="page-link"
-                   href="?page=@(Model.PaginaActual - 1)&search=@Model.Search&activo=@Model.FiltroActivo">
-                    ‹ Anterior
-                </a>
-            </li>
-
-            @for (int i = 1; i <= Model.TotalPaginas; i++)
-            {
-                <li class="page-item @(i == Model.PaginaActual ? "active" : "")">
-                    <a class="page-link"
-                       href="?page=@i&search=@Model.Search&activo=@Model.FiltroActivo">@i</a>
-                </li>
-            }
-
-            <li class="page-item @(Model.PaginaActual == Model.TotalPaginas ? "disabled" : "")">
-                <a class="page-link"
-                   href="?page=@(Model.PaginaActual + 1)&search=@Model.Search&activo=@Model.FiltroActivo">
-                    Siguiente ›
-                </a>
-            </li>
-        </ul>
-    </nav>
+@{
+    Func<int, string> urlPagina = n =>
+        "?page=" + n + "&search=" + Uri.EscapeDataString(Model.Search ?? "") +
+        "&activo=" + (Model.FiltroActivo.HasValue ? (Model.FiltroActivo.Value ? "true" : "false") : "");
 }
+<partial name="_Paginacion" model="(Model.PaginaActual, Model.TotalPaginas, urlPagina)" />
 
 @* Modal de edición *@
-<div class="modal fade" id="editModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalTitulo">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold">Editar Usuario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title fw-bold" id="editModalTitulo">Editar Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <form id="editForm">
                 @Html.AntiForgeryToken()
                 <input type="hidden" id="editId" name="Id" />
                 <div class="modal-body">
 
-                    <div id="editErrors" class="alert alert-danger d-none"></div>
+                    <div id="editErrors" class="alert alert-danger d-none" role="alert"></div>
 
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Nombre de usuario</label>
+                        <div class="col-12 col-md-6">
+                            <label for="editUsername" class="form-label">Nombre de usuario</label>
                             <input type="text" id="editUsername" name="Username"
                                    class="form-control" required />
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">
+                        <div class="col-12 col-md-6">
+                            <label for="editPassword" class="form-label">
                                 Nueva contraseña
                                 <small class="text-muted">(dejar en blanco para no cambiar)</small>
                             </label>
                             <input type="password" id="editPassword" name="Password"
-                                   class="form-control" autocomplete="new-password" />
-                            <div class="form-text">Mínimo 12 caracteres, con mayúscula, minúscula, número y carácter especial. Evitá contraseñas comunes.</div>
+                                   class="form-control" autocomplete="new-password" aria-describedby="editPasswordAyuda" />
+                            <div id="editPasswordAyuda" class="form-text">Mínimo 12 caracteres, con mayúscula, minúscula, número y carácter especial. Evitá contraseñas comunes.</div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Nombre</label>
+                        <div class="col-12 col-md-6">
+                            <label for="editNombre" class="form-label">Nombre</label>
                             <input type="text" id="editNombre" name="Nombre"
                                    class="form-control" required />
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Apellido</label>
+                        <div class="col-12 col-md-6">
+                            <label for="editApellido" class="form-label">Apellido</label>
                             <input type="text" id="editApellido" name="Apellido"
                                    class="form-control" required />
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Email</label>
+                        <div class="col-12 col-md-6">
+                            <label for="editEmail" class="form-label">Email</label>
                             <input type="email" id="editEmail" name="Email"
                                    class="form-control" required />
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Teléfono</label>
+                        <div class="col-12 col-md-6">
+                            <label for="editTelefono" class="form-label">Teléfono</label>
                             <input type="text" id="editTelefono" name="NumeroTelefono"
                                    class="form-control" />
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Rol</label>
+                        <div class="col-12 col-md-6">
+                            <label for="editRol" class="form-label">Rol</label>
                             <select id="editRol" name="Rol" class="form-select" required>
                                 <option value="1">Administrador</option>
                                 <option value="3">Supervisor</option>
@@ -240,16 +218,16 @@
 </div>
 
 @* Modal de confirmación de inactivar *@
-<div class="modal fade" id="confirmModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalTitulo">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width:420px">
         <div class="modal-content border-0 shadow">
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold text-danger">Inactivar usuario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title fw-bold text-danger" id="confirmModalTitulo">Inactivar usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
             <div class="modal-body pt-2">
                 <p class="mb-1">¿Está seguro de inactivar al usuario:</p>
-                <p class="fw-bold fs-6 mb-3" id="confirmNombre"></p>
+                <p class="fw-bold fs-6 mb-3 text-break" id="confirmNombre"></p>
                 <p class="text-muted small mb-0">
                     El usuario no podrá iniciar sesión. Esta acción puede revertirse
                     editando el usuario y activándolo nuevamente.
@@ -284,8 +262,16 @@
         document.getElementById('editRol').value      = data.rol;
         document.getElementById('editPassword').value = '';
         document.getElementById('editErrors').classList.add('d-none');
+        marcarErrorPassword(false);
 
         new bootstrap.Modal(document.getElementById('editModal')).show();
+    }
+
+    // Asocia el aviso de errores con el campo de contraseña cuando el error es de contraseña
+    function marcarErrorPassword(hayError) {
+        const pwd = document.getElementById('editPassword');
+        pwd.setAttribute('aria-describedby', hayError ? 'editPasswordAyuda editErrors' : 'editPasswordAyuda');
+        if (hayError) pwd.setAttribute('aria-invalid', 'true'); else pwd.removeAttribute('aria-invalid');
     }
 
     document.getElementById('editForm').addEventListener('submit', async function (e) {
@@ -300,8 +286,11 @@
             window.location.reload();
         } else {
             const box = document.getElementById('editErrors');
-            box.innerHTML = (result.errors ?? [result.message]).join('<br>');
+            const errores = result.errors ?? [result.message];
+            box.innerHTML = errores.join('<br>');
             box.classList.remove('d-none');
+            marcarErrorPassword(errores.some(m => /contrase/i.test(m ?? '')));
+            box.scrollIntoView({ block: 'nearest' });
         }
     });
 

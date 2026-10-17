@@ -11,13 +11,13 @@
 
 @Html.AntiForgeryToken()
 
-<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
-    <div>
-        <div class="d-flex align-items-center gap-2 mb-1">
+<div class="page-header align-items-start">
+    <div class="min-w-0">
+        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
             <a asp-action="Repuestos" class="btn btn-outline-secondary btn-sm">← Repuestos</a>
-            <span class="text-muted small">Repuesto #@Model.Id</span>
+            <span class="text-muted small flex-shrink-0">Repuesto #@Model.Id</span>
         </div>
-        <h4 class="mb-1 fw-bold">@Model.Nombre</h4>
+        <h1 class="page-title mb-2">@Model.Nombre</h1>
         <div class="d-flex gap-2 flex-wrap align-items-center">
             <span class="badge bg-secondary">@Model.Categoria</span>
             @if (!string.IsNullOrEmpty(Model.Codigo))
@@ -29,7 +29,7 @@
     </div>
     @if (esAdminOSupervisor)
     {
-        <div class="d-flex gap-2">
+        <div class="page-actions acciones-icono">
             <a asp-action="RepuestoEdit" asp-route-id="@Model.Id"
                class="btn btn-outline-primary btn-sm" title="Editar" aria-label="Editar">
                <i class="fa-solid fa-pen" aria-hidden="true"></i>
@@ -55,19 +55,19 @@
             <div class="card-body p-0">
                 @if (!stocks.Any())
                 {
-                    <div class="text-center text-muted py-4">Sin stock registrado.</div>
+                    <partial name="_EstadoVacio" model='("fa-solid fa-boxes-stacked", "Sin stock registrado.", (string?)null, (string?)null)' />
                 }
                 else
                 {
                     @foreach (var s in stocks)
                     {
                         var bajoBadge = s.BajoMinimo ? "bg-danger" : "bg-success";
-                        <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3">
-                            <div>
+                        <div class="d-flex justify-content-between align-items-center gap-3 border-bottom px-3 px-sm-4 py-3">
+                            <div class="min-w-0 text-break">
                                 <div class="fw-semibold small">@s.SedeNombre</div>
                                 <div class="text-muted small">Mínimo: @s.CantidadMinima @Model.UnidadMedida</div>
                             </div>
-                            <span class="badge @bajoBadge fs-6">
+                            <span class="badge @bajoBadge fs-6 flex-shrink-0">
                                 @s.CantidadActual @Model.UnidadMedida
                                 @if (s.BajoMinimo) {<span> ⚠</span>}
                             </span>
@@ -85,14 +85,14 @@
             <div class="card-body p-0">
                 @if (!Model.Consumos.Any())
                 {
-                    <div class="text-center text-muted py-4">Sin consumos registrados.</div>
+                    <partial name="_EstadoVacio" model='("fa-solid fa-clipboard-list", "Sin consumos registrados.", (string?)null, (string?)null)' />
                 }
                 else
                 {
                     @foreach (var c in Model.Consumos.OrderByDescending(x => x.FechaConsumo).Take(20))
                     {
-                        <div class="d-flex justify-content-between align-items-center border-bottom px-4 py-3">
-                            <div>
+                        <div class="d-flex justify-content-between align-items-center gap-3 border-bottom px-3 px-sm-4 py-3">
+                            <div class="min-w-0 text-break">
                                 <div class="fw-semibold small">@c.TecnicoNombreCompleto</div>
                                 <div class="text-muted small">
                                     @c.FechaConsumo.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
@@ -108,7 +108,7 @@
                                 @if (!string.IsNullOrEmpty(c.Observaciones))
                                 {<div class="text-muted small">@c.Observaciones</div>}
                             </div>
-                            <span class="badge bg-primary fs-6">@c.Cantidad @Model.UnidadMedida</span>
+                            <span class="badge bg-primary fs-6 flex-shrink-0">@c.Cantidad @Model.UnidadMedida</span>
                         </div>
                     }
                 }
@@ -124,29 +124,29 @@
             <ul class="list-group list-group-flush">
                 @if (!string.IsNullOrEmpty(Model.Descripcion))
                 {
-                    <li class="list-group-item px-4 py-2">
+                    <li class="list-group-item px-3 px-sm-4 py-2">
                         <div class="text-muted small mb-1">Descripción</div>
-                        <div class="small">@Model.Descripcion</div>
+                        <div class="small text-break">@Model.Descripcion</div>
                     </li>
                 }
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Categoría</span>
-                    <span class="small fw-semibold">@Model.Categoria</span>
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Categoría</span>
+                    <span class="small text-end text-break min-w-0 fw-semibold">@Model.Categoria</span>
                 </li>
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Unidad</span>
-                    <span class="small">@Model.UnidadMedida</span>
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Unidad</span>
+                    <span class="small text-end text-break min-w-0">@Model.UnidadMedida</span>
                 </li>
                 @if (Model.PrecioUnitario > 0)
                 {
-                    <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                        <span class="text-muted small">Precio unitario</span>
-                        <span class="small fw-semibold">@Model.PrecioUnitario.ToString("C")</span>
+                    <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                        <span class="text-muted small flex-shrink-0">Precio unitario</span>
+                        <span class="small text-end text-break min-w-0 fw-semibold">@Model.PrecioUnitario.ToString("C")</span>
                     </li>
                 }
-                <li class="list-group-item d-flex justify-content-between px-4 py-2">
-                    <span class="text-muted small">Total consumos</span>
-                    <span class="small">@Model.Consumos.Count</span>
+                <li class="list-group-item d-flex justify-content-between gap-3 px-3 px-sm-4 py-2">
+                    <span class="text-muted small flex-shrink-0">Total consumos</span>
+                    <span class="small text-end text-break min-w-0">@Model.Consumos.Count</span>
                 </li>
             </ul>
         </div>
@@ -156,16 +156,16 @@
 @* Modal ajustar stock *@
 @if (esAdminOSupervisor)
 {
-    <div class="modal fade" id="stockModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+    <div class="modal fade" id="stockModal" tabindex="-1" aria-labelledby="stockModalTitulo">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fw-bold">Ajustar Stock</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title fw-bold" id="stockModalTitulo">Ajustar Stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Sede</label>
+                        <label for="selectSede" class="form-label fw-semibold">Sede</label>
                         <select id="selectSede" class="form-select">
                             @foreach (var s in sedes)
                             {
@@ -174,17 +174,17 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Tipo de movimiento</label>
+                        <label for="selectTipo" class="form-label fw-semibold">Tipo de movimiento</label>
                         <select id="selectTipo" class="form-select">
                             <option value="true">Entrada (sumar)</option>
                             <option value="false">Salida (restar)</option>
                         </select>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label fw-semibold">Cantidad</label>
+                        <label for="txtCantidad" class="form-label fw-semibold">Cantidad</label>
                         <input type="number" id="txtCantidad" class="form-control" value="1" min="1" />
                     </div>
-                    <div id="errorStock" class="alert alert-danger py-2 small d-none mt-2"></div>
+                    <div id="errorStock" class="alert alert-danger py-2 small d-none mt-2" role="alert"></div>
                 </div>
                 <div class="modal-footer border-0 pt-0 gap-2">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
