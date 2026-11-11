@@ -261,7 +261,20 @@ namespace SistemaTickets.Controllers
             var ticket = await _ticketService.GetByIdAsync(adjunto.Ticket.Id);
             if (ticket is null || !PuedeVerTicket(ticket)) return Forbid();
 
-            var (stream, contentType) = await _storageService.DownloadAsync(adjunto.RutaArchivo);
+            // Spec 004 (RF-12): con el destino carpeta, un adjunto registrado cuyo archivo no está
+            // (borrado, o subido cuando el destino era la nube) es un 404, no un error genérico.
+            // Solo se registra el id: la excepción no trae rutas y el nombre puede ser personal.
+            Stream stream;
+            string contentType;
+            try
+            {
+                (stream, contentType) = await _storageService.DownloadAsync(adjunto.RutaArchivo);
+            }
+            catch (FileNotFoundException)
+            {
+                _logger.LogWarning("Contenido del adjunto {AdjuntoId} no encontrado en el almacenamiento.", id);
+                return NotFound();
+            }
 
             // A2: nunca renderizar el adjunto inline — siempre forzar descarga, y evitar que
             // el navegador intente "adivinar" el tipo de contenido a partir del contenido.

@@ -31,6 +31,8 @@ aporte. Detalle técnico completo en `CLAUDE.md`; aquí solo estado, decisiones 
 
 - Spec 002-iconosAcciones IMPLEMENTADA (15/10/2026): 21 botones de acción (Ver/Editar/Asignar/Devolver/Tomar/Cerrar/Ajustar stock/Dar de baja) en 11 vistas pasan a solo icono FontAwesome con `title`+`aria-label`; Editar unificado a outline-primary. Pendiente de probar: Tomar ticket y roles Supervisor/Soporte. Sin commit aún.
 
+- MonsterASP.NET: desplegado por el usuario en sistema-tickets.runasp.net (sin Docker, `win-x86`). Tickets fallaba por la cadena de Azure (pegó la URL, no la connection string); el usuario no puede usar el portal de Azure y eligió adjuntos en carpeta del servidor → spec 004-almacenamientoLocal APROBADA (11/11/2026); plan y tareas aprobados; IMPLEMENTADA y desplegada (11/11/2026, T1-T7; sin commit). En MonsterASP: `Adjuntos__Destino=Carpeta`, `Adjuntos__Carpeta=../private/uploads`; `private` es escribible. El usuario rechazó un comando de verificación largo: preferir pasos cortos y separados. Crear ticket por POST exige `PrioridadId`. Docker: la app corre como root (para RF-7 usar `/proc/...`); probar configuraciones con un override de compose en el scratchpad. Verificación de funciones puras: programa desechable en el scratchpad que compila los .cs con `<Compile Include>` (la constitución prohíbe frameworks de tests). Pendientes: Data Protection en `private/keys`; el primer admin se crea a mano. `Encryption:Key` no se valida al arrancar y cambiarla deja ilegibles los datos cifrados.
+
 ## Aprendizajes y errores a evitar
 - Mapas FluentNHibernate usan namespace `MiNuevoProyecto.*` (herencia): no "corregirlo".
 - Auditoría de usuarios: capturar el valor "antes" en una variable antes de `UpdateAsync`

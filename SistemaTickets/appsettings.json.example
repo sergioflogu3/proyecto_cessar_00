@@ -20,6 +20,10 @@
     "FromAddress": "",
     "FromName": "SistemaTickets - Soporte"
   },
+  "Adjuntos": {
+    "Destino": "Nube",
+    "Carpeta": ""
+  },
   "AzureBlobStorage": {
     "ConnectionString": "UseDevelopmentStorage=true",
     "ContainerName": "sistema"

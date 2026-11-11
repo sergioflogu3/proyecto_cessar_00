@@ -39,7 +39,9 @@ namespace SistemaTickets
             // tickets con archivos depende de él. Validar acá, temprano, evita que la primera
             // falla sea una excepción críptica de Azure.Storage.Blobs recién cuando alguien sube
             // un adjunto.
-            ValidateAzureBlobStorageConnectionString(builder.Configuration["AzureBlobStorage:ConnectionString"]);
+            // Spec 004: el destino (nube o carpeta del servidor) se elige con Adjuntos:Destino;
+            // cada destino valida su propia configuración y registra su IStorageService.
+            ConfigurarAlmacenamientoAdjuntos(builder);
 
             // NHibernate
             var connectionString = ValidateConnectionString(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -72,7 +74,6 @@ namespace SistemaTickets
             builder.Services.AddScoped<IReporteRepository, ReporteRepository>();
             builder.Services.AddScoped<IReporteService, ReporteService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
-            builder.Services.AddSingleton<IStorageService, AzureBlobStorageService>();
             builder.Services.AddSingleton<ITokenRevocationService, InMemoryTokenRevocationService>();
             builder.Services.AddSingleton<ILoginAttemptService, InMemoryLoginAttemptService>();
 
@@ -364,6 +365,57 @@ namespace SistemaTickets
                     "AzureBlobStorage:ConnectionString no está configurada. Defínela mediante variable de " +
                     "entorno (AzureBlobStorage__ConnectionString), User Secrets o Azure Key Vault antes de " +
                     "iniciar la aplicación.");
+            }
+        }
+
+        // Spec 004 (RF-1 a RF-8): "Nube" (o sin valor, para no cambiar Docker ni despliegues
+        // existentes) usa Azure Blob Storage como hasta ahora; "Carpeta" guarda los adjuntos en
+        // Adjuntos:Carpeta y no exige ni toca la configuración de Azure. Cualquier error de
+        // configuración impide arrancar, igual que Jwt:Key o la cadena de conexión.
+        private static void ConfigurarAlmacenamientoAdjuntos(WebApplicationBuilder builder)
+        {
+            var destino = builder.Configuration["Adjuntos:Destino"]?.Trim();
+
+            if (string.IsNullOrEmpty(destino) || destino.Equals("Nube", StringComparison.OrdinalIgnoreCase))
+            {
+                ValidateAzureBlobStorageConnectionString(builder.Configuration["AzureBlobStorage:ConnectionString"]);
+                builder.Services.AddSingleton<IStorageService, AzureBlobStorageService>();
+                return;
+            }
+
+            if (destino.Equals("Carpeta", StringComparison.OrdinalIgnoreCase))
+            {
+                var env = builder.Environment;
+                var raiz = RutaAdjuntos.ResolverCarpeta(
+                    builder.Configuration["Adjuntos:Carpeta"],
+                    env.ContentRootPath,
+                    env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot"));
+
+                ComprobarEscrituraCarpetaAdjuntos(raiz);
+                builder.Services.AddSingleton<IStorageService>(new LocalFileStorageService(raiz));
+                return;
+            }
+
+            throw new InvalidOperationException(
+                $"Adjuntos:Destino tiene el valor \"{destino}\", que no es válido. Valores admitidos: " +
+                "\"Nube\" (Azure Blob Storage, por defecto) o \"Carpeta\" (Adjuntos:Carpeta).");
+        }
+
+        // RF-6, RF-7: crea la carpeta si no existe y prueba a escribir y borrar un archivo, para
+        // que un permiso que falta se vea al arrancar y no cuando alguien sube un adjunto.
+        private static void ComprobarEscrituraCarpetaAdjuntos(string raiz)
+        {
+            var prueba = Path.Combine(raiz, $".prueba-escritura-{Guid.NewGuid():N}");
+            try
+            {
+                Directory.CreateDirectory(raiz);
+                File.WriteAllText(prueba, string.Empty);
+                File.Delete(prueba);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                throw new InvalidOperationException(
+                    $"No se puede escribir en la carpeta de adjuntos \"{raiz}\" (Adjuntos:Carpeta): {ex.Message}", ex);
             }
         }
     }

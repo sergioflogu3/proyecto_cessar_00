@@ -10,7 +10,7 @@ Sistema de gestión de tickets de soporte técnico desarrollado en ASP.NET Core 
 - **Campo / Visitas Técnicas**: Registro de visitas a sedes con consumo de repuestos.
 - **Reportes**: Exportación a PDF (QuestPDF) y Excel (ClosedXML).
 - **Notificaciones**: Envío de correos electrónicos vía SMTP.
-- **Almacenamiento de Archivos**: Adjuntos de tickets en Azure Blob Storage.
+- **Almacenamiento de Archivos**: Adjuntos de tickets en Azure Blob Storage o en una carpeta privada del servidor, a elegir por configuración (ver «Adjuntos: nube o carpeta»).
 - **Autenticación**: JWT Bearer + Cookie dual para API y navegador.
 
 ## Tecnologías y Dependencias
@@ -32,7 +32,7 @@ Sistema de gestión de tickets de soporte técnico desarrollado en ASP.NET Core 
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [SQL Server](https://www.microsoft.com/sql-server) (local o Docker)
 - (Opcional) [Docker](https://docs.docker.com/get-docker/) y Docker Compose
-- (Opcional) [Azure Storage Emulator](https://learn.microsoft.com/azure/storage/common/storage-use-emulator) o cuenta de Azure Blob Storage para adjuntos
+- (Opcional) [Azure Storage Emulator](https://learn.microsoft.com/azure/storage/common/storage-use-emulator) o cuenta de Azure Blob Storage para adjuntos; sin ellos, se puede usar una carpeta del servidor (ver «Adjuntos: nube o carpeta»)
 
 ## Configuración
 
@@ -86,6 +86,43 @@ Edita `SistemaTickets/appsettings.json` antes de ejecutar:
 > certificado válido, no volver a `TrustServerCertificate=True` sin más. Si de todos modos lo
 > hacés como atajo temporal en desarrollo, la app lo va a loggear con una advertencia apenas
 > `ASPNETCORE_ENVIRONMENT` no sea `Development` (ver A5 en `cambios/`).
+
+### Adjuntos: nube o carpeta
+
+Los adjuntos de los tickets se guardan en Azure Blob Storage (**nube**, por defecto) o en una
+**carpeta** privada del servidor, para hostings sin acceso a Azure (spec
+`specs/004-almacenamientoLocal`). Se elige solo con configuración:
+
+| Clave (variable de entorno) | Valores | Por defecto |
+|---|---|---|
+| `Adjuntos:Destino` (`Adjuntos__Destino`) | `Nube` o `Carpeta` (sin distinguir mayúsculas) | `Nube` |
+| `Adjuntos:Carpeta` (`Adjuntos__Carpeta`) | Ruta absoluta, o relativa a la carpeta de la aplicación | — (obligatoria con `Carpeta`) |
+
+- **Nube**: comportamiento de siempre. Exige `AzureBlobStorage:ConnectionString` (en Docker
+  apunta a Azurite). Si no defines `Adjuntos:*`, nada cambia.
+- **Carpeta**: no exige ni usa la configuración de Azure. Cada archivo se guarda como
+  `tickets/<id del ticket>/<nombre aleatorio>.<extensión>`. El nombre original queda en la base
+  de datos y es el que recibe el usuario al descargar.
+- La app **no arranca** si `Adjuntos:Destino` tiene otro valor, si falta `Adjuntos:Carpeta`, si
+  no puede escribir en ella o si la carpeta está dentro de `wwwroot` (se serviría sin control
+  de permisos). El motivo aparece en el log de arranque.
+- Al cambiar de destino, los adjuntos subidos con el anterior no se migran: su descarga
+  devuelve 404.
+- En el destino carpeta, las copias de seguridad de los adjuntos son responsabilidad del
+  hosting o de quien despliega.
+
+**MonsterASP.NET** (hosting Windows/IIS, sin Docker): en **Websites → tu sitio → Scripting →
+Environment variables**, añade:
+
+```
+Adjuntos__Destino = Carpeta
+Adjuntos__Carpeta = ../private/uploads
+```
+
+Después pulsa **Restart application**. `../private/uploads` queda en la carpeta `private`,
+junto a `wwwroot`: MonsterASP la documenta como escribible por la aplicación, no accesible
+desde la web y respetada por los despliegues. Los archivos aparecen por FTP en
+`private/uploads/tickets/<id>/`.
 
 ## Levantar en Local
 
@@ -295,7 +332,8 @@ SistemaTickets/
 - Los cambios de rol y las desactivaciones de usuario quedan registrados en la tabla `AuditoriaUsuarios` (quién, a quién, campo, valor anterior/nuevo y fecha) — ver `AGENTS.md`/`CLAUDE.md`, sección Auth.
 - Si el token JWT no trae un identificador de usuario válido (claim faltante o corrupto), la petición se rechaza con 401 antes de llegar al controlador, en vez de continuar con un `UsuarioId=0` — ver `AGENTS.md`/`CLAUDE.md`, sección Auth.
 - Cerrar sesión (`/Users/Logout`) requiere POST + token anti-forgery, no GET — así ninguna página externa puede cerrarle la sesión a un usuario sin que él lo haga explícitamente (por ejemplo con un `<img src="...">` apuntando a esa URL).
-- `AzureBlobStorage:ConnectionString` se valida al arrancar igual que `Jwt:Key`/la cadena de conexión a la base (falla si está vacía). Las credenciales reales de Email/Azure Blob Storage (cuando se necesiten) van por `dotnet user-secrets` en desarrollo o variables de entorno en Docker/producción — nunca escritas en `appsettings.json` (ver `AGENTS.md`/`CLAUDE.md`, sección Configuración/External dependencies).
+- Con el destino de adjuntos `Nube` (el predeterminado), `AzureBlobStorage:ConnectionString` se valida al arrancar igual que `Jwt:Key`/la cadena de conexión a la base (falla si está vacía). Con `Carpeta`, lo que se valida al arrancar es la carpeta: debe estar configurada, admitir escritura y quedar fuera de `wwwroot` (ver «Adjuntos: nube o carpeta»).
+- Con el destino `Carpeta`, los adjuntos solo se descargan por la acción con control de permisos: la carpeta no se sirve por URL, el nombre en disco es aleatorio y una ruta registrada que intente salir de la carpeta (`..`, rutas absolutas) se responde con 404. Las credenciales reales de Email/Azure Blob Storage (cuando se necesiten) van por `dotnet user-secrets` en desarrollo o variables de entorno en Docker/producción — nunca escritas en `appsettings.json` (ver `AGENTS.md`/`CLAUDE.md`, sección Configuración/External dependencies).
 - `AllowedHosts` está restringido a `localhost;127.0.0.1` (no `"*"`) — cualquier request con un header `Host` distinto se rechaza con `400`, mitigando host-header injection. Si en algún momento se despliega con un dominio propio, hay que agregarlo acá (ver `AGENTS.md`/`CLAUDE.md`).
 - El eco de SQL de NHibernate (que incluye el valor real de cada parámetro — título/descripción de tickets, usernames, etc.) solo está activo en `Development`; fuera de ahí (Docker con `ASPNETCORE_ENVIRONMENT=Production`) queda apagado. En producción, además, los logs de namespaces `Microsoft.*` bajan a nivel `Warning` (`appsettings.Production.json`) para reducir ruido. Ningún log de la aplicación incluye el JWT ni un volcado de claims; el envío de copia de ticket por correo ya no loguea la dirección de email en texto plano (ver `AGENTS.md`/`CLAUDE.md`).
 

@@ -49,6 +49,13 @@ namespace SistemaTickets.Infrastructure.Security
             return allowed.MatchesSignature(actualHeader) ? allowed.ContentType : null;
         }
 
+        // Spec 004 (RF-11): MIME canónico de una extensión de la lista blanca, o null si no está.
+        // Lo usa el almacenamiento en carpeta al servir un archivo cuya extensión ya se validó al subirlo.
+        public static string? ContentTypePorExtension(string? extension) =>
+            !string.IsNullOrEmpty(extension) && AllowedTypes.TryGetValue(extension, out var allowed)
+                ? allowed.ContentType
+                : null;
+
         private static Func<byte[], bool> Signature(params byte[] expected) =>
             header => header.Length >= expected.Length && header.AsSpan(0, expected.Length).SequenceEqual(expected);
 
